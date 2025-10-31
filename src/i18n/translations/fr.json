@@ -14,8 +14,21 @@
     "empty": "Aucune transaction pour le moment"
   },
   "add": {
-    "title": "Ajouter une opération",
-    "subtitle": "Dépense ou recette, en quelques secondes"
+    "title": "Ajouter une dépense",
+    "subtitle": "Suivez vos dépenses",
+    "amount": "Montant",
+    "category": "Catégorie",
+    "selectCategory": "Sélectionner une catégorie",
+    "note": "Note",
+    "optional": "(Optionnel)",
+    "notePlaceholder": "Ajouter une note...",
+    "save": "Enregistrer la dépense",
+    "amountRequired": "Veuillez entrer un montant valide",
+    "categoryRequired": "Veuillez sélectionner une catégorie",
+    "noCategories": "Aucune catégorie de dépense disponible",
+    "success": "Succès",
+    "expenseAdded": "Dépense ajoutée avec succès",
+    "saveError": "Échec de l'enregistrement de la dépense. Veuillez réessayer."
   },
   "categories": {
     "title": "Catégories",

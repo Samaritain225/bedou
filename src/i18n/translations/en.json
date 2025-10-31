@@ -14,8 +14,21 @@
     "empty": "No transactions yet"
   },
   "add": {
-    "title": "Add a transaction",
-    "subtitle": "Expense or income, in seconds"
+    "title": "Add Expense",
+    "subtitle": "Track your spending",
+    "amount": "Amount",
+    "category": "Category",
+    "selectCategory": "Select a category",
+    "note": "Note",
+    "optional": "(Optional)",
+    "notePlaceholder": "Add a note...",
+    "save": "Save Expense",
+    "amountRequired": "Please enter a valid amount",
+    "categoryRequired": "Please select a category",
+    "noCategories": "No expense categories available",
+    "success": "Success",
+    "expenseAdded": "Expense added successfully",
+    "saveError": "Failed to save expense. Please try again."
   },
   "categories": {
     "title": "Categories",
