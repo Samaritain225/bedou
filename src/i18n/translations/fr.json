@@ -19,10 +19,42 @@
   },
   "categories": {
     "title": "Catégories",
-    "subtitle": "Gérez vos catégories et budgets par mois"
+    "subtitle": "Gérez vos catégories et budgets par mois",
+    "empty": "Aucune catégorie pour le moment",
+    "empty.subtitle": "Appuyez sur le bouton + pour ajouter votre première catégorie",
+    "form": {
+      "title": "Nouvelle catégorie",
+      "editTitle": "Modifier la catégorie",
+      "name": "Nom",
+      "namePlaceholder": "Entrez le nom de la catégorie",
+      "type": "Type",
+      "expense": "Dépense",
+      "income": "Revenu",
+      "icon": "Icône",
+      "color": "Couleur",
+      "preview": "Aperçu",
+      "previewPlaceholder": "Nom de la catégorie",
+      "saveError": "Échec de l'enregistrement de la catégorie. Veuillez réessayer."
+    },
+    "delete": {
+      "title": "Supprimer la catégorie",
+      "message": "Êtes-vous sûr de vouloir supprimer \"{{name}}\" ?",
+      "error": "Échec de la suppression de la catégorie. Veuillez réessayer."
+    },
+    "edit": {
+      "title": "Modifier la catégorie",
+      "comingSoon": "La fonctionnalité de modification arrivera bientôt"
+    }
   },
   "settings": {
     "title": "Paramètres",
     "subtitle": "Devises, formatage et export CSV"
+  },
+  "common": {
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "error": "Erreur",
+    "ok": "OK"
   }
 }

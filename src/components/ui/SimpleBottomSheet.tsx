@@ -1,5 +1,15 @@
-import React from "react";
-import { Dimensions, Modal, Pressable, StyleSheet, View } from "react-native";
+import React, { useEffect, useMemo, useRef } from "react";
+import {
+  Animated,
+  Dimensions,
+  KeyboardAvoidingView,
+  Modal,
+  PanResponder,
+  Platform,
+  Pressable,
+  StyleSheet,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../../state/ThemeProvider";
 
@@ -22,36 +32,114 @@ export function SimpleBottomSheet({
 
   // Calculate sheet height to be 90% of screen
   const sheetHeight = SCREEN_HEIGHT * 0.9;
+  const translateY = useRef(new Animated.Value(sheetHeight)).current;
+  const currentPosition = useRef(sheetHeight);
+
+  useEffect(() => {
+    if (visible) {
+      // Start from below screen and animate up
+      translateY.setValue(sheetHeight);
+      currentPosition.current = sheetHeight;
+      // Animate slide up
+      Animated.spring(translateY, {
+        toValue: 0,
+        useNativeDriver: true,
+        tension: 65,
+        friction: 11,
+      }).start(() => {
+        // Update position after animation completes
+        currentPosition.current = 0;
+      });
+    } else {
+      // Animate slide down when closing
+      currentPosition.current = sheetHeight;
+      Animated.timing(translateY, {
+        toValue: sheetHeight,
+        duration: 250,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [visible, sheetHeight]);
+
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: (_, gestureState) => {
+          return Math.abs(gestureState.dy) > 5;
+        },
+        onPanResponderMove: (_, gestureState) => {
+          // Only allow dragging down
+          if (gestureState.dy > 0) {
+            const newY = gestureState.dy;
+            currentPosition.current = newY;
+            translateY.setValue(newY);
+          }
+        },
+        onPanResponderRelease: (_, gestureState) => {
+          const velocity = gestureState.vy;
+          const currentY = currentPosition.current;
+          const threshold = sheetHeight * 0.3; // Close if dragged more than 30% down
+
+          // Close if dragged down enough or with sufficient velocity
+          if (
+            currentY > threshold ||
+            (velocity > 500 && gestureState.dy > 50)
+          ) {
+            onClose();
+          } else {
+            // Snap back to top
+            currentPosition.current = 0;
+            Animated.spring(translateY, {
+              toValue: 0,
+              useNativeDriver: true,
+              tension: 65,
+              friction: 11,
+            }).start();
+          }
+        },
+      }),
+    [sheetHeight, onClose]
+  );
 
   return (
     <Modal
       visible={visible}
       transparent
-      animationType="slide"
+      animationType="none"
       onRequestClose={onClose}
       statusBarTranslucent
     >
       <View style={styles.overlay}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
-        <Pressable onPress={(e) => e.stopPropagation()}>
+        <Animated.View
+          style={[
+            styles.sheet,
+            isDark && styles.sheetDark,
+            {
+              height: sheetHeight,
+              transform: [{ translateY }],
+              paddingBottom: insets.bottom,
+            },
+          ]}
+          {...panResponder.panHandlers}
+        >
+          {/* Drag Handle */}
           <View
-            style={[
-              styles.sheet,
-              isDark && styles.sheetDark,
-              { height: sheetHeight },
-            ]}
-          >
-            {/* Drag Handle */}
-            <View
-              style={[styles.dragHandle, isDark && styles.dragHandleDark]}
-            />
+            style={[styles.dragHandle, isDark && styles.dragHandleDark]}
+          />
 
-            {/* Content */}
-            <View style={[styles.content, { paddingBottom: insets.bottom }]}>
+          {/* Content */}
+          <KeyboardAvoidingView
+            style={styles.keyboardAvoid}
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+          >
+            <View style={styles.content} collapsable={false}>
               {children}
             </View>
-          </View>
-        </Pressable>
+          </KeyboardAvoidingView>
+        </Animated.View>
       </View>
     </Modal>
   );
@@ -93,8 +181,12 @@ const styles = StyleSheet.create({
   dragHandleDark: {
     backgroundColor: "#4B5563",
   },
+  keyboardAvoid: {
+    flex: 1,
+  },
   content: {
     flex: 1,
     paddingHorizontal: 0,
+    minHeight: 0,
   },
 });

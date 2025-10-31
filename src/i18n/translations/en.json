@@ -1,0 +1,60 @@
+{
+  "tabs": {
+    "dashboard": "Dashboard",
+    "transactions": "Transactions",
+    "add": "Add",
+    "categories": "Categories"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Track your expenses and monthly budgets"
+  },
+  "transactions": {
+    "title": "Transactions",
+    "empty": "No transactions yet"
+  },
+  "add": {
+    "title": "Add a transaction",
+    "subtitle": "Expense or income, in seconds"
+  },
+  "categories": {
+    "title": "Categories",
+    "subtitle": "Manage your categories and budgets per month",
+    "empty": "No categories yet",
+    "empty.subtitle": "Tap the + button to add your first category",
+    "form": {
+      "title": "New Category",
+      "editTitle": "Edit Category",
+      "name": "Name",
+      "namePlaceholder": "Enter category name",
+      "type": "Type",
+      "expense": "Expense",
+      "income": "Income",
+      "icon": "Icon",
+      "color": "Color",
+      "preview": "Preview",
+      "previewPlaceholder": "Category Name",
+      "saveError": "Failed to save category. Please try again."
+    },
+    "delete": {
+      "title": "Delete Category",
+      "message": "Are you sure you want to delete \"{{name}}\"?",
+      "error": "Failed to delete category. Please try again."
+    },
+    "edit": {
+      "title": "Edit Category",
+      "comingSoon": "Edit functionality coming soon"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Currency, formatting and CSV export"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "error": "Error",
+    "ok": "OK"
+  }
+}

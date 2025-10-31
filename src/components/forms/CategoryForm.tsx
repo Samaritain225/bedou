@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Alert,
@@ -14,8 +14,9 @@ import {
 import { z } from "zod";
 import { AVAILABLE_CATEGORY_COLORS } from "../../constants/categoryColors";
 import { AVAILABLE_CATEGORY_ICONS } from "../../constants/categoryIcons";
-import { CategoryType } from "../../features/categories/types";
+import { Category, CategoryType } from "../../features/categories/types";
 import { useCategories } from "../../state/CategoriesProvider";
+import { useTheme } from "../../state/ThemeProvider";
 import { useResponsive } from "../../utils/responsive";
 import { Card } from "../ui/Card";
 
@@ -34,20 +35,31 @@ const categorySchema = z.object({
 interface CategoryFormProps {
   onClose: () => void;
   onSuccess?: () => void;
+  initialCategory?: Category;
 }
 
-export function CategoryForm({ onClose, onSuccess }: CategoryFormProps) {
+export function CategoryForm({
+  onClose,
+  onSuccess,
+  initialCategory,
+}: CategoryFormProps) {
   const { t } = useTranslation();
-  const { addCategory } = useCategories();
+  const { addCategory, updateCategory } = useCategories();
   const { scaleSpacing, scaleSize, scaleFont, getColumns } = useResponsive();
+  const { colorScheme } = useTheme();
+  const isDark = colorScheme === "dark";
+  const nameInputRef = useRef<TextInput>(null);
+  const isEditing = !!initialCategory;
 
-  const [name, setName] = useState("");
-  const [type, setType] = useState<CategoryType>("expense");
+  const [name, setName] = useState(initialCategory?.name || "");
+  const [type, setType] = useState<CategoryType>(
+    initialCategory?.type || "expense"
+  );
   const [selectedIcon, setSelectedIcon] = useState<string>(
-    AVAILABLE_CATEGORY_ICONS[0]
+    initialCategory?.icon || AVAILABLE_CATEGORY_ICONS[0]
   );
   const [selectedColor, setSelectedColor] = useState<string>(
-    AVAILABLE_CATEGORY_COLORS[0]
+    initialCategory?.color || AVAILABLE_CATEGORY_COLORS[0]
   );
   const [errors, setErrors] = useState<{
     name?: string;
@@ -55,6 +67,21 @@ export function CategoryForm({ onClose, onSuccess }: CategoryFormProps) {
     icon?: string;
     color?: string;
   }>({});
+
+  // Update form when initialCategory changes
+  useEffect(() => {
+    if (initialCategory) {
+      setName(initialCategory.name);
+      setType(initialCategory.type);
+      setSelectedIcon(initialCategory.icon);
+      setSelectedColor(initialCategory.color);
+      setErrors({});
+      // Focus name input after a short delay when in edit mode
+      setTimeout(() => {
+        nameInputRef.current?.focus();
+      }, 300);
+    }
+  }, [initialCategory]);
 
   const handleSave = async () => {
     try {
@@ -79,19 +106,33 @@ export function CategoryForm({ onClose, onSuccess }: CategoryFormProps) {
 
       setErrors({});
 
-      await addCategory({
-        name: result.data.name,
-        type: result.data.type,
-        icon: result.data.icon,
-        color: result.data.color,
-      });
+      if (isEditing && initialCategory) {
+        // Update existing category
+        await updateCategory({
+          id: initialCategory.id,
+          name: result.data.name,
+          type: result.data.type,
+          icon: result.data.icon,
+          color: result.data.color,
+        });
+      } else {
+        // Create new category
+        await addCategory({
+          name: result.data.name,
+          type: result.data.type,
+          icon: result.data.icon,
+          color: result.data.color,
+        });
+      }
 
-      // Reset form
-      setName("");
-      setType("expense");
-      setSelectedIcon(AVAILABLE_CATEGORY_ICONS[0]);
-      setSelectedColor(AVAILABLE_CATEGORY_COLORS[0]);
-      setErrors({});
+      // Reset form only if creating new
+      if (!isEditing) {
+        setName("");
+        setType("expense");
+        setSelectedIcon(AVAILABLE_CATEGORY_ICONS[0]);
+        setSelectedColor(AVAILABLE_CATEGORY_COLORS[0]);
+        setErrors({});
+      }
 
       onSuccess?.();
       onClose();
@@ -106,37 +147,45 @@ export function CategoryForm({ onClose, onSuccess }: CategoryFormProps) {
 
   return (
     <View
-      style={styles.container}
-      className="bg-background dark:bg-background-dark flex-1"
+      style={[
+        styles.container,
+        { backgroundColor: isDark ? "#1F2937" : "#FFFFFF" },
+      ]}
     >
       {/* Header */}
       <View
-        className="border-border dark:border-border-dark"
         style={[
           styles.header,
           {
             paddingHorizontal: scaleSpacing(20),
             paddingVertical: scaleSpacing(16),
+            borderBottomColor: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.06)",
           },
         ]}
       >
         <Pressable
           onPress={onClose}
           style={styles.cancelButton}
-          android_ripple={{ color: "rgba(0,0,0,0.1)" }}
+          android_ripple={{ color: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)" }}
         >
           <Text
-            style={[styles.cancelButtonText, { fontSize: scaleFont(16) }]}
-            className="text-text-primary dark:text-text-primary-dark"
+            style={[
+              styles.cancelButtonText,
+              { fontSize: scaleFont(16), color: isDark ? "#E5E7EB" : "#374151" },
+            ]}
           >
             {t("common.cancel", "Cancel")}
           </Text>
         </Pressable>
         <Text
-          style={[styles.headerTitle, { fontSize: scaleFont(20) }]}
-          className="text-text-primary dark:text-text-primary-dark font-semibold"
+          style={[
+            styles.headerTitle,
+            { fontSize: scaleFont(20), color: isDark ? "#FFFFFF" : "#111827" },
+          ]}
         >
-          {t("categories.form.title", "New Category")}
+          {isEditing
+            ? t("categories.form.editTitle", "Edit Category")
+            : t("categories.form.title", "New Category")}
         </Text>
         <Pressable
           onPress={handleSave}
@@ -172,13 +221,17 @@ export function CategoryForm({ onClose, onSuccess }: CategoryFormProps) {
           <Text
             style={[
               styles.label,
-              { fontSize: scaleFont(16), marginBottom: scaleSpacing(8) },
+              {
+                fontSize: scaleFont(16),
+                marginBottom: scaleSpacing(8),
+                color: isDark ? "#F3F4F6" : "#111827",
+              },
             ]}
-            className="text-text-primary dark:text-text-primary-dark"
           >
             {t("categories.form.name", "Name")}
           </Text>
           <TextInput
+            ref={nameInputRef}
             style={[
               styles.input,
               {
@@ -186,10 +239,16 @@ export function CategoryForm({ onClose, onSuccess }: CategoryFormProps) {
                 paddingHorizontal: scaleSpacing(16),
                 paddingVertical: scaleSpacing(14),
                 fontSize: scaleFont(16),
+                backgroundColor: isDark ? "#374151" : "#FFFFFF",
+                borderColor: isDark ? "#4B5563" : "#E5E7EB",
+                color: isDark ? "#FFFFFF" : "#111827",
               },
-              errors.name && styles.inputError,
+              errors.name && {
+                borderColor: "#EF4444",
+                borderWidth: 1.5,
+              },
             ]}
-            className="bg-surface dark:bg-surface-dark border-border dark:border-border-dark text-text-primary dark:text-text-primary-dark"
+            placeholderTextColor={isDark ? "#9CA3AF" : "#9CA3AF"}
             value={name}
             onChangeText={(text) => {
               setName(text);
@@ -221,7 +280,6 @@ export function CategoryForm({ onClose, onSuccess }: CategoryFormProps) {
               "categories.form.namePlaceholder",
               "Enter category name"
             )}
-            placeholderTextColor="#9CA3AF"
             maxLength={50}
           />
           {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
@@ -232,17 +290,23 @@ export function CategoryForm({ onClose, onSuccess }: CategoryFormProps) {
           <Text
             style={[
               styles.label,
-              { fontSize: scaleFont(16), marginBottom: scaleSpacing(8) },
+              {
+                fontSize: scaleFont(16),
+                marginBottom: scaleSpacing(8),
+                color: isDark ? "#F3F4F6" : "#111827",
+              },
             ]}
-            className="text-text-primary dark:text-text-primary-dark"
           >
             {t("categories.form.type", "Type")}
           </Text>
           <View style={[styles.typeSelector, { gap: scaleSpacing(12) }]}>
             <Pressable
-              className="bg-surface dark:bg-surface-dark border-border dark:border-border-dark"
               style={[
                 styles.typeButton,
+                {
+                  backgroundColor: isDark ? "#374151" : "#F9FAFB",
+                  borderColor: isDark ? "#4B5563" : "#E5E7EB",
+                },
                 type === "expense" && styles.typeButtonActive,
               ]}
               onPress={() => setType("expense")}
@@ -256,17 +320,27 @@ export function CategoryForm({ onClose, onSuccess }: CategoryFormProps) {
               <Text
                 style={[
                   styles.typeButtonText,
-                  { fontSize: scaleFont(15) },
-                  type === "expense" && styles.typeButtonTextActive,
+                  {
+                    fontSize: scaleFont(15),
+                    color:
+                      type === "expense"
+                        ? "#FFFFFF"
+                        : isDark
+                          ? "#D1D5DB"
+                          : "#6B7280",
+                  },
                 ]}
               >
                 {t("categories.form.expense", "Expense")}
               </Text>
             </Pressable>
             <Pressable
-              className="bg-surface dark:bg-surface-dark border-border dark:border-border-dark"
               style={[
                 styles.typeButton,
+                {
+                  backgroundColor: isDark ? "#374151" : "#F9FAFB",
+                  borderColor: isDark ? "#4B5563" : "#E5E7EB",
+                },
                 type === "income" && styles.typeButtonActive,
               ]}
               onPress={() => setType("income")}
@@ -280,8 +354,15 @@ export function CategoryForm({ onClose, onSuccess }: CategoryFormProps) {
               <Text
                 style={[
                   styles.typeButtonText,
-                  { fontSize: scaleFont(15) },
-                  type === "income" && styles.typeButtonTextActive,
+                  {
+                    fontSize: scaleFont(15),
+                    color:
+                      type === "income"
+                        ? "#FFFFFF"
+                        : isDark
+                          ? "#D1D5DB"
+                          : "#6B7280",
+                  },
                 ]}
               >
                 {t("categories.form.income", "Income")}
@@ -295,9 +376,12 @@ export function CategoryForm({ onClose, onSuccess }: CategoryFormProps) {
           <Text
             style={[
               styles.label,
-              { fontSize: scaleFont(16), marginBottom: scaleSpacing(8) },
+              {
+                fontSize: scaleFont(16),
+                marginBottom: scaleSpacing(8),
+                color: isDark ? "#F3F4F6" : "#111827",
+              },
             ]}
-            className="text-text-primary dark:text-text-primary-dark"
           >
             {t("categories.form.icon", "Icon")}
           </Text>
@@ -305,23 +389,39 @@ export function CategoryForm({ onClose, onSuccess }: CategoryFormProps) {
             data={AVAILABLE_CATEGORY_ICONS}
             renderItem={({ item }) => (
               <Pressable
-                className="bg-surface dark:bg-surface-dark"
                 style={[
                   styles.iconItem,
                   {
                     width: scaleSize(52),
                     height: scaleSize(52),
                     borderRadius: scaleSpacing(12),
+                    backgroundColor: isDark ? "#374151" : "#F9FAFB",
+                    borderColor:
+                      selectedIcon === item
+                        ? "#2563eb"
+                        : isDark
+                          ? "#4B5563"
+                          : "#E5E7EB",
                   },
-                  selectedIcon === item && styles.iconItemSelected,
+                  selectedIcon === item && {
+                    backgroundColor: isDark ? "#1E3A8A" : "#EFF6FF",
+                  },
                 ]}
                 onPress={() => setSelectedIcon(item)}
-                android_ripple={{ color: "rgba(0,0,0,0.1)" }}
+                android_ripple={{
+                  color: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+                }}
               >
                 <Ionicons
                   name={item as any}
                   size={scaleSize(26)}
-                  color={selectedIcon === item ? selectedColor : "#6B7280"}
+                  color={
+                    selectedIcon === item
+                      ? selectedColor
+                      : isDark
+                        ? "#9CA3AF"
+                        : "#6B7280"
+                  }
                 />
               </Pressable>
             )}
@@ -341,9 +441,12 @@ export function CategoryForm({ onClose, onSuccess }: CategoryFormProps) {
           <Text
             style={[
               styles.label,
-              { fontSize: scaleFont(16), marginBottom: scaleSpacing(8) },
+              {
+                fontSize: scaleFont(16),
+                marginBottom: scaleSpacing(8),
+                color: isDark ? "#F3F4F6" : "#111827",
+              },
             ]}
-            className="text-text-primary dark:text-text-primary-dark"
           >
             {t("categories.form.color", "Color")}
           </Text>
@@ -358,8 +461,17 @@ export function CategoryForm({ onClose, onSuccess }: CategoryFormProps) {
                     width: scaleSize(52),
                     height: scaleSize(52),
                     borderRadius: scaleSize(26),
+                    borderColor:
+                      selectedColor === color
+                        ? isDark
+                          ? "#FFFFFF"
+                          : "#1F2937"
+                        : "transparent",
                   },
-                  selectedColor === color && styles.colorItemSelected,
+                  selectedColor === color && {
+                    borderWidth: isDark ? 4 : 3.5,
+                    transform: [{ scale: 1.1 }],
+                  },
                 ]}
                 onPress={() => setSelectedColor(color)}
                 android_ripple={{ color: "rgba(0,0,0,0.1)" }}
@@ -382,9 +494,12 @@ export function CategoryForm({ onClose, onSuccess }: CategoryFormProps) {
           <Text
             style={[
               styles.label,
-              { fontSize: scaleFont(16), marginBottom: scaleSpacing(8) },
+              {
+                fontSize: scaleFont(16),
+                marginBottom: scaleSpacing(8),
+                color: isDark ? "#F3F4F6" : "#111827",
+              },
             ]}
-            className="text-text-primary dark:text-text-primary-dark"
           >
             {t("categories.form.preview", "Preview")}
           </Text>
@@ -461,7 +576,6 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     fontWeight: "500",
-    color: "#374151",
   },
   headerTitle: {
     fontWeight: "700",
@@ -503,8 +617,6 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1.5,
-    borderColor: "#E5E7EB",
-    backgroundColor: "#FFFFFF",
   },
   inputError: {
     borderColor: "#EF4444",
@@ -526,10 +638,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: "#E5E7EB",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#F9FAFB",
   },
   typeButtonActive: {
     backgroundColor: "#2563eb",
@@ -545,11 +655,7 @@ const styles = StyleSheet.create({
   },
   typeButtonText: {
     fontWeight: "600",
-    color: "#6B7280",
     letterSpacing: 0.2,
-  },
-  typeButtonTextActive: {
-    color: "#ffffff",
   },
   iconGrid: {
     gap: 12,
@@ -563,20 +669,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 2.5,
-    borderColor: "#E5E7EB",
-    backgroundColor: "#F9FAFB",
-  },
-  iconItemSelected: {
-    borderColor: "#2563eb",
-    backgroundColor: "#EFF6FF",
-    shadowColor: "#2563eb",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
   },
   colorGrid: {
     flexDirection: "row",
@@ -590,7 +682,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 3,
-    borderColor: "transparent",
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -599,19 +690,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
-  },
-  colorItemSelected: {
-    borderColor: "#1F2937",
-    borderWidth: 3.5,
-    shadowColor: "#1F2937",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
-    transform: [{ scale: 1.1 }],
   },
   colorCheckmark: {
     fontWeight: "bold",

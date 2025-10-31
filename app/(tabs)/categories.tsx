@@ -23,6 +23,9 @@ export default function CategoriesScreen() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [showBottomSheet, setShowBottomSheet] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(
+    null
+  );
   const { width, scaleSpacing, getColumns, scaleSize, scaleFont } =
     useResponsive();
 
@@ -75,20 +78,18 @@ export default function CategoriesScreen() {
   };
 
   const handleEdit = (category: Category) => {
-    // TODO: Navigate to edit page
-    Alert.alert(
-      t("categories.edit.title") || "Edit Category",
-      t("categories.edit.comingSoon") || "Edit functionality coming soon",
-      [{ text: t("common.ok") || "OK" }]
-    );
+    setEditingCategory(category);
+    setShowBottomSheet(true);
   };
 
   const handleAdd = () => {
+    setEditingCategory(null);
     setShowBottomSheet(true);
   };
 
   const handleBottomSheetClose = () => {
     setShowBottomSheet(false);
+    setEditingCategory(null);
   };
 
   const handleCategorySaved = () => {
@@ -204,6 +205,7 @@ export default function CategoriesScreen() {
         <CategoryForm
           onClose={handleBottomSheetClose}
           onSuccess={handleCategorySaved}
+          initialCategory={editingCategory || undefined}
         />
       </SimpleBottomSheet>
     </View>
