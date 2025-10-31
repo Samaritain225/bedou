@@ -1,0 +1,28 @@
+{
+  "tabs": {
+    "dashboard": "Tableau de bord",
+    "transactions": "Transactions",
+    "add": "Ajouter",
+    "categories": "Catégories"
+  },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "subtitle": "Suivez vos dépenses et budgets mensuels"
+  },
+  "transactions": {
+    "title": "Transactions",
+    "empty": "Aucune transaction pour le moment"
+  },
+  "add": {
+    "title": "Ajouter une opération",
+    "subtitle": "Dépense ou recette, en quelques secondes"
+  },
+  "categories": {
+    "title": "Catégories",
+    "subtitle": "Gérez vos catégories et budgets par mois"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "subtitle": "Devises, formatage et export CSV"
+  }
+}

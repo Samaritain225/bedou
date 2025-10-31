@@ -1,50 +1,61 @@
-# Welcome to your Expo app 👋
+# BEDOU
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A personal finance management app built with React Native and Expo.
 
-## Get started
+## Features
 
-1. Install dependencies
+- 📊 Dashboard for financial overview
+- 💰 Transaction management
+- 🏷️ Category management with customizable icons and colors
+- 💱 Multi-currency support
+- 🌓 Dark mode support
+- 📱 Responsive design for phones and tablets
 
-   ```bash
-   npm install
-   ```
+## Tech Stack
 
-2. Start the app
+- [Expo](https://expo.dev)
+- [React Native](https://reactnative.dev)
+- [Expo Router](https://docs.expo.dev/router/introduction/)
+- [SQLite](https://www.sqlite.org)
+- [NativeWind](https://www.nativewind.dev)
+- [TypeScript](https://www.typescriptlang.org)
 
-   ```bash
-   npx expo start
-   ```
+## Getting Started
 
-In the output, you'll find options to open the app in a
+### Prerequisites
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- Node.js 18+
+- npm or yarn
+- Expo CLI
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+### Installation
 
 ```bash
-npm run reset-project
+# Install dependencies
+npm install
+
+# Start the development server
+npx expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Run the app on:
 
-## Learn more
+- iOS Simulator: Press `i`
+- Android Emulator: Press `a`
+- Physical device: Scan the QR code with Expo Go
 
-To learn more about developing your project with Expo, look at the following resources:
+## Project Structure
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```
+app/              # Expo Router pages
+src/
+  features/       # Feature modules (categories, currency, budgets)
+  state/          # Context providers
+  db/             # Database utilities
+  components/     # Reusable components
+  utils/          # Utility functions
+```
 
-## Join the community
+## License
 
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+MIT License - see [LICENSE](LICENSE) for details.

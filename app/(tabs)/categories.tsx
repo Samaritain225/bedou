@@ -1,0 +1,257 @@
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import React, { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { Card } from "../../src/components/ui/Card";
+import { Category } from "../../src/features/categories/types";
+import { useCategories } from "../../src/state/CategoriesProvider";
+import { useResponsive } from "../../src/utils/responsive";
+
+export default function CategoriesScreen() {
+  const { t } = useTranslation();
+  const { categories, deleteCategory, refresh } = useCategories();
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const { width, scaleSpacing, getColumns, scaleSize, scaleFont } =
+    useResponsive();
+
+  // Responsive grid calculations
+  const numColumns = useMemo(() => getColumns(3), [getColumns]);
+  const screenPadding = useMemo(() => scaleSpacing(16), [scaleSpacing]);
+  const itemSpacing = useMemo(() => scaleSpacing(12), [scaleSpacing]);
+  const itemWidth = useMemo(() => {
+    return (
+      (width - screenPadding * 2 - itemSpacing * (numColumns - 1)) / numColumns
+    );
+  }, [width, screenPadding, itemSpacing, numColumns]);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await refresh();
+    setRefreshing(false);
+  };
+
+  const handleDelete = async (category: Category) => {
+    Alert.alert(
+      t("categories.delete.title") || "Delete Category",
+      t("categories.delete.message", { name: category.name }) ||
+        `Are you sure you want to delete "${category.name}"?`,
+      [
+        {
+          text: t("common.cancel") || "Cancel",
+          style: "cancel",
+        },
+        {
+          text: t("common.delete") || "Delete",
+          style: "destructive",
+          onPress: async () => {
+            setDeletingId(category.id);
+            try {
+              await deleteCategory(category.id);
+            } catch (error) {
+              Alert.alert(
+                t("common.error") || "Error",
+                t("categories.delete.error") ||
+                  "Failed to delete category. Please try again."
+              );
+            } finally {
+              setDeletingId(null);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleEdit = (category: Category) => {
+    // TODO: Navigate to edit page
+    Alert.alert(
+      t("categories.edit.title") || "Edit Category",
+      t("categories.edit.comingSoon") || "Edit functionality coming soon",
+      [{ text: t("common.ok") || "OK" }]
+    );
+  };
+
+  const handleAdd = () => {
+    router.push("/categories/new");
+  };
+
+  const renderCategory = ({ item }: { item: Category }) => {
+    const isDeleting = deletingId === item.id;
+
+    return (
+      <Pressable
+        style={[
+          styles.categoryCard,
+          {
+            width: itemWidth,
+            marginHorizontal: itemSpacing / 2,
+          },
+        ]}
+        onPress={() => handleEdit(item)}
+        onLongPress={() => handleDelete(item)}
+        disabled={isDeleting}
+      >
+        <Card
+          className="items-center justify-center p-3"
+          style={[styles.cardContent, isDeleting && styles.deletingCard]}
+        >
+          <View
+            style={[
+              styles.coloredContainer,
+              { backgroundColor: item.color + "20" },
+            ]}
+          >
+            <Ionicons
+              name={item.icon as any}
+              size={scaleSize(36)}
+              color={item.color}
+            />
+            <Text
+              style={[
+                styles.categoryName,
+                { color: item.color, fontSize: scaleFont(14) },
+              ]}
+              numberOfLines={2}
+              ellipsizeMode="tail"
+            >
+              {item.name}
+            </Text>
+          </View>
+          {isDeleting && (
+            <View style={styles.deletingOverlay}>
+              <ActivityIndicator size="small" color="#fff" />
+            </View>
+          )}
+        </Card>
+      </Pressable>
+    );
+  };
+
+  const renderEmpty = () => (
+    <View style={styles.emptyContainer}>
+      <Ionicons name="pricetags-outline" size={64} color="#999" />
+      <Text className="text-lg font-semibold text-text-primary dark:text-text-primary-dark mt-4">
+        {t("categories.empty") || "No categories yet"}
+      </Text>
+      <Text className="text-sm text-text-secondary dark:text-text-secondary-dark mt-2 text-center px-8">
+        {t("categories.empty.subtitle") ||
+          "Tap the + button to add your first category"}
+      </Text>
+    </View>
+  );
+
+  return (
+    <View
+      style={styles.container}
+      className="bg-background dark:bg-background-dark"
+    >
+      <FlatList
+        data={categories}
+        renderItem={renderCategory}
+        keyExtractor={(item) => item.id}
+        numColumns={numColumns}
+        contentContainerStyle={[
+          styles.listContent,
+          { padding: screenPadding, paddingBottom: scaleSpacing(80) },
+        ]}
+        columnWrapperStyle={[styles.row, { marginBottom: itemSpacing }]}
+        ListEmptyComponent={renderEmpty}
+        refreshing={refreshing}
+        onRefresh={handleRefresh}
+        showsVerticalScrollIndicator={false}
+      />
+      <Pressable
+        style={[
+          styles.fab,
+          {
+            width: scaleSize(56),
+            height: scaleSize(56),
+            borderRadius: scaleSize(28),
+            right: scaleSpacing(20),
+            bottom: scaleSpacing(20),
+          },
+        ]}
+        onPress={handleAdd}
+      >
+        <Ionicons name="add" size={scaleSize(28)} color="#fff" />
+      </Pressable>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  listContent: {
+    // Dynamic padding applied inline
+  },
+  row: {
+    justifyContent: "center",
+  },
+  categoryCard: {
+    // Dynamic width applied inline
+    marginHorizontal: 6, // Base value, will be scaled
+  },
+  cardContent: {
+    minHeight: 120, // Will be scaled responsively
+    aspectRatio: 1,
+  },
+  deletingCard: {
+    opacity: 0.5,
+  },
+  coloredContainer: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 16,
+    paddingHorizontal: 8,
+  },
+  categoryName: {
+    fontSize: 14,
+    fontWeight: "600",
+    textAlign: "center",
+    marginTop: 10,
+  },
+  deletingOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 60,
+  },
+  fab: {
+    position: "absolute",
+    // Dynamic sizes applied inline
+    backgroundColor: "#2563eb",
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+});

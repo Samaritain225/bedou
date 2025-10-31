@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Default typography */
+* {
+  font-family: Poppins-Regular;
+}

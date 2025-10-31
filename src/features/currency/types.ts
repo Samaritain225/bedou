@@ -1,0 +1,9 @@
+export type Currency = {
+  id: string;
+  code: string; // e.g. XOF, EUR
+  label: string; // e.g. Franc CFA (BCEAO)
+  symbol: string; // e.g. F CFA
+  rateToBase: number; // multiplier to base (XOF default 1)
+  isBase: 0 | 1;
+  updatedAt: string; // ISO
+};
