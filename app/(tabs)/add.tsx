@@ -4,16 +4,13 @@ import { Text, View } from "react-native";
 export default function AddScreen() {
   const { t } = useTranslation();
   return (
-    <View
-      style={{
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 16,
-      }}
-    >
-      <Text style={{ fontSize: 18, fontWeight: "600" }}>{t("add.title")}</Text>
-      <Text style={{ marginTop: 8, color: "#666" }}>{t("add.subtitle")}</Text>
+    <View className="flex-1 items-center justify-center p-4 bg-background dark:bg-background-dark">
+      <Text className="text-lg font-semibold text-text-primary dark:text-text-primary-dark">
+        {t("add.title")}
+      </Text>
+      <Text className="mt-2 text-text-secondary dark:text-text-secondary-dark">
+        {t("add.subtitle")}
+      </Text>
     </View>
   );
 }

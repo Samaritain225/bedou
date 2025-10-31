@@ -86,14 +86,6 @@ function AppContent() {
           <CategoriesProvider>
             <Stack>
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen
-                name="categories/new"
-                options={{
-                  presentation: "formSheet",
-                  headerShown: false,
-                  sheetAllowedDetents: "fitToContents",
-                }}
-              />
             </Stack>
           </CategoriesProvider>
         </CurrencyProvider>

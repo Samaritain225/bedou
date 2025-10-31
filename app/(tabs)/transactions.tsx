@@ -4,18 +4,11 @@ import { Text, View } from "react-native";
 export default function TransactionsScreen() {
   const { t } = useTranslation();
   return (
-    <View
-      style={{
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 16,
-      }}
-    >
-      <Text style={{ fontSize: 18, fontWeight: "600" }}>
+    <View className="flex-1 items-center justify-center p-4 bg-background dark:bg-background-dark">
+      <Text className="text-lg font-semibold text-text-primary dark:text-text-primary-dark">
         {t("transactions.title")}
       </Text>
-      <Text style={{ marginTop: 8, color: "#666" }}>
+      <Text className="mt-2 text-text-secondary dark:text-text-secondary-dark">
         {t("transactions.empty")}
       </Text>
     </View>

@@ -1,5 +1,4 @@
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -11,7 +10,9 @@ import {
   Text,
   View,
 } from "react-native";
+import { CategoryForm } from "../../src/components/forms/CategoryForm";
 import { Card } from "../../src/components/ui/Card";
+import { SimpleBottomSheet } from "../../src/components/ui/SimpleBottomSheet";
 import { Category } from "../../src/features/categories/types";
 import { useCategories } from "../../src/state/CategoriesProvider";
 import { useResponsive } from "../../src/utils/responsive";
@@ -21,6 +22,7 @@ export default function CategoriesScreen() {
   const { categories, deleteCategory, refresh } = useCategories();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [showBottomSheet, setShowBottomSheet] = useState(false);
   const { width, scaleSpacing, getColumns, scaleSize, scaleFont } =
     useResponsive();
 
@@ -82,7 +84,16 @@ export default function CategoriesScreen() {
   };
 
   const handleAdd = () => {
-    router.push("/categories/new");
+    setShowBottomSheet(true);
+  };
+
+  const handleBottomSheetClose = () => {
+    setShowBottomSheet(false);
+  };
+
+  const handleCategorySaved = () => {
+    // Category was saved successfully, bottom sheet will close automatically
+    // We could refresh the list here if needed
   };
 
   const renderCategory = ({ item }: { item: Category }) => {
@@ -185,6 +196,16 @@ export default function CategoriesScreen() {
       >
         <Ionicons name="add" size={scaleSize(28)} color="#fff" />
       </Pressable>
+
+      <SimpleBottomSheet
+        visible={showBottomSheet}
+        onClose={handleBottomSheetClose}
+      >
+        <CategoryForm
+          onClose={handleBottomSheetClose}
+          onSuccess={handleCategorySaved}
+        />
+      </SimpleBottomSheet>
     </View>
   );
 }
