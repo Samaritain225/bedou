@@ -112,17 +112,18 @@ export function SimpleBottomSheet({
     >
       <View style={styles.overlay}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
-        <Animated.View
+        <Pressable onPress={(e) => e.stopPropagation()}>
+          <Animated.View
             style={[
               styles.sheet,
               isDark && styles.sheetDark,
-            {
-              height: sheetHeight,
-              transform: [{ translateY }],
-              paddingBottom: insets.bottom,
-            },
+              {
+                height: sheetHeight,
+                transform: [{ translateY }],
+                paddingBottom: insets.bottom,
+              },
             ]}
-          {...panResponder.panHandlers}
+            {...panResponder.panHandlers}
           >
             {/* Drag Handle */}
             <View
@@ -130,16 +131,17 @@ export function SimpleBottomSheet({
             />
 
             {/* Content */}
-          <KeyboardAvoidingView
-            style={styles.keyboardAvoid}
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
-          >
-            <View style={styles.content} collapsable={false}>
-              {children}
-            </View>
-          </KeyboardAvoidingView>
-        </Animated.View>
+            <KeyboardAvoidingView
+              style={styles.keyboardAvoid}
+              behavior={Platform.OS === "ios" ? "padding" : "height"}
+              keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+            >
+              <View style={styles.content} collapsable={false}>
+                {children}
+              </View>
+            </KeyboardAvoidingView>
+          </Animated.View>
+        </Pressable>
       </View>
     </Modal>
   );

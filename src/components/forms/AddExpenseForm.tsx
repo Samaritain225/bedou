@@ -44,7 +44,7 @@ export function AddExpenseForm() {
   const db = useDb();
   const { categories } = useCategories();
   const { baseCurrency } = useCurrency();
-  const { scaleSpacing, scaleSize, scaleFont } = useResponsive();
+  const { scaleSpacing, scaleSize, scaleFont, width, isTablet } = useResponsive();
   const { colorScheme } = useTheme();
   const isDark = colorScheme === "dark";
   const insets = useSafeAreaInsets();
@@ -252,18 +252,30 @@ export function AddExpenseForm() {
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       className="flex-1"
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+      enabled={Platform.OS === "ios"}
     >
       <ScrollView
         className="flex-1"
         contentContainerStyle={{
           flexGrow: 1,
           justifyContent: "center",
-          padding: scaleSpacing(24),
+          padding: scaleSpacing(isTablet ? 32 : 24),
+          paddingBottom: scaleSpacing(isTablet ? 40 : 32),
         }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="none"
+        nestedScrollEnabled={true}
       >
-        <View className="max-w-md w-full self-center">
+        <View
+          style={{
+            width: "100%",
+            maxWidth: isTablet ? 600 : "100%",
+            alignSelf: "center",
+            paddingHorizontal: isTablet ? scaleSpacing(24) : 0,
+          }}
+        >
           {/* Success Message */}
           {showSuccess && (
             <Animated.View
@@ -286,9 +298,10 @@ export function AddExpenseForm() {
               <Text
                 style={{
                   color: "#FFFFFF",
-                  fontSize: scaleFont(14),
+                  fontSize: scaleFont(isTablet ? 15 : 14),
                   fontWeight: "600",
                   flex: 1,
+                  lineHeight: scaleFont(isTablet ? 22 : 20),
                 }}
               >
                 {t("add.expenseAdded", "Expense added successfully")}
@@ -318,9 +331,10 @@ export function AddExpenseForm() {
               <Text
                 style={{
                   color: "#FFFFFF",
-                  fontSize: scaleFont(14),
+                  fontSize: scaleFont(isTablet ? 15 : 14),
                   fontWeight: "600",
                   flex: 1,
+                  lineHeight: scaleFont(isTablet ? 22 : 20),
                 }}
               >
                 {generalError}
@@ -329,13 +343,14 @@ export function AddExpenseForm() {
           )}
 
           {/* Amount Input */}
-          <View style={{ marginBottom: scaleSpacing(28) }}>
+          <View style={{ marginBottom: scaleSpacing(isTablet ? 32 : 28) }}>
             <Text
               style={{
-                fontSize: scaleFont(16),
-                marginBottom: scaleSpacing(8),
+                fontSize: scaleFont(isTablet ? 17 : 16),
+                marginBottom: scaleSpacing(isTablet ? 10 : 8),
                 color: isDark ? "#F3F4F6" : "#111827",
                 fontWeight: "600",
+                letterSpacing: 0.1,
               }}
             >
               {t("add.amount", "Amount")}
@@ -360,8 +375,9 @@ export function AddExpenseForm() {
               <Text
                 style={{
                   color: isDark ? "#FFFFFF" : "#111827",
-                  fontSize: scaleFont(16),
+                  fontSize: scaleFont(isTablet ? 18 : 16),
                   fontWeight: "600",
+                  minWidth: scaleSize(isTablet ? 60 : 50),
                 }}
               >
                 {baseCurrency?.symbol || baseCurrency?.code || ""}
@@ -371,7 +387,8 @@ export function AddExpenseForm() {
                 style={{
                   flex: 1,
                   color: isDark ? "#FFFFFF" : "#111827",
-                  fontSize: scaleFont(16),
+                  fontSize: scaleFont(isTablet ? 18 : 16),
+                  fontWeight: "500",
                 }}
                 value={amount}
                 onChangeText={handleAmountChange}
@@ -385,9 +402,10 @@ export function AddExpenseForm() {
               <Text
                 style={{
                   color: "#EF4444",
-                  fontSize: scaleFont(13),
-                  marginTop: scaleSpacing(6),
+                  fontSize: scaleFont(isTablet ? 14 : 13),
+                  marginTop: scaleSpacing(isTablet ? 8 : 6),
                   fontWeight: "500",
+                  lineHeight: scaleFont(isTablet ? 20 : 18),
                 }}
               >
                 {errors.amount}
@@ -396,13 +414,14 @@ export function AddExpenseForm() {
           </View>
 
           {/* Category Selector */}
-          <View style={{ marginBottom: scaleSpacing(28) }}>
+          <View style={{ marginBottom: scaleSpacing(isTablet ? 32 : 28) }}>
             <Text
               style={{
-                fontSize: scaleFont(16),
-                marginBottom: scaleSpacing(8),
+                fontSize: scaleFont(isTablet ? 17 : 16),
+                marginBottom: scaleSpacing(isTablet ? 10 : 8),
                 color: isDark ? "#F3F4F6" : "#111827",
                 fontWeight: "600",
+                letterSpacing: 0.1,
               }}
             >
               {t("add.category", "Category")}
@@ -451,9 +470,12 @@ export function AddExpenseForm() {
                         style={{
                           flex: 1,
                           color: isDark ? "#FFFFFF" : "#111827",
-                          fontSize: scaleFont(16),
+                          fontSize: scaleFont(isTablet ? 18 : 16),
                           fontWeight: "600",
                         }}
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                        minimumFontScale={0.85}
                       >
                         {selectedCategory.name}
                       </Text>
@@ -463,7 +485,7 @@ export function AddExpenseForm() {
                       style={{
                         flex: 1,
                         color: isDark ? "#9CA3AF" : "#9CA3AF",
-                        fontSize: scaleFont(16),
+                        fontSize: scaleFont(isTablet ? 17 : 16),
                       }}
                     >
                       {t("add.selectCategory", "Select a category")}
@@ -481,9 +503,10 @@ export function AddExpenseForm() {
               <Text
                 style={{
                   color: "#EF4444",
-                  fontSize: scaleFont(13),
-                  marginTop: scaleSpacing(6),
+                  fontSize: scaleFont(isTablet ? 14 : 13),
+                  marginTop: scaleSpacing(isTablet ? 8 : 6),
                   fontWeight: "500",
+                  lineHeight: scaleFont(isTablet ? 20 : 18),
                 }}
               >
                 {errors.categoryId}
@@ -509,27 +532,28 @@ export function AddExpenseForm() {
                   style={StyleSheet.absoluteFill}
                   onPress={() => setShowCategoryModal(false)}
                 />
-                <Animated.View
-                  style={{
-                    borderTopLeftRadius: scaleSpacing(28),
-                    borderTopRightRadius: scaleSpacing(28),
-                    backgroundColor: isDark ? "#1F2937" : "#FFFFFF",
-                    width: "100%",
-                    maxHeight: modalSheetHeight,
-                    height: modalSheetHeight,
-                    transform: [{ translateY }],
-                    paddingBottom: insets.bottom,
-                    shadowColor: "#000",
-                    shadowOffset: {
-                      width: 0,
-                      height: -2,
-                    },
-                    shadowOpacity: 0.25,
-                    shadowRadius: 12,
-                    elevation: 12,
-                  }}
-                  {...categoryModalPanResponder.panHandlers}
-                >
+                <Pressable onPress={(e) => e.stopPropagation()}>
+                  <Animated.View
+                    style={{
+                      borderTopLeftRadius: scaleSpacing(28),
+                      borderTopRightRadius: scaleSpacing(28),
+                      backgroundColor: isDark ? "#1F2937" : "#FFFFFF",
+                      width: "100%",
+                      maxHeight: modalSheetHeight,
+                      height: modalSheetHeight,
+                      transform: [{ translateY }],
+                      paddingBottom: insets.bottom,
+                      shadowColor: "#000",
+                      shadowOffset: {
+                        width: 0,
+                        height: -2,
+                      },
+                      shadowOpacity: 0.25,
+                      shadowRadius: 12,
+                      elevation: 12,
+                    }}
+                    {...categoryModalPanResponder.panHandlers}
+                  >
                   {/* Drag Handle */}
                   <View
                     style={{
@@ -846,22 +870,33 @@ export function AddExpenseForm() {
                       </Text>
                     </View>
                   )}
-                </Animated.View>
+                  </Animated.View>
+                </Pressable>
               </View>
             </Modal>
           </View>
 
           {/* Note Input */}
-          <View style={{ marginBottom: scaleSpacing(28) }}>
+          <View style={{ marginBottom: scaleSpacing(isTablet ? 32 : 28) }}>
             <Text
               style={{
-                fontSize: scaleFont(16),
-                marginBottom: scaleSpacing(8),
+                fontSize: scaleFont(isTablet ? 17 : 16),
+                marginBottom: scaleSpacing(isTablet ? 10 : 8),
                 color: isDark ? "#F3F4F6" : "#111827",
                 fontWeight: "600",
+                letterSpacing: 0.1,
               }}
             >
-              {t("add.note", "Note")} {t("add.optional", "(Optional)")}
+              {t("add.note", "Note")}{" "}
+              <Text
+                style={{
+                  fontSize: scaleFont(isTablet ? 15 : 14),
+                  fontWeight: "400",
+                  color: isDark ? "#9CA3AF" : "#6B7280",
+                }}
+              >
+                {t("add.optional", "(Optional)")}
+              </Text>
             </Text>
             <TextInput
               style={{
@@ -876,9 +911,10 @@ export function AddExpenseForm() {
                     : "#E5E7EB",
                 borderWidth: 1.5,
                 color: isDark ? "#FFFFFF" : "#111827",
-                fontSize: scaleFont(16),
-                minHeight: scaleSize(100),
+                fontSize: scaleFont(isTablet ? 17 : 16),
+                minHeight: scaleSize(isTablet ? 120 : 100),
                 textAlignVertical: "top",
+                lineHeight: scaleFont(isTablet ? 24 : 22),
               }}
               value={note}
               onChangeText={handleNoteChange}
@@ -887,14 +923,18 @@ export function AddExpenseForm() {
               multiline
               maxLength={300}
               returnKeyType="done"
+              editable={true}
+              keyboardType="default"
+              textContentType="none"
             />
             {errors.note && (
               <Text
                 style={{
                   color: "#EF4444",
-                  fontSize: scaleFont(13),
-                  marginTop: scaleSpacing(6),
+                  fontSize: scaleFont(isTablet ? 14 : 13),
+                  marginTop: scaleSpacing(isTablet ? 8 : 6),
                   fontWeight: "500",
+                  lineHeight: scaleFont(isTablet ? 20 : 18),
                 }}
               >
                 {errors.note}
@@ -903,9 +943,10 @@ export function AddExpenseForm() {
             <Text
               style={{
                 color: isDark ? "#6B7280" : "#9CA3AF",
-                fontSize: scaleFont(12),
-                marginTop: scaleSpacing(4),
+                fontSize: scaleFont(isTablet ? 13 : 12),
+                marginTop: scaleSpacing(isTablet ? 6 : 4),
                 textAlign: "right",
+                fontWeight: "500",
               }}
             >
               {note.length}/300
@@ -928,8 +969,8 @@ export function AddExpenseForm() {
                 end={{ x: 1, y: 0 }}
                 style={{
                   borderRadius: scaleSpacing(12),
-                  paddingVertical: scaleSpacing(16),
-                  paddingHorizontal: scaleSpacing(20),
+                  paddingVertical: scaleSpacing(isTablet ? 18 : 16),
+                  paddingHorizontal: scaleSpacing(isTablet ? 24 : 20),
                   alignItems: "center",
                   justifyContent: "center",
                   opacity: pressed ? 0.9 : 1,
@@ -944,9 +985,9 @@ export function AddExpenseForm() {
                 <Text
                   style={{
                     color: "#FFFFFF",
-                    fontSize: scaleFont(16),
+                    fontSize: scaleFont(isTablet ? 18 : 16),
                     fontWeight: "600",
-                    letterSpacing: 0.2,
+                    letterSpacing: 0.3,
                   }}
                 >
                   {t("add.save", "Save Expense")}

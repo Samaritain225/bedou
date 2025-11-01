@@ -543,27 +543,28 @@ export function EditTransactionForm({
                   style={StyleSheet.absoluteFill}
                   onPress={() => setShowCategoryModal(false)}
                 />
-                <Animated.View
-                  style={{
-                    borderTopLeftRadius: scaleSpacing(28),
-                    borderTopRightRadius: scaleSpacing(28),
-                    backgroundColor: isDark ? "#1F2937" : "#FFFFFF",
-                    width: "100%",
-                    maxHeight: modalSheetHeight,
-                    height: modalSheetHeight,
-                    transform: [{ translateY }],
-                    paddingBottom: insets.bottom,
-                    shadowColor: "#000",
-                    shadowOffset: {
-                      width: 0,
-                      height: -2,
-                    },
-                    shadowOpacity: 0.25,
-                    shadowRadius: 12,
-                    elevation: 12,
-                  }}
-                  {...categoryModalPanResponder.panHandlers}
-                >
+                <Pressable onPress={(e) => e.stopPropagation()}>
+                  <Animated.View
+                    style={{
+                      borderTopLeftRadius: scaleSpacing(28),
+                      borderTopRightRadius: scaleSpacing(28),
+                      backgroundColor: isDark ? "#1F2937" : "#FFFFFF",
+                      width: "100%",
+                      maxHeight: modalSheetHeight,
+                      height: modalSheetHeight,
+                      transform: [{ translateY }],
+                      paddingBottom: insets.bottom,
+                      shadowColor: "#000",
+                      shadowOffset: {
+                        width: 0,
+                        height: -2,
+                      },
+                      shadowOpacity: 0.25,
+                      shadowRadius: 12,
+                      elevation: 12,
+                    }}
+                    {...categoryModalPanResponder.panHandlers}
+                  >
                   {/* Drag Handle */}
                   <View
                     style={{
@@ -875,7 +876,8 @@ export function EditTransactionForm({
                       </Text>
                     </View>
                   )}
-                </Animated.View>
+                  </Animated.View>
+                </Pressable>
               </View>
             </Modal>
           </View>
