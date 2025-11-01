@@ -1,10 +1,10 @@
 {
   "tabs": {
-    "dashboard": "Tableau de bord",
+    "dashboard": "Accueil",
     "transactions": "Transactions",
     "add": "Ajouter",
     "categories": "Catégories",
-    "wishlist": "Liste de Souhaits"
+    "wishlist": "Souhaits"
   },
   "settings": {
     "title": "Paramètres",
