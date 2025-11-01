@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Tabs } from "expo-router";
+import { Tabs, useRouter } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, useWindowDimensions } from "react-native";
@@ -8,7 +8,8 @@ import { useTheme } from "../../src/state/ThemeProvider";
 export default function TabsLayout() {
   const { t } = useTranslation();
   const { width } = useWindowDimensions();
-  const { colorScheme, toggleColorScheme } = useTheme();
+  const router = useRouter();
+  const { colorScheme } = useTheme();
 
   // Responsive sizing based on screen width
   // Base sizes for phones, scale up for tablets/larger screens
@@ -19,17 +20,17 @@ export default function TabsLayout() {
   const iconSize = baseIconSize * scaleFactor;
   const fontSize = baseFontSize * scaleFactor;
 
-  // Theme toggle component
-  const ThemeToggle = () => (
+  // Settings icon component
+  const SettingsIcon = () => (
     <Pressable
-      onPress={toggleColorScheme}
+      onPress={() => router.push("/settings")}
       style={{ paddingHorizontal: 12, paddingVertical: 8 }}
       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
     >
       <Ionicons
-        name={colorScheme === "dark" ? "sunny" : "moon"}
+        name="settings-outline"
         size={24}
-        color={colorScheme === "dark" ? "#FFD700" : "#4A5568"}
+        color={colorScheme === "dark" ? "#FFFFFF" : "#111827"}
       />
     </Pressable>
   );
@@ -38,7 +39,7 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: true,
-        headerRight: () => <ThemeToggle />,
+        headerRight: () => <SettingsIcon />,
         tabBarActiveTintColor: "#2563eb",
         tabBarIconStyle: {
           marginTop: 4,
@@ -64,7 +65,7 @@ export default function TabsLayout() {
         options={{
           title: t("tabs.add") || "Ajouter",
           tabBarIcon: ({ color }) => (
-            <Ionicons name="add-circle-outline" color={color} size={iconSize} />
+            <Ionicons name="add-outline" color={color} size={iconSize} />
           ),
         }}
       />

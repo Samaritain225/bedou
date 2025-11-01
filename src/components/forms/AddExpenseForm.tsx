@@ -5,7 +5,6 @@ import { router } from "expo-router";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  Alert,
   Animated,
   Dimensions,
   FlatList,
@@ -62,6 +61,8 @@ export function AddExpenseForm() {
     categoryId?: string;
     note?: string;
   }>({});
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [generalError, setGeneralError] = useState<string | null>(null);
 
   // Bottom sheet animation for category modal
   const { height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -229,16 +230,17 @@ export function AddExpenseForm() {
       setSelectedCategory(expenseCategories[0] || null);
       setShowCategoryModal(false);
 
-      Alert.alert(
-        t("add.success") || "Success",
-        t("add.expenseAdded") || "Expense added successfully"
-      );
+      // Show success message
+      setShowSuccess(true);
+      setTimeout(() => {
+        setShowSuccess(false);
+      }, 3000); // Hide after 3 seconds
     } catch (error) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      Alert.alert(
-        t("common.error") || "Error",
-        t("add.saveError") || "Failed to save expense. Please try again."
-      );
+      setGeneralError(t("add.saveError") || "Failed to save expense. Please try again.");
+      setTimeout(() => {
+        setGeneralError(null);
+      }, 5000); // Hide after 5 seconds
     }
   };
 
@@ -270,6 +272,70 @@ export function AddExpenseForm() {
           >
             {t("add.title", "Add Expense")}
           </Text>
+
+          {/* Success Message */}
+          {showSuccess && (
+            <Animated.View
+              style={{
+                marginBottom: scaleSpacing(16),
+                paddingVertical: scaleSpacing(12),
+                paddingHorizontal: scaleSpacing(16),
+                backgroundColor: "#10B981",
+                borderRadius: scaleSpacing(12),
+                flexDirection: "row",
+                alignItems: "center",
+                gap: scaleSpacing(10),
+              }}
+            >
+              <Ionicons
+                name="checkmark-circle"
+                size={scaleSize(20)}
+                color="#FFFFFF"
+              />
+              <Text
+                style={{
+                  color: "#FFFFFF",
+                  fontSize: scaleFont(14),
+                  fontWeight: "600",
+                  flex: 1,
+                }}
+              >
+                {t("add.expenseAdded", "Expense added successfully")}
+              </Text>
+            </Animated.View>
+          )}
+
+          {/* Error Message */}
+          {generalError && (
+            <Animated.View
+              style={{
+                marginBottom: scaleSpacing(16),
+                paddingVertical: scaleSpacing(12),
+                paddingHorizontal: scaleSpacing(16),
+                backgroundColor: "#EF4444",
+                borderRadius: scaleSpacing(12),
+                flexDirection: "row",
+                alignItems: "center",
+                gap: scaleSpacing(10),
+              }}
+            >
+              <Ionicons
+                name="alert-circle"
+                size={scaleSize(20)}
+                color="#FFFFFF"
+              />
+              <Text
+                style={{
+                  color: "#FFFFFF",
+                  fontSize: scaleFont(14),
+                  fontWeight: "600",
+                  flex: 1,
+                }}
+              >
+                {generalError}
+              </Text>
+            </Animated.View>
+          )}
 
           {/* Amount Input */}
           <View style={{ marginBottom: scaleSpacing(28) }}>

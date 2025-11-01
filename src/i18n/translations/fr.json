@@ -5,13 +5,44 @@
     "add": "Ajouter",
     "categories": "Catégories"
   },
+  "settings": {
+    "title": "Paramètres",
+    "theme": "Thème",
+    "light": "Clair",
+    "dark": "Sombre",
+    "language": "Langue",
+    "english": "Anglais",
+    "french": "Français",
+    "currency": "Devise",
+    "about": "À propos",
+    "appName": "Bedou",
+    "appVersion": "Version 1.0.0"
+  },
   "dashboard": {
     "title": "Tableau de bord",
-    "subtitle": "Suivez vos dépenses et budgets mensuels"
+    "subtitle": "Suivez vos dépenses et budgets mensuels",
+    "income": "Revenus",
+    "expenses": "Dépenses",
+    "balance": "Solde",
+    "budgets": "Budgets",
+    "recent": "Transactions récentes",
+    "empty": "Aucune transaction ce mois-ci",
+    "empty.subtitle": "Ajoutez votre première dépense pour commencer",
+    "statistics": "Statistiques",
+    "thisWeek": "Cette Semaine",
+    "thisMonth": "Ce Mois",
+    "transactions": "transactions",
+    "avgDaily": "Moy. Quotidien",
+    "perDay": "par jour",
+    "activity": "Activité"
   },
   "transactions": {
     "title": "Transactions",
-    "empty": "Aucune transaction pour le moment"
+    "empty": "Aucune transaction pour le moment",
+    "empty.subtitle": "Ajoutez votre première dépense pour commencer",
+    "today": "Aujourd'hui",
+    "yesterday": "Hier",
+    "uncategorized": "Sans catégorie"
   },
   "add": {
     "title": "Ajouter une dépense",

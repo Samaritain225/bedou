@@ -124,7 +124,7 @@ async function seedDefaults(tx: any) {
       "INSERT INTO currencies (id, code, label, symbol, rateToBase, isBase, updatedAt) VALUES (?,?,?,?,?,?,?)",
       generateUuid(),
       "XOF",
-      "Franc CFA (BCEAO)",
+      "Franc CFA",
       "F CFA",
       1,
       1,

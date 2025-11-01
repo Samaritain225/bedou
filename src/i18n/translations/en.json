@@ -5,13 +5,44 @@
     "add": "Add",
     "categories": "Categories"
   },
+  "settings": {
+    "title": "Settings",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "language": "Language",
+    "english": "English",
+    "french": "Français",
+    "currency": "Currency",
+    "about": "About",
+    "appName": "Bedou",
+    "appVersion": "Version 1.0.0"
+  },
   "dashboard": {
     "title": "Dashboard",
-    "subtitle": "Track your expenses and monthly budgets"
+    "subtitle": "Track your expenses and monthly budgets",
+    "income": "Income",
+    "expenses": "Expenses",
+    "balance": "Balance",
+    "budgets": "Budgets",
+    "recent": "Recent Transactions",
+    "empty": "No transactions this month",
+    "empty.subtitle": "Add your first expense to get started",
+    "statistics": "Statistics",
+    "thisWeek": "This Week",
+    "thisMonth": "This Month",
+    "transactions": "transactions",
+    "avgDaily": "Avg Daily",
+    "perDay": "per day",
+    "activity": "Activity"
   },
   "transactions": {
     "title": "Transactions",
-    "empty": "No transactions yet"
+    "empty": "No transactions yet",
+    "empty.subtitle": "Add your first expense to get started",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "uncategorized": "Uncategorized"
   },
   "add": {
     "title": "Add Expense",

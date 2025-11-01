@@ -1,7 +1,7 @@
 import {
-    DarkTheme,
-    DefaultTheme,
-    ThemeProvider as NavigationThemeProvider,
+  DarkTheme,
+  DefaultTheme,
+  ThemeProvider as NavigationThemeProvider,
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
@@ -86,6 +86,16 @@ function AppContent() {
           <CategoriesProvider>
             <Stack>
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="settings"
+                options={{
+                  presentation: "modal",
+                  headerShown: false,
+                  title: "",
+                  headerTitle: "",
+                  headerBackVisible: false,
+                }}
+              />
             </Stack>
           </CategoriesProvider>
         </CurrencyProvider>
