@@ -27,7 +27,13 @@
     "about": "À propos",
     "appName": "Bedou",
     "appVersion": "Version",
-    "devNote": "Fait avec ❤️ et beaucoup trop de café"
+    "devNote": "Créé avec ❤️, ☕, et des décisions de budget café douteuses (définitivement suivies dans cette app)",
+    "devNote1": "Créé avec ❤️, ☕, et des décisions de budget café douteuses (définitivement suivies dans cette app)",
+    "devNote2": "Construit avec ❤️, beaucoup trop de caféine, et la réalisation qu'on avait besoin d'une app de budget 😅",
+    "devNote3": "Fait avec ❤️, ☕, et plusieurs courses de café 'd'urgence' (toutes correctement catégorisées en dépenses)",
+    "devNote4": "Créé avec ❤️, des sessions de code tardives, et du café qui coûte plus que notre premier salaire ☕💰",
+    "devNote5": "Créé avec ❤️, ☕, et un tableau montrant des dépenses de café rivalisant avec le loyer (on n'est pas fiers)",
+    "devNote6": "Construit avec ❤️, des abonnements café, et l'espoir que cette app nous aidera à équilibrer ☕📊"
   },
   "dashboard": {
     "title": "Tableau de bord",

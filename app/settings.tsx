@@ -7,7 +7,7 @@ import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
 import { router } from "expo-router";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Pressable,
@@ -39,6 +39,13 @@ export default function SettingsScreen() {
   const [currentLanguage, setCurrentLanguage] = useState(i18n.language);
   const [balanceInput, setBalanceInput] = useState("");
   const [showBalanceInput, setShowBalanceInput] = useState(false);
+  const [randomNoteIndex, setRandomNoteIndex] = useState(1);
+
+  // Randomly select a dev note when component mounts
+  useEffect(() => {
+    const randomIndex = Math.floor(Math.random() * 6) + 1; // Random between 1-6
+    setRandomNoteIndex(randomIndex);
+  }, []);
 
   const handleSetTheme = useCallback(
     async (scheme: "light" | "dark") => {
@@ -640,7 +647,7 @@ export default function SettingsScreen() {
                   textAlign: "center",
                 }}
               >
-                {t("settings.devNote", "Made with ❤️ and too much coffee")}
+                {t(`settings.devNote${randomNoteIndex}`, "Made with ❤️ and too much coffee")}
               </Text>
             </View>
           </View>
