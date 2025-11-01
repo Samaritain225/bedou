@@ -449,7 +449,7 @@ export default function SettingsScreen() {
                 marginBottom: scaleSpacing(12),
               }}
             >
-              {t("settings.appVersion", "Version")} {Constants.expoConfig?.version || "1.0.0"}
+              {t("settings.appVersion", "Version")} {Constants.expoConfig?.version || Constants.manifest?.version || "1.0.0"}
             </Text>
             <View
               style={{

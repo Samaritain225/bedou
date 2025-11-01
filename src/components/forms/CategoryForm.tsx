@@ -8,8 +8,8 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
+  type TextInput as RNTextInput,
 } from "react-native";
 import { z } from "zod";
 import { AVAILABLE_CATEGORY_COLORS } from "../../constants/categoryColors";
@@ -19,6 +19,9 @@ import { useCategories } from "../../state/CategoriesProvider";
 import { useTheme } from "../../state/ThemeProvider";
 import { useResponsive } from "../../utils/responsive";
 import { Card } from "../ui/Card";
+import { FormField } from "../ui/FormField";
+import { FormLabel } from "../ui/FormLabel";
+import { TextInputField } from "../ui/TextInputField";
 
 const categorySchema = z.object({
   name: z
@@ -45,10 +48,10 @@ export function CategoryForm({
 }: CategoryFormProps) {
   const { t } = useTranslation();
   const { addCategory, updateCategory } = useCategories();
-  const { scaleSpacing, scaleSize, scaleFont, getColumns } = useResponsive();
+  const { scaleSpacing, scaleSize, scaleFont } = useResponsive();
   const { colorScheme } = useTheme();
   const isDark = colorScheme === "dark";
-  const nameInputRef = useRef<TextInput>(null);
+  const nameInputRef = useRef<RNTextInput>(null);
   const isEditing = !!initialCategory;
 
   const [name, setName] = useState(initialCategory?.name || "");
@@ -225,38 +228,12 @@ export function CategoryForm({
         showsVerticalScrollIndicator={false}
       >
         {/* Name Field */}
-        <View style={[styles.field, { marginBottom: scaleSpacing(28) }]}>
-          <Text
-            style={[
-              styles.label,
-              {
-                fontSize: scaleFont(16),
-                marginBottom: scaleSpacing(8),
-                color: isDark ? "#F3F4F6" : "#111827",
-              },
-            ]}
-          >
-            {t("categories.form.name", "Name")}
-          </Text>
-          <TextInput
+        <FormField
+          label={t("categories.form.name", "Name")}
+          error={errors.name}
+        >
+          <TextInputField
             ref={nameInputRef}
-            style={[
-              styles.input,
-              {
-                borderRadius: scaleSpacing(12),
-                paddingHorizontal: scaleSpacing(16),
-                paddingVertical: scaleSpacing(14),
-                fontSize: scaleFont(16),
-                backgroundColor: isDark ? "#374151" : "#FFFFFF",
-                borderColor: isDark ? "#4B5563" : "#E5E7EB",
-                color: isDark ? "#FFFFFF" : "#111827",
-              },
-              errors.name && {
-                borderColor: "#EF4444",
-                borderWidth: 1.5,
-              },
-            ]}
-            placeholderTextColor={isDark ? "#9CA3AF" : "#9CA3AF"}
             value={name}
             onChangeText={(text) => {
               setName(text);
@@ -289,24 +266,12 @@ export function CategoryForm({
               "Enter category name"
             )}
             maxLength={50}
+            error={!!errors.name}
           />
-          {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
-        </View>
+        </FormField>
 
         {/* Type Selector */}
-        <View style={[styles.field, { marginBottom: scaleSpacing(28) }]}>
-          <Text
-            style={[
-              styles.label,
-              {
-                fontSize: scaleFont(16),
-                marginBottom: scaleSpacing(8),
-                color: isDark ? "#F3F4F6" : "#111827",
-              },
-            ]}
-          >
-            {t("categories.form.type", "Type")}
-          </Text>
+        <FormField label={t("categories.form.type", "Type")}>
           <View style={[styles.typeSelector, { gap: scaleSpacing(12) }]}>
             <Pressable
               style={[
@@ -383,22 +348,10 @@ export function CategoryForm({
               </Text>
             </Pressable>
           </View>
-        </View>
+        </FormField>
 
         {/* Icon Picker */}
-        <View style={[styles.field, { marginBottom: scaleSpacing(28) }]}>
-          <Text
-            style={[
-              styles.label,
-              {
-                fontSize: scaleFont(16),
-                marginBottom: scaleSpacing(8),
-                color: isDark ? "#F3F4F6" : "#111827",
-              },
-            ]}
-          >
-            {t("categories.form.icon", "Icon")}
-          </Text>
+        <FormField label={t("categories.form.icon", "Icon")}>
           <FlatList
             data={AVAILABLE_CATEGORY_ICONS}
             renderItem={({ item }) => (
@@ -448,22 +401,10 @@ export function CategoryForm({
             ]}
             columnWrapperStyle={{ gap: scaleSpacing(12) }}
           />
-        </View>
+        </FormField>
 
         {/* Color Picker */}
-        <View style={[styles.field, { marginBottom: scaleSpacing(28) }]}>
-          <Text
-            style={[
-              styles.label,
-              {
-                fontSize: scaleFont(16),
-                marginBottom: scaleSpacing(8),
-                color: isDark ? "#F3F4F6" : "#111827",
-              },
-            ]}
-          >
-            {t("categories.form.color", "Color")}
-          </Text>
+        <FormField label={t("categories.form.color", "Color")}>
           <View style={[styles.colorGrid, { gap: scaleSpacing(14) }]}>
             {AVAILABLE_CATEGORY_COLORS.map((color) => (
               <Pressable
@@ -501,22 +442,11 @@ export function CategoryForm({
               </Pressable>
             ))}
           </View>
-        </View>
+        </FormField>
 
         {/* Preview */}
-        <View style={[styles.field, { marginBottom: scaleSpacing(20) }]}>
-          <Text
-            style={[
-              styles.label,
-              {
-                fontSize: scaleFont(16),
-                marginBottom: scaleSpacing(8),
-                color: isDark ? "#F3F4F6" : "#111827",
-              },
-            ]}
-          >
-            {t("categories.form.preview", "Preview")}
-          </Text>
+        <View style={{ marginBottom: scaleSpacing(20) }}>
+          <FormLabel>{t("categories.form.preview", "Preview")}</FormLabel>
           <View style={styles.previewWrapper}>
             <Card
               className="items-center justify-center p-4"
@@ -621,26 +551,6 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     // Padding applied inline responsively
-  },
-  field: {
-    // marginBottom applied inline responsively
-  },
-  label: {
-    // fontSize and marginBottom applied inline responsively
-    fontWeight: "600",
-  },
-  input: {
-    borderWidth: 1.5,
-  },
-  inputError: {
-    borderColor: "#EF4444",
-    borderWidth: 1.5,
-  },
-  errorText: {
-    color: "#EF4444",
-    fontSize: 13,
-    marginTop: 6,
-    fontWeight: "500",
   },
   typeSelector: {
     flexDirection: "row",

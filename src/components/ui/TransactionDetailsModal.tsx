@@ -37,7 +37,7 @@ export function TransactionDetailsModal({
   onEdit,
   onDelete,
 }: TransactionDetailsModalProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
   const { colorScheme } = useTheme();
   const isDark = colorScheme === "dark";
@@ -48,6 +48,19 @@ export function TransactionDetailsModal({
   const sheetHeight = SCREEN_HEIGHT * 0.6;
   const translateY = useRef(new Animated.Value(sheetHeight)).current;
   const currentPosition = useRef(sheetHeight);
+
+  // Map language code to locale for Intl formatting
+  // "en" -> "en-US", "fr" -> "fr-FR", etc.
+  // This will update when the language changes via i18n
+  const locale = useMemo(() => {
+    const lang = i18n.language || "en";
+    // Map simple language codes to full locale strings
+    const localeMap: Record<string, string> = {
+      en: "en-US",
+      fr: "fr-FR",
+    };
+    return localeMap[lang] || `${lang}-${lang.toUpperCase()}`;
+  }, [i18n.language]);
 
   useEffect(() => {
     if (visible) {
@@ -113,7 +126,7 @@ export function TransactionDetailsModal({
 
   const formatAmount = (amountBase: number): string => {
     const amount = amountBase / 100;
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat(locale, {
       minimumFractionDigits: 0,
       maximumFractionDigits: 2,
     }).format(amount);
@@ -121,7 +134,7 @@ export function TransactionDetailsModal({
 
   const formatDateTime = (dateISO: string): string => {
     const date = new Date(dateISO);
-    return new Intl.DateTimeFormat("en-US", {
+    return new Intl.DateTimeFormat(locale, {
       weekday: "long",
       year: "numeric",
       month: "long",
@@ -172,30 +185,17 @@ export function TransactionDetailsModal({
             style={{
               flex: 1,
               paddingHorizontal: scaleSpacing(20),
-              paddingTop: scaleSpacing(16),
+              paddingTop: scaleSpacing(8),
             }}
           >
-            {/* Close Button */}
-            <Pressable
-              onPress={onClose}
-              style={{
-                alignSelf: "flex-end",
-                padding: scaleSpacing(8),
-                marginBottom: scaleSpacing(12),
-              }}
-            >
-              <Ionicons
-                name="close"
-                size={scaleSize(24)}
-                color={isDark ? "#FFFFFF" : "#111827"}
-              />
-            </Pressable>
-
-            {/* Transaction Info */}
+            {/* Header with Close Button and Icon */}
             <View
               style={{
+                flexDirection: "row",
                 alignItems: "center",
-                marginBottom: scaleSpacing(24),
+                justifyContent: "center",
+                marginBottom: scaleSpacing(16),
+                position: "relative",
               }}
             >
               {/* Category Icon */}
@@ -205,7 +205,6 @@ export function TransactionDetailsModal({
                     borderRadius: scaleSpacing(16),
                     padding: scaleSpacing(16),
                     backgroundColor: category.color + "20",
-                    marginBottom: scaleSpacing(16),
                   }}
                 >
                   <Ionicons
@@ -220,7 +219,6 @@ export function TransactionDetailsModal({
                     borderRadius: scaleSpacing(16),
                     padding: scaleSpacing(16),
                     backgroundColor: isDark ? "#4B5563" : "#F3F4F6",
-                    marginBottom: scaleSpacing(16),
                   }}
                 >
                   <Ionicons
@@ -230,6 +228,32 @@ export function TransactionDetailsModal({
                   />
                 </View>
               )}
+
+              {/* Close Button - Positioned absolutely */}
+              <Pressable
+                onPress={onClose}
+                style={{
+                  position: "absolute",
+                  right: 0,
+                  top: 0,
+                  padding: scaleSpacing(8),
+                }}
+              >
+                <Ionicons
+                  name="close"
+                  size={scaleSize(24)}
+                  color={isDark ? "#FFFFFF" : "#111827"}
+                />
+              </Pressable>
+            </View>
+
+            {/* Transaction Info */}
+            <View
+              style={{
+                alignItems: "center",
+                marginBottom: scaleSpacing(24),
+              }}
+            >
 
               {/* Amount */}
               <Text
@@ -302,10 +326,11 @@ export function TransactionDetailsModal({
                   style={{
                     color: isDark ? "#FFFFFF" : "#111827",
                     fontSize: scaleFont(16),
-                    textTransform: "capitalize",
                   }}
                 >
-                  {transaction.type}
+                  {transaction.type === "expense"
+                    ? t("categories.form.expense", "Expense")
+                    : t("categories.form.income", "Income")}
                 </Text>
               </View>
 
@@ -326,6 +351,8 @@ export function TransactionDetailsModal({
                     style={{
                       color: isDark ? "#FFFFFF" : "#111827",
                       fontSize: scaleFont(16),
+                      lineHeight: scaleFont(24),
+                      flexWrap: "wrap",
                     }}
                   >
                     {transaction.note}

@@ -28,6 +28,8 @@ import { useCategories } from "../../state/CategoriesProvider";
 import { useCurrency } from "../../state/CurrencyProvider";
 import { useTheme } from "../../state/ThemeProvider";
 import { useResponsive } from "../../utils/responsive";
+import { FormField } from "../ui/FormField";
+import { TextInputField } from "../ui/TextInputField";
 
 const expenseSchema = z.object({
   amount: z.number().positive("Amount must be greater than 0"),
@@ -343,18 +345,7 @@ export function AddExpenseForm() {
           )}
 
           {/* Amount Input */}
-          <View style={{ marginBottom: scaleSpacing(isTablet ? 32 : 28) }}>
-            <Text
-              style={{
-                fontSize: scaleFont(isTablet ? 17 : 16),
-                marginBottom: scaleSpacing(isTablet ? 10 : 8),
-                color: isDark ? "#F3F4F6" : "#111827",
-                fontWeight: "600",
-                letterSpacing: 0.1,
-              }}
-            >
-              {t("add.amount", "Amount")}
-            </Text>
+          <FormField label={t("add.amount", "Amount")} error={errors.amount}>
             <View
               style={{
                 borderRadius: scaleSpacing(12),
@@ -366,7 +357,7 @@ export function AddExpenseForm() {
                   : isDark
                     ? "#4B5563"
                     : "#E5E7EB",
-                borderWidth: errors.amount ? 1.5 : 1.5,
+                borderWidth: 1.5,
                 flexDirection: "row",
                 alignItems: "center",
                 gap: scaleSpacing(12),
@@ -398,34 +389,10 @@ export function AddExpenseForm() {
                 returnKeyType="next"
               />
             </View>
-            {errors.amount && (
-              <Text
-                style={{
-                  color: "#EF4444",
-                  fontSize: scaleFont(isTablet ? 14 : 13),
-                  marginTop: scaleSpacing(isTablet ? 8 : 6),
-                  fontWeight: "500",
-                  lineHeight: scaleFont(isTablet ? 20 : 18),
-                }}
-              >
-                {errors.amount}
-              </Text>
-            )}
-          </View>
+          </FormField>
 
           {/* Category Selector */}
-          <View style={{ marginBottom: scaleSpacing(isTablet ? 32 : 28) }}>
-            <Text
-              style={{
-                fontSize: scaleFont(isTablet ? 17 : 16),
-                marginBottom: scaleSpacing(isTablet ? 10 : 8),
-                color: isDark ? "#F3F4F6" : "#111827",
-                fontWeight: "600",
-                letterSpacing: 0.1,
-              }}
-            >
-              {t("add.category", "Category")}
-            </Text>
+          <FormField label={t("add.category", "Category")} error={errors.categoryId}>
             <Pressable
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -499,19 +466,6 @@ export function AddExpenseForm() {
                 </View>
               )}
             </Pressable>
-            {errors.categoryId && (
-              <Text
-                style={{
-                  color: "#EF4444",
-                  fontSize: scaleFont(isTablet ? 14 : 13),
-                  marginTop: scaleSpacing(isTablet ? 8 : 6),
-                  fontWeight: "500",
-                  lineHeight: scaleFont(isTablet ? 20 : 18),
-                }}
-              >
-                {errors.categoryId}
-              </Text>
-            )}
 
             {/* Category Selection Modal */}
             <Modal
@@ -874,72 +828,26 @@ export function AddExpenseForm() {
                 </Pressable>
               </View>
             </Modal>
-          </View>
+          </FormField>
 
           {/* Note Input */}
-          <View style={{ marginBottom: scaleSpacing(isTablet ? 32 : 28) }}>
-            <Text
-              style={{
-                fontSize: scaleFont(isTablet ? 17 : 16),
-                marginBottom: scaleSpacing(isTablet ? 10 : 8),
-                color: isDark ? "#F3F4F6" : "#111827",
-                fontWeight: "600",
-                letterSpacing: 0.1,
-              }}
-            >
-              {t("add.note", "Note")}{" "}
-              <Text
-                style={{
-                  fontSize: scaleFont(isTablet ? 15 : 14),
-                  fontWeight: "400",
-                  color: isDark ? "#9CA3AF" : "#6B7280",
-                }}
-              >
-                {t("add.optional", "(Optional)")}
-              </Text>
-            </Text>
-            <TextInput
-              style={{
-                borderRadius: scaleSpacing(12),
-                paddingHorizontal: scaleSpacing(16),
-                paddingVertical: scaleSpacing(14),
-                backgroundColor: isDark ? "#374151" : "#FFFFFF",
-                borderColor: errors.note
-                  ? "#EF4444"
-                  : isDark
-                    ? "#4B5563"
-                    : "#E5E7EB",
-                borderWidth: 1.5,
-                color: isDark ? "#FFFFFF" : "#111827",
-                fontSize: scaleFont(isTablet ? 17 : 16),
-                minHeight: scaleSize(isTablet ? 120 : 100),
-                textAlignVertical: "top",
-                lineHeight: scaleFont(isTablet ? 24 : 22),
-              }}
+          <FormField
+            label={t("add.note", "Note")}
+            labelOptional
+            labelOptionalText={t("add.optional", "(Optional)")}
+            error={errors.note}
+          >
+            <TextInputField
               value={note}
               onChangeText={handleNoteChange}
               placeholder={t("add.notePlaceholder", "Add a note...")}
-              placeholderTextColor={isDark ? "#9CA3AF" : "#9CA3AF"}
               multiline
               maxLength={300}
               returnKeyType="done"
-              editable={true}
               keyboardType="default"
               textContentType="none"
+              error={!!errors.note}
             />
-            {errors.note && (
-              <Text
-                style={{
-                  color: "#EF4444",
-                  fontSize: scaleFont(isTablet ? 14 : 13),
-                  marginTop: scaleSpacing(isTablet ? 8 : 6),
-                  fontWeight: "500",
-                  lineHeight: scaleFont(isTablet ? 20 : 18),
-                }}
-              >
-                {errors.note}
-              </Text>
-            )}
             <Text
               style={{
                 color: isDark ? "#6B7280" : "#9CA3AF",
@@ -951,7 +859,7 @@ export function AddExpenseForm() {
             >
               {note.length}/300
             </Text>
-          </View>
+          </FormField>
 
           {/* Submit Button */}
           <Pressable

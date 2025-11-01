@@ -29,6 +29,8 @@ import { useCategories } from "../../state/CategoriesProvider";
 import { useCurrency } from "../../state/CurrencyProvider";
 import { useTheme } from "../../state/ThemeProvider";
 import { useResponsive } from "../../utils/responsive";
+import { FormField } from "../ui/FormField";
+import { TextInputField } from "../ui/TextInputField";
 
 const transactionSchema = z.object({
   amount: z.number().positive("Amount must be greater than 0"),
@@ -364,17 +366,7 @@ export function EditTransactionForm({
           )}
 
           {/* Amount Input */}
-          <View style={{ marginBottom: scaleSpacing(28) }}>
-            <Text
-              style={{
-                fontSize: scaleFont(16),
-                marginBottom: scaleSpacing(8),
-                color: isDark ? "#F3F4F6" : "#111827",
-                fontWeight: "600",
-              }}
-            >
-              {t("add.amount", "Amount")}
-            </Text>
+          <FormField label={t("add.amount", "Amount")} error={errors.amount}>
             <View
               style={{
                 borderRadius: scaleSpacing(12),
@@ -415,32 +407,10 @@ export function EditTransactionForm({
                 returnKeyType="next"
               />
             </View>
-            {errors.amount && (
-              <Text
-                style={{
-                  color: "#EF4444",
-                  fontSize: scaleFont(13),
-                  marginTop: scaleSpacing(6),
-                  fontWeight: "500",
-                }}
-              >
-                {errors.amount}
-              </Text>
-            )}
-          </View>
+          </FormField>
 
           {/* Category Selector */}
-          <View style={{ marginBottom: scaleSpacing(28) }}>
-            <Text
-              style={{
-                fontSize: scaleFont(16),
-                marginBottom: scaleSpacing(8),
-                color: isDark ? "#F3F4F6" : "#111827",
-                fontWeight: "600",
-              }}
-            >
-              {t("add.category", "Category")}
-            </Text>
+          <FormField label={t("add.category", "Category")} error={errors.categoryId}>
             <Pressable
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -511,18 +481,6 @@ export function EditTransactionForm({
                 </View>
               )}
             </Pressable>
-            {errors.categoryId && (
-              <Text
-                style={{
-                  color: "#EF4444",
-                  fontSize: scaleFont(13),
-                  marginTop: scaleSpacing(6),
-                  fontWeight: "500",
-                }}
-              >
-                {errors.categoryId}
-              </Text>
-            )}
 
             {/* Category Selection Modal */}
             <Modal
@@ -880,68 +838,36 @@ export function EditTransactionForm({
                 </Pressable>
               </View>
             </Modal>
-          </View>
+          </FormField>
 
           {/* Note Input */}
-          <View style={{ marginBottom: scaleSpacing(28) }}>
-            <Text
-              style={{
-                fontSize: scaleFont(16),
-                marginBottom: scaleSpacing(8),
-                color: isDark ? "#F3F4F6" : "#111827",
-                fontWeight: "600",
-              }}
-            >
-              {t("add.note", "Note")} {t("add.optional", "(Optional)")}
-            </Text>
-            <TextInput
-              style={{
-                borderRadius: scaleSpacing(12),
-                paddingHorizontal: scaleSpacing(16),
-                paddingVertical: scaleSpacing(14),
-                backgroundColor: isDark ? "#374151" : "#FFFFFF",
-                borderColor: errors.note
-                  ? "#EF4444"
-                  : isDark
-                    ? "#4B5563"
-                    : "#E5E7EB",
-                borderWidth: 1.5,
-                color: isDark ? "#FFFFFF" : "#111827",
-                fontSize: scaleFont(16),
-                minHeight: scaleSize(100),
-                textAlignVertical: "top",
-              }}
+          <FormField
+            label={t("add.note", "Note")}
+            labelOptional
+            labelOptionalText={t("add.optional", "(Optional)")}
+            error={errors.note}
+          >
+            <TextInputField
               value={note}
               onChangeText={handleNoteChange}
               placeholder={t("add.notePlaceholder", "Add a note...")}
-              placeholderTextColor={isDark ? "#9CA3AF" : "#9CA3AF"}
               multiline
               maxLength={300}
               returnKeyType="done"
+              error={!!errors.note}
             />
-            {errors.note && (
-              <Text
-                style={{
-                  color: "#EF4444",
-                  fontSize: scaleFont(13),
-                  marginTop: scaleSpacing(6),
-                  fontWeight: "500",
-                }}
-              >
-                {errors.note}
-              </Text>
-            )}
             <Text
               style={{
                 color: isDark ? "#6B7280" : "#9CA3AF",
                 fontSize: scaleFont(12),
                 marginTop: scaleSpacing(4),
                 textAlign: "right",
+                fontWeight: "500",
               }}
             >
               {note.length}/300
             </Text>
-          </View>
+          </FormField>
 
           {/* Submit Button */}
           <Pressable
