@@ -152,6 +152,31 @@ export default function TabsLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="wishlist"
+        options={{
+          title: t("tabs.wishlist", "Wishlist"),
+          tabBarLabel: ({ focused }) => (
+            <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.75}
+              style={{
+                fontSize: fontSize,
+                fontWeight: "600",
+                color: focused ? "#2563eb" : "#6B7280",
+                textAlign: "center",
+                marginTop: 2,
+              }}
+            >
+              {t("tabs.wishlist", "Wishlist")}
+            </Text>
+          ),
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="heart-outline" color={color} size={iconSize} />
+          ),
+        }}
+      />
     </Tabs>
   );
 }

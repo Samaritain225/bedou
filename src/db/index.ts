@@ -30,7 +30,15 @@ export async function initDatabase(db?: any): Promise<void> {
     // Schema creation, version check, and seeding can run in a transaction
     await database.withExclusiveTransactionAsync(async (tx: any) => {
       await execSchema(tx);
-      await ensureVersion(tx, 1);
+      const currentVersion = await getMeta(tx, "db_version");
+      const currentNum = currentVersion ? Number(currentVersion) : 0;
+      
+      // Run migrations if needed
+      if (currentNum < 2) {
+        await migrateToV2(tx);
+      }
+      
+      await ensureVersion(tx, 2);
       await seedDefaults(tx);
     });
 
@@ -103,6 +111,28 @@ CREATE TABLE IF NOT EXISTS transactions (
 CREATE INDEX IF NOT EXISTS idx_txn_date ON transactions(dateISO);
 CREATE INDEX IF NOT EXISTS idx_txn_cat ON transactions(categoryId);
 CREATE INDEX IF NOT EXISTS idx_txn_type ON transactions(type);
+CREATE TABLE IF NOT EXISTS wallets (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  amountBase INTEGER NOT NULL,
+  currencyCode TEXT NOT NULL,
+  updatedAt TEXT NOT NULL,
+  createdAt TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS planned_purchases (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  amountBase INTEGER NOT NULL,
+  priority TEXT NOT NULL CHECK (priority IN ('high','medium','low')),
+  categoryId TEXT REFERENCES categories(id),
+  note TEXT,
+  isPurchased INTEGER NOT NULL DEFAULT 0,
+  purchasedAt TEXT,
+  createdAt TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_pp_priority ON planned_purchases(priority);
+CREATE INDEX IF NOT EXISTS idx_pp_purchased ON planned_purchases(isPurchased);
+CREATE INDEX IF NOT EXISTS idx_pp_cat ON planned_purchases(categoryId);
 `;
 }
 
@@ -110,8 +140,40 @@ async function ensureVersion(tx: any, required: number) {
   const current = await getMeta(tx, "db_version");
   const currentNum = current ? Number(current) : 0;
   if (currentNum < required) {
-    // Place future migrations here; for v1 schema only table creation
     await setMeta(tx, "db_version", String(required));
+  }
+}
+
+async function migrateToV2(tx: any) {
+  // Migration to version 2: Add wallets and planned_purchases tables
+  try {
+    await tx.execAsync(`
+      CREATE TABLE IF NOT EXISTS wallets (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        amountBase INTEGER NOT NULL,
+        currencyCode TEXT NOT NULL,
+        updatedAt TEXT NOT NULL,
+        createdAt TEXT NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS planned_purchases (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        amountBase INTEGER NOT NULL,
+        priority TEXT NOT NULL CHECK (priority IN ('high','medium','low')),
+        categoryId TEXT REFERENCES categories(id),
+        note TEXT,
+        isPurchased INTEGER NOT NULL DEFAULT 0,
+        purchasedAt TEXT,
+        createdAt TEXT NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_pp_priority ON planned_purchases(priority);
+      CREATE INDEX IF NOT EXISTS idx_pp_purchased ON planned_purchases(isPurchased);
+      CREATE INDEX IF NOT EXISTS idx_pp_cat ON planned_purchases(categoryId);
+    `);
+  } catch (error) {
+    console.error("Error during migration to v2:", error);
+    throw error;
   }
 }
 

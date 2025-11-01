@@ -1,3 +1,15 @@
+import { FormField } from "@/src/components/ui/FormField";
+import { TextInputField } from "@/src/components/ui/TextInputField";
+import { useDb } from "@/src/db/hooks";
+import { Category } from "@/src/features/categories/types";
+import { updateTransaction } from "@/src/features/transactions/repository";
+import { Transaction } from "@/src/features/transactions/types";
+import { useCategories } from "@/src/state/CategoriesProvider";
+import { useCurrency } from "@/src/state/CurrencyProvider";
+import { useTheme } from "@/src/state/ThemeProvider";
+import { useWallet } from "@/src/state/WalletProvider";
+import { handleAmountChange } from "@/src/utils/formHelpers";
+import { useResponsive } from "@/src/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
@@ -21,16 +33,6 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { z } from "zod";
-import { useDb } from "../../db/hooks";
-import { Category } from "../../features/categories/types";
-import { updateTransaction } from "../../features/transactions/repository";
-import { Transaction } from "../../features/transactions/types";
-import { useCategories } from "../../state/CategoriesProvider";
-import { useCurrency } from "../../state/CurrencyProvider";
-import { useTheme } from "../../state/ThemeProvider";
-import { useResponsive } from "../../utils/responsive";
-import { FormField } from "../ui/FormField";
-import { TextInputField } from "../ui/TextInputField";
 
 const transactionSchema = z.object({
   amount: z.number().positive("Amount must be greater than 0"),
@@ -57,6 +59,7 @@ export function EditTransactionForm({
   const db = useDb();
   const { categories } = useCategories();
   const { baseCurrency } = useCurrency();
+  const { adjustWalletBalance } = useWallet();
   const { scaleSpacing, scaleSize, scaleFont } = useResponsive();
   const { colorScheme } = useTheme();
   const isDark = colorScheme === "dark";
@@ -171,15 +174,12 @@ export function EditTransactionForm({
     router.push("/(tabs)/categories?openAdd=true");
   };
 
-  const handleAmountChange = (text: string) => {
-    const cleaned = text.replace(/[^0-9.]/g, "");
-    const parts = cleaned.split(".");
-    if (parts.length <= 2) {
-      setAmount(cleaned);
-    }
-    if (errors.amount) {
-      setErrors({ ...errors, amount: undefined });
-    }
+  const onAmountChange = (text: string) => {
+    handleAmountChange(text, setAmount, () => {
+      if (errors.amount) {
+        setErrors({ ...errors, amount: undefined });
+      }
+    });
   };
 
   const handleNoteChange = (text: string) => {
@@ -238,6 +238,21 @@ export function EditTransactionForm({
       };
 
       await updateTransaction(updatedTransaction, db);
+
+      // Adjust wallet: reverse old transaction effect, apply new transaction effect
+      // If expense was deducted, we add it back; if income was added, we deduct it
+      const oldAmountDelta = initialTransaction.type === "expense" 
+        ? initialTransaction.amountBase  // Reverse expense: add back
+        : -initialTransaction.amountBase; // Reverse income: deduct
+      // Then apply the new transaction effect
+      const newAmountDelta = initialTransaction.type === "expense"
+        ? -updatedTransaction.amountBase  // Apply expense: deduct
+        : updatedTransaction.amountBase;  // Apply income: add
+      
+      // First reverse the old transaction
+      await adjustWalletBalance(oldAmountDelta, baseCurrency?.code || "XOF");
+      // Then apply the new transaction
+      await adjustWalletBalance(newAmountDelta, baseCurrency?.code || "XOF");
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
@@ -400,7 +415,7 @@ export function EditTransactionForm({
                   fontSize: scaleFont(16),
                 }}
                 value={amount}
-                onChangeText={handleAmountChange}
+                onChangeText={onAmountChange}
                 placeholder="0"
                 placeholderTextColor={isDark ? "#9CA3AF" : "#9CA3AF"}
                 keyboardType="decimal-pad"

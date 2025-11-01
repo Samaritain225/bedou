@@ -1,3 +1,8 @@
+import { useCurrency } from "@/src/state/CurrencyProvider";
+import { useTheme } from "@/src/state/ThemeProvider";
+import { useWallet } from "@/src/state/WalletProvider";
+import { formatAmountFromBase } from "@/src/utils/format";
+import { useResponsive } from "@/src/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
@@ -9,12 +14,10 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useCurrency } from "../src/state/CurrencyProvider";
-import { useTheme } from "../src/state/ThemeProvider";
-import { useResponsive } from "../src/utils/responsive";
 
 const LANGUAGE_STORAGE_KEY = "@bedou_language";
 
@@ -29,10 +32,13 @@ export default function SettingsScreen() {
   const { t, i18n } = useTranslation();
   const { colorScheme, setColorScheme } = useTheme();
   const { currencies, baseCurrency, makeBase } = useCurrency();
+  const { wallet, setWalletBalance } = useWallet();
   const isDark = colorScheme === "dark";
   const { scaleSpacing, scaleSize, scaleFont } = useResponsive();
   const insets = useSafeAreaInsets();
   const [currentLanguage, setCurrentLanguage] = useState(i18n.language);
+  const [balanceInput, setBalanceInput] = useState("");
+  const [showBalanceInput, setShowBalanceInput] = useState(false);
 
   const handleSetTheme = useCallback(
     async (scheme: "light" | "dark") => {
@@ -60,6 +66,18 @@ export default function SettingsScreen() {
     },
     [makeBase]
   );
+
+  const handleSetBalance = useCallback(async () => {
+    const numericBalance = parseFloat(balanceInput);
+    if (isNaN(numericBalance) || numericBalance < 0) {
+      return;
+    }
+    const amountBase = Math.round(numericBalance * 100);
+    await setWalletBalance(amountBase, baseCurrency?.code || "XOF");
+    setBalanceInput("");
+    setShowBalanceInput(false);
+  }, [balanceInput, setWalletBalance, baseCurrency]);
+
 
   return (
     <View
@@ -318,6 +336,161 @@ export default function SettingsScreen() {
                 />
               )}
             </Pressable>
+          </View>
+        </View>
+
+        {/* Wallet Balance Section */}
+        <View
+          style={{
+            paddingHorizontal: scaleSpacing(20),
+            marginBottom: scaleSpacing(24),
+          }}
+        >
+          <Text
+            style={{
+              color: isDark ? "#FFFFFF" : "#111827",
+              fontSize: scaleFont(18),
+              fontWeight: "700",
+              marginBottom: scaleSpacing(16),
+            }}
+          >
+            {t("settings.wallet", "Budget Balance")}
+          </Text>
+          <View
+            style={{
+              borderRadius: scaleSpacing(12),
+              padding: scaleSpacing(16),
+              backgroundColor: isDark ? "#374151" : "#FFFFFF",
+              borderWidth: 1.5,
+              borderColor: isDark ? "#4B5563" : "#E5E7EB",
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: scaleSpacing(12),
+              }}
+            >
+              <View>
+                <Text
+                  style={{
+                    color: isDark ? "#9CA3AF" : "#6B7280",
+                    fontSize: scaleFont(14),
+                    fontWeight: "600",
+                    marginBottom: scaleSpacing(4),
+                  }}
+                >
+                  {t("settings.wallet.current", "Current Balance")}
+                </Text>
+                <Text
+                  style={{
+                    color: isDark ? "#FFFFFF" : "#111827",
+                    fontSize: scaleFont(20),
+                    fontWeight: "700",
+                  }}
+                >
+                  {wallet
+                    ? `${formatAmountFromBase(wallet.amountBase)} ${baseCurrency?.symbol || baseCurrency?.code || ""}`
+                    : t("settings.wallet.notSet", "Not set")}
+                </Text>
+              </View>
+              <Pressable
+                onPress={() => {
+                  setShowBalanceInput(!showBalanceInput);
+                  if (!showBalanceInput && wallet) {
+                    setBalanceInput(formatAmountFromBase(wallet.amountBase));
+                  }
+                }}
+                style={{
+                  paddingHorizontal: scaleSpacing(16),
+                  paddingVertical: scaleSpacing(10),
+                  borderRadius: scaleSpacing(8),
+                  backgroundColor: isDark ? "#4B5563" : "#F3F4F6",
+                }}
+              >
+                <Text
+                  style={{
+                    color: isDark ? "#FFFFFF" : "#111827",
+                    fontSize: scaleFont(14),
+                    fontWeight: "600",
+                  }}
+                >
+                  {showBalanceInput
+                    ? t("settings.wallet.cancel", "Cancel")
+                    : t("settings.wallet.edit", "Edit")}
+                </Text>
+              </Pressable>
+            </View>
+            {showBalanceInput && (
+              <View
+                style={{
+                  marginTop: scaleSpacing(12),
+                  paddingTop: scaleSpacing(12),
+                  borderTopWidth: 1,
+                  borderTopColor: isDark ? "#4B5563" : "#E5E7EB",
+                }}
+              >
+                <Text
+                  style={{
+                    color: isDark ? "#9CA3AF" : "#6B7280",
+                    fontSize: scaleFont(14),
+                    fontWeight: "600",
+                    marginBottom: scaleSpacing(8),
+                  }}
+                >
+                  {t("settings.wallet.setNew", "Set New Balance")}
+                </Text>
+                <TextInput
+                  value={balanceInput}
+                  onChangeText={(text) => {
+                    const cleaned = text.replace(/[^0-9.]/g, "");
+                    const parts = cleaned.split(".");
+                    if (parts.length <= 2) {
+                      setBalanceInput(cleaned);
+                    }
+                  }}
+                  placeholder={t(
+                    "settings.wallet.placeholder",
+                    "Enter amount"
+                  )}
+                  keyboardType="numeric"
+                  style={{
+                    borderRadius: scaleSpacing(8),
+                    paddingHorizontal: scaleSpacing(12),
+                    paddingVertical: scaleSpacing(10),
+                    backgroundColor: isDark ? "#4B5563" : "#F9FAFB",
+                    borderWidth: 1.5,
+                    borderColor: isDark ? "#6B7280" : "#E5E7EB",
+                    color: isDark ? "#FFFFFF" : "#111827",
+                    fontSize: scaleFont(16),
+                    marginBottom: scaleSpacing(12),
+                  }}
+                  placeholderTextColor={isDark ? "#9CA3AF" : "#9CA3AF"}
+                />
+                <Pressable
+                  onPress={handleSetBalance}
+                  style={{
+                    paddingHorizontal: scaleSpacing(16),
+                    paddingVertical: scaleSpacing(12),
+                    borderRadius: scaleSpacing(8),
+                    backgroundColor: isDark ? "#3B82F6" : "#2563EB",
+                    alignItems: "center",
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: "#FFFFFF",
+                      fontSize: scaleFont(16),
+                      fontWeight: "600",
+                    }}
+                  >
+                    {t("settings.wallet.save", "Save Balance")}
+                  </Text>
+                </Pressable>
+              </View>
+            )}
           </View>
         </View>
 

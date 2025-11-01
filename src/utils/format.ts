@@ -1,3 +1,23 @@
+/**
+ * Format amount stored in database (base units, multiplied by 100)
+ * Converts from base units to display amount and formats it
+ */
+export function formatAmountFromBase(
+  amountBase: number,
+  options: { minimumFractionDigits?: number; maximumFractionDigits?: number; locale?: string } = {}
+): string {
+  const { minimumFractionDigits = 0, maximumFractionDigits = 2, locale = "en-US" } = options;
+  const amount = amountBase / 100; // Convert from base units to display amount
+  return new Intl.NumberFormat(locale, {
+    minimumFractionDigits,
+    maximumFractionDigits,
+  }).format(amount);
+}
+
+/**
+ * Format amount (assumes amount is already in final format, not base units)
+ * Used for currency formatting with locale support
+ */
 export function formatAmount(
   amountInBase: number,
   options: { currencyCode?: string; symbol?: string; locale?: string } = {}

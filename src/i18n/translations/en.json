@@ -3,7 +3,8 @@
     "dashboard": "Dashboard",
     "transactions": "Transactions",
     "add": "Add",
-    "categories": "Categories"
+    "categories": "Categories",
+    "wishlist": "Wishlist"
   },
   "settings": {
     "title": "Settings",
@@ -15,6 +16,14 @@
     "english": "English",
     "french": "Français",
     "currency": "Currency",
+    "wallet": "Budget Balance",
+    "wallet.current": "Current Balance",
+    "wallet.notSet": "Not set",
+    "wallet.edit": "Edit",
+    "wallet.cancel": "Cancel",
+    "wallet.setNew": "Set New Balance",
+    "wallet.placeholder": "Enter amount",
+    "wallet.save": "Save Balance",
     "about": "About",
     "appName": "Bedou",
     "appVersion": "Version",
@@ -26,6 +35,7 @@
     "income": "Income",
     "expenses": "Expenses",
     "balance": "Balance",
+    "wallet": "Available Balance",
     "budgets": "Budgets",
     "recent": "Recent Transactions",
     "empty": "No transactions this month",
@@ -37,6 +47,9 @@
     "avgDaily": "Avg Daily",
     "perDay": "per day",
     "activity": "Activity",
+    "wishlist": "Wishlist",
+    "wishlist.empty": "No planned purchases yet",
+    "wishlist.empty.subtitle": "Add items you want to buy",
     "charts": {
       "monthlyTrends": "Monthly Spending Trends",
       "categoryBreakdown": "Spending by Category",
@@ -117,6 +130,38 @@
     "save": "Save",
     "delete": "Delete",
     "error": "Error",
-    "ok": "OK"
+    "ok": "OK",
+    "optional": "(Optional)"
+  },
+  "wishlist": {
+    "title": "Wishlist",
+    "name": "Item Name",
+    "namePlaceholder": "What do you want to buy?",
+    "amount": "Amount",
+    "priority": "Priority",
+    "priority.high": "High",
+    "priority.medium": "Medium",
+    "priority.low": "Low",
+    "category": "Category",
+    "selectCategory": "Select category",
+    "note": "Note",
+    "notePlaceholder": "Add a note...",
+    "add": "Add to Wishlist",
+    "update": "Update Wishlist Item",
+    "nameRequired": "Name is required",
+    "amountRequired": "Please enter a valid amount",
+    "saveError": "Failed to save. Please try again.",
+    "markAsPurchased": "Mark as Purchased",
+    "purchased": "Purchased",
+    "active": "Active",
+    "all": "All",
+    "history": "History",
+    "empty": "No planned purchases",
+    "empty.subtitle": "Add items you want to buy",
+    "empty.history": "No purchased items yet",
+    "delete": {
+      "title": "Delete Planned Purchase",
+      "message": "Are you sure you want to delete \"{{name}}\"?"
+    }
   }
 }

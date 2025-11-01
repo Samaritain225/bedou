@@ -1,3 +1,9 @@
+import { initDatabase } from "@/src/db";
+import "@/src/i18n/setup";
+import { CategoriesProvider } from "@/src/state/CategoriesProvider";
+import { CurrencyProvider } from "@/src/state/CurrencyProvider";
+import { ThemeProvider, useTheme } from "@/src/state/ThemeProvider";
+import { WalletProvider } from "@/src/state/WalletProvider";
 import {
   DarkTheme,
   DefaultTheme,
@@ -12,11 +18,6 @@ import { useEffect } from "react";
 import { I18nManager, Text, TextInput } from "react-native";
 import "react-native-reanimated";
 import "../global.css";
-import { initDatabase } from "../src/db";
-import "../src/i18n/setup";
-import { CategoriesProvider } from "../src/state/CategoriesProvider";
-import { CurrencyProvider } from "../src/state/CurrencyProvider";
-import { ThemeProvider, useTheme } from "../src/state/ThemeProvider";
 
 export const unstable_settings = {
   anchor: "(tabs)",
@@ -83,21 +84,23 @@ function AppContent() {
         options={{ enableChangeListener: true }}
       >
         <CurrencyProvider>
-          <CategoriesProvider>
-            <Stack>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen
-                name="settings"
-                options={{
-                  presentation: "modal",
-                  headerShown: false,
-                  title: "",
-                  headerTitle: "",
-                  headerBackVisible: false,
-                }}
-              />
-            </Stack>
-          </CategoriesProvider>
+          <WalletProvider>
+            <CategoriesProvider>
+              <Stack>
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen
+                  name="settings"
+                  options={{
+                    presentation: "modal",
+                    headerShown: false,
+                    title: "",
+                    headerTitle: "",
+                    headerBackVisible: false,
+                  }}
+                />
+              </Stack>
+            </CategoriesProvider>
+          </WalletProvider>
         </CurrencyProvider>
       </SQLiteProvider>
       <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />

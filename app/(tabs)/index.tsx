@@ -1,3 +1,19 @@
+import { CategoryBreakdownChart } from "@/src/components/charts/CategoryBreakdownChart";
+import { MonthlyTrendsChart } from "@/src/components/charts/MonthlyTrendsChart";
+import { PlannedPurchaseForm } from "@/src/components/forms/PlannedPurchaseForm";
+import { SimpleBottomSheet } from "@/src/components/ui/SimpleBottomSheet";
+import { PRIORITY_COLORS } from "@/src/constants/priorityColors";
+import { useDb } from "@/src/db/hooks";
+import { listPlannedPurchases, markAsPurchased } from "@/src/features/planned-purchases/repository";
+import { PlannedPurchase } from "@/src/features/planned-purchases/types";
+import { listTransactions } from "@/src/features/transactions/repository";
+import { Transaction } from "@/src/features/transactions/types";
+import { useCategories } from "@/src/state/CategoriesProvider";
+import { useCurrency } from "@/src/state/CurrencyProvider";
+import { useTheme } from "@/src/state/ThemeProvider";
+import { useWallet } from "@/src/state/WalletProvider";
+import { formatAmountFromBase } from "@/src/utils/format";
+import { useResponsive } from "@/src/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect } from "expo-router";
@@ -12,21 +28,13 @@ import {
   Text,
   View
 } from "react-native";
-import { CategoryBreakdownChart } from "../../src/components/charts/CategoryBreakdownChart";
-import { MonthlyTrendsChart } from "../../src/components/charts/MonthlyTrendsChart";
-import { useDb } from "../../src/db/hooks";
-import { listTransactions } from "../../src/features/transactions/repository";
-import { Transaction } from "../../src/features/transactions/types";
-import { useCategories } from "../../src/state/CategoriesProvider";
-import { useCurrency } from "../../src/state/CurrencyProvider";
-import { useTheme } from "../../src/state/ThemeProvider";
-import { useResponsive } from "../../src/utils/responsive";
 
 export default function DashboardScreen() {
   const { t } = useTranslation();
   const db = useDb();
   const { categories, budgets, currentMonth } = useCategories();
   const { baseCurrency } = useCurrency();
+  const { wallet } = useWallet();
   const { colorScheme } = useTheme();
   const isDark = colorScheme === "dark";
   const { scaleSpacing, scaleSize, scaleFont } = useResponsive();
@@ -34,6 +42,8 @@ export default function DashboardScreen() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [plannedPurchases, setPlannedPurchases] = useState<PlannedPurchase[]>([]);
+  const [showWishlistForm, setShowWishlistForm] = useState(false);
 
   // Get current month range
   const getMonthRange = useCallback((monthYYYYMM: string) => {
@@ -73,10 +83,15 @@ export default function DashboardScreen() {
       // Load all transactions for stats
       const allTxns = await listTransactions(db);
       setAllTransactions(Array.isArray(allTxns) ? allTxns : []);
+
+      // Load planned purchases
+      const purchases = await listPlannedPurchases(db, { isPurchased: false });
+      setPlannedPurchases(Array.isArray(purchases) ? purchases : []);
     } catch (error) {
       console.error("Error loading dashboard data:", error);
       setTransactions([]);
       setAllTransactions([]);
+      setPlannedPurchases([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -94,13 +109,6 @@ export default function DashboardScreen() {
     await loadDashboardData();
   }, [loadDashboardData]);
 
-  const formatAmount = (amountBase: number): string => {
-    const amount = amountBase / 100;
-    return new Intl.NumberFormat("en-US", {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    }).format(amount);
-  };
 
   // All transactions for week and month calculations
   const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
@@ -217,6 +225,15 @@ export default function DashboardScreen() {
     });
   };
 
+  const handleMarkAsPurchased = useCallback(async (id: string) => {
+    try {
+      await markAsPurchased(id, db);
+      await loadDashboardData();
+    } catch (error) {
+      console.error("Error marking as purchased:", error);
+    }
+  }, [db, loadDashboardData]);
+
   if (loading) {
     return (
       <View
@@ -276,6 +293,66 @@ export default function DashboardScreen() {
             {formatMonthLabel(currentMonth)}
           </Text>
         </View>
+
+        {/* Wallet Balance Card */}
+        {wallet && (
+          <View
+            style={{
+              paddingHorizontal: scaleSpacing(20),
+              marginBottom: scaleSpacing(24),
+            }}
+          >
+            <LinearGradient
+              colors={["#6366F1", "#8B5CF6"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={{
+                borderRadius: scaleSpacing(16),
+                padding: scaleSpacing(20),
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <View>
+                  <Text
+                    style={{
+                      color: "#FFFFFF",
+                      fontSize: scaleFont(14),
+                      fontWeight: "600",
+                      marginBottom: scaleSpacing(4),
+                      opacity: 0.9,
+                    }}
+                  >
+                    {t("dashboard.wallet", "Available Balance")}
+                  </Text>
+                  <Text
+                    style={{
+                      color: "#FFFFFF",
+                      fontSize: scaleFont(28),
+                      fontWeight: "700",
+                    }}
+                    adjustsFontSizeToFit
+                    numberOfLines={1}
+                    minimumFontScale={0.7}
+                  >
+                    {formatAmountFromBase(wallet.amountBase)} {baseCurrency?.symbol || baseCurrency?.code || ""}
+                  </Text>
+                </View>
+                <Ionicons
+                  name="wallet"
+                  size={scaleSize(40)}
+                  color="#FFFFFF"
+                  style={{ opacity: 0.9 }}
+                />
+              </View>
+            </LinearGradient>
+          </View>
+        )}
 
         {/* Statistics Section */}
         <View
@@ -348,7 +425,7 @@ export default function DashboardScreen() {
                 numberOfLines={1}
                 minimumFontScale={0.7}
               >
-                {formatAmount(weeklyTotals.expenses)} {baseCurrency?.symbol || baseCurrency?.code || ""}
+                {formatAmountFromBase(weeklyTotals.expenses)} {baseCurrency?.symbol || baseCurrency?.code || ""}
               </Text>
               <Text
                 style={{
@@ -405,7 +482,7 @@ export default function DashboardScreen() {
                 numberOfLines={1}
                 minimumFontScale={0.7}
               >
-                {formatAmount(monthlyTotals.expenses)} {baseCurrency?.symbol || baseCurrency?.code || ""}
+                {formatAmountFromBase(monthlyTotals.expenses)} {baseCurrency?.symbol || baseCurrency?.code || ""}
               </Text>
               <Text
                 style={{
@@ -470,7 +547,7 @@ export default function DashboardScreen() {
                 numberOfLines={1}
                 minimumFontScale={0.7}
               >
-                {formatAmount(averageDailyExpense)} {baseCurrency?.symbol || baseCurrency?.code || ""}
+                {formatAmountFromBase(averageDailyExpense)} {baseCurrency?.symbol || baseCurrency?.code || ""}
               </Text>
               <Text
                 style={{
@@ -585,7 +662,7 @@ export default function DashboardScreen() {
                   numberOfLines={1}
                   minimumFontScale={0.6}
                 >
-                  {formatAmount(monthlyTotals.income)} {baseCurrency?.symbol || baseCurrency?.code || ""}
+                  {formatAmountFromBase(monthlyTotals.income)} {baseCurrency?.symbol || baseCurrency?.code || ""}
                 </Text>
               </View>
               <Ionicons name="arrow-down-circle" size={scaleSize(32)} color="#FFFFFF" style={{ opacity: 0.9 }} />
@@ -631,7 +708,7 @@ export default function DashboardScreen() {
                   numberOfLines={1}
                   minimumFontScale={0.6}
                 >
-                  {formatAmount(monthlyTotals.expenses)} {baseCurrency?.symbol || baseCurrency?.code || ""}
+                  {formatAmountFromBase(monthlyTotals.expenses)} {baseCurrency?.symbol || baseCurrency?.code || ""}
                 </Text>
               </View>
               <Ionicons name="arrow-up-circle" size={scaleSize(32)} color="#FFFFFF" style={{ opacity: 0.9 }} />
@@ -680,7 +757,7 @@ export default function DashboardScreen() {
                   minimumFontScale={0.6}
                 >
                   {monthlyTotals.balance >= 0 ? "+" : ""}
-                  {formatAmount(Math.abs(monthlyTotals.balance))} {baseCurrency?.symbol || baseCurrency?.code || ""}
+                  {formatAmountFromBase(Math.abs(monthlyTotals.balance))} {baseCurrency?.symbol || baseCurrency?.code || ""}
                 </Text>
               </View>
               <Ionicons
@@ -770,7 +847,7 @@ export default function DashboardScreen() {
                           fontWeight: "600",
                         }}
                       >
-                        {formatAmount(budget.spent)} {baseCurrency?.symbol || baseCurrency?.code || ""} / {formatAmount(budget.amountBase)} {baseCurrency?.symbol || baseCurrency?.code || ""}
+                        {formatAmountFromBase(budget.spent)} {baseCurrency?.symbol || baseCurrency?.code || ""} / {formatAmountFromBase(budget.amountBase)} {baseCurrency?.symbol || baseCurrency?.code || ""}
                       </Text>
                     </View>
                     {/* Progress Bar */}
@@ -815,6 +892,176 @@ export default function DashboardScreen() {
             transactions={transactions}
             categories={categories}
           />
+        </View>
+
+        {/* Wishlist Section */}
+        <View style={{ marginBottom: scaleSpacing(24) }}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              paddingHorizontal: scaleSpacing(20),
+              marginBottom: scaleSpacing(16),
+            }}
+          >
+            <Text
+              style={{
+                color: isDark ? "#FFFFFF" : "#111827",
+                fontSize: scaleFont(18),
+                fontWeight: "700",
+              }}
+            >
+              {t("dashboard.wishlist", "Wishlist")}
+            </Text>
+            <Pressable
+              onPress={() => setShowWishlistForm(true)}
+              style={{
+                paddingHorizontal: scaleSpacing(12),
+                paddingVertical: scaleSpacing(8),
+                borderRadius: scaleSpacing(8),
+                backgroundColor: isDark ? "#3B82F6" : "#2563EB",
+              }}
+            >
+              <Ionicons name="add" size={scaleSize(20)} color="#FFFFFF" />
+            </Pressable>
+          </View>
+
+          {plannedPurchases.length === 0 ? (
+            <View
+              style={{
+                paddingVertical: scaleSpacing(40),
+                paddingHorizontal: scaleSpacing(32),
+                alignItems: "center",
+              }}
+            >
+              <Ionicons
+                name="heart-outline"
+                size={scaleSize(48)}
+                color={isDark ? "#6B7280" : "#9CA3AF"}
+              />
+              <Text
+                style={{
+                  color: isDark ? "#9CA3AF" : "#6B7280",
+                  fontSize: scaleFont(16),
+                  marginTop: scaleSpacing(12),
+                  textAlign: "center",
+                }}
+              >
+                {t("dashboard.wishlist.empty", "No planned purchases yet")}
+              </Text>
+              <Text
+                style={{
+                  color: isDark ? "#6B7280" : "#9CA3AF",
+                  fontSize: scaleFont(14),
+                  marginTop: scaleSpacing(4),
+                  textAlign: "center",
+                }}
+              >
+                {t("dashboard.wishlist.empty.subtitle", "Add items you want to buy")}
+              </Text>
+            </View>
+          ) : (
+            <View style={{ paddingHorizontal: scaleSpacing(20) }}>
+              {plannedPurchases.map((purchase) => {
+                const category = categories.find((c) => c.id === purchase.categoryId);
+                const priorityColor = PRIORITY_COLORS[purchase.priority];
+                return (
+                  <Pressable
+                    key={purchase.id}
+                    onPress={() => handleMarkAsPurchased(purchase.id)}
+                    style={{
+                      borderRadius: scaleSpacing(12),
+                      padding: scaleSpacing(16),
+                      backgroundColor: isDark ? "#374151" : "#FFFFFF",
+                      borderWidth: 1.5,
+                      borderColor: isDark ? "#4B5563" : "#E5E7EB",
+                      marginBottom: scaleSpacing(12),
+                    }}
+                  >
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <View style={{ flex: 1 }}>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: scaleSpacing(10),
+                            marginBottom: scaleSpacing(8),
+                          }}
+                        >
+                          {category && (
+                            <Ionicons
+                              name={category.icon as any}
+                              size={scaleSize(20)}
+                              color={category.color}
+                            />
+                          )}
+                          <Text
+                            style={{
+                              color: isDark ? "#FFFFFF" : "#111827",
+                              fontSize: scaleFont(16),
+                              fontWeight: "600",
+                              flex: 1,
+                            }}
+                            numberOfLines={1}
+                          >
+                            {purchase.name}
+                          </Text>
+                          <View
+                            style={{
+                              paddingHorizontal: scaleSpacing(8),
+                              paddingVertical: scaleSpacing(4),
+                              borderRadius: scaleSpacing(6),
+                              backgroundColor: priorityColor + "20",
+                            }}
+                          >
+                            <Text
+                              style={{
+                                color: priorityColor,
+                                fontSize: scaleFont(12),
+                                fontWeight: "600",
+                                textTransform: "capitalize",
+                              }}
+                            >
+                              {t(`wishlist.priority.${purchase.priority}`, purchase.priority)}
+                            </Text>
+                          </View>
+                        </View>
+                        <Text
+                          style={{
+                            color: isDark ? "#9CA3AF" : "#6B7280",
+                            fontSize: scaleFont(14),
+                            fontWeight: "600",
+                          }}
+                        >
+                          {formatAmountFromBase(purchase.amountBase)} {baseCurrency?.symbol || baseCurrency?.code || ""}
+                        </Text>
+                      </View>
+                      <Pressable
+                        onPress={() => handleMarkAsPurchased(purchase.id)}
+                        style={{
+                          marginLeft: scaleSpacing(12),
+                          padding: scaleSpacing(8),
+                        }}
+                      >
+                        <Ionicons
+                          name="checkmark-circle-outline"
+                          size={scaleSize(24)}
+                          color={priorityColor}
+                        />
+                      </Pressable>
+                    </View>
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
         </View>
 
         {/* Recent Transactions */}
@@ -914,7 +1161,7 @@ export default function DashboardScreen() {
                       }}
                     >
                       {isExpense ? "-" : "+"}
-                      {formatAmount(txn.amountBase)} {baseCurrency?.symbol || baseCurrency?.code || ""}
+                      {formatAmountFromBase(txn.amountBase)} {baseCurrency?.symbol || baseCurrency?.code || ""}
                     </Text>
                   </View>
                 </Pressable>
@@ -961,6 +1208,20 @@ export default function DashboardScreen() {
           </View>
         )}
       </ScrollView>
+
+      {/* Wishlist Form Modal */}
+      <SimpleBottomSheet
+        visible={showWishlistForm}
+        onClose={() => setShowWishlistForm(false)}
+      >
+        <PlannedPurchaseForm
+          onSuccess={() => {
+            setShowWishlistForm(false);
+            loadDashboardData();
+          }}
+          onCancel={() => setShowWishlistForm(false)}
+        />
+      </SimpleBottomSheet>
     </View>
   );
 }

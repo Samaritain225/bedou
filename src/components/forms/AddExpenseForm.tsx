@@ -1,3 +1,14 @@
+import { FormField } from "@/src/components/ui/FormField";
+import { TextInputField } from "@/src/components/ui/TextInputField";
+import { generateUuid } from "@/src/db";
+import { useDb } from "@/src/db/hooks";
+import { Category } from "@/src/features/categories/types";
+import { useCategories } from "@/src/state/CategoriesProvider";
+import { useCurrency } from "@/src/state/CurrencyProvider";
+import { useTheme } from "@/src/state/ThemeProvider";
+import { useWallet } from "@/src/state/WalletProvider";
+import { handleAmountChange } from "@/src/utils/formHelpers";
+import { useResponsive } from "@/src/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
@@ -21,15 +32,6 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { z } from "zod";
-import { generateUuid } from "../../db";
-import { useDb } from "../../db/hooks";
-import { Category } from "../../features/categories/types";
-import { useCategories } from "../../state/CategoriesProvider";
-import { useCurrency } from "../../state/CurrencyProvider";
-import { useTheme } from "../../state/ThemeProvider";
-import { useResponsive } from "../../utils/responsive";
-import { FormField } from "../ui/FormField";
-import { TextInputField } from "../ui/TextInputField";
 
 const expenseSchema = z.object({
   amount: z.number().positive("Amount must be greater than 0"),
@@ -46,6 +48,7 @@ export function AddExpenseForm() {
   const db = useDb();
   const { categories } = useCategories();
   const { baseCurrency } = useCurrency();
+  const { adjustWalletBalance } = useWallet();
   const { scaleSpacing, scaleSize, scaleFont, width, isTablet } = useResponsive();
   const { colorScheme } = useTheme();
   const isDark = colorScheme === "dark";
@@ -154,15 +157,12 @@ export function AddExpenseForm() {
     router.push("/(tabs)/categories?openAdd=true");
   };
 
-  const handleAmountChange = (text: string) => {
-    const cleaned = text.replace(/[^0-9.]/g, "");
-    const parts = cleaned.split(".");
-    if (parts.length <= 2) {
-      setAmount(cleaned);
-    }
-    if (errors.amount) {
-      setErrors({ ...errors, amount: undefined });
-    }
+  const onAmountChange = (text: string) => {
+    handleAmountChange(text, setAmount, () => {
+      if (errors.amount) {
+        setErrors({ ...errors, amount: undefined });
+      }
+    });
   };
 
   const handleNoteChange = (text: string) => {
@@ -224,6 +224,9 @@ export function AddExpenseForm() {
         "expense",
         null
       );
+
+      // Decrease wallet balance for expense
+      await adjustWalletBalance(-amountBase, baseCurrency?.code || "XOF");
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
@@ -382,7 +385,7 @@ export function AddExpenseForm() {
                   fontWeight: "500",
                 }}
                 value={amount}
-                onChangeText={handleAmountChange}
+                onChangeText={onAmountChange}
                 placeholder="0"
                 placeholderTextColor={isDark ? "#9CA3AF" : "#9CA3AF"}
                 keyboardType="decimal-pad"

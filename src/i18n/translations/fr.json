@@ -3,7 +3,8 @@
     "dashboard": "Tableau de bord",
     "transactions": "Transactions",
     "add": "Ajouter",
-    "categories": "Catégories"
+    "categories": "Catégories",
+    "wishlist": "Liste de Souhaits"
   },
   "settings": {
     "title": "Paramètres",
@@ -15,6 +16,14 @@
     "english": "Anglais",
     "french": "Français",
     "currency": "Devise",
+    "wallet": "Solde du Budget",
+    "wallet.current": "Solde Actuel",
+    "wallet.notSet": "Non défini",
+    "wallet.edit": "Modifier",
+    "wallet.cancel": "Annuler",
+    "wallet.setNew": "Définir un Nouveau Solde",
+    "wallet.placeholder": "Entrez le montant",
+    "wallet.save": "Enregistrer le Solde",
     "about": "À propos",
     "appName": "Bedou",
     "appVersion": "Version",
@@ -26,6 +35,7 @@
     "income": "Revenus",
     "expenses": "Dépenses",
     "balance": "Solde",
+    "wallet": "Solde Disponible",
     "budgets": "Budgets",
     "recent": "Transactions récentes",
     "empty": "Aucune transaction ce mois-ci",
@@ -37,6 +47,9 @@
     "avgDaily": "Moy. Quotidien",
     "perDay": "par jour",
     "activity": "Activité",
+    "wishlist": "Liste de Souhaits",
+    "wishlist.empty": "Aucun achat planifié pour le moment",
+    "wishlist.empty.subtitle": "Ajoutez des articles que vous souhaitez acheter",
     "charts": {
       "monthlyTrends": "Tendances mensuelles des dépenses",
       "categoryBreakdown": "Dépenses par catégorie",
@@ -117,6 +130,38 @@
     "save": "Enregistrer",
     "delete": "Supprimer",
     "error": "Erreur",
-    "ok": "OK"
+    "ok": "OK",
+    "optional": "(Optionnel)"
+  },
+  "wishlist": {
+    "title": "Liste de Souhaits",
+    "name": "Nom de l'Article",
+    "namePlaceholder": "Que voulez-vous acheter ?",
+    "amount": "Montant",
+    "priority": "Priorité",
+    "priority.high": "Haute",
+    "priority.medium": "Moyenne",
+    "priority.low": "Basse",
+    "category": "Catégorie",
+    "selectCategory": "Sélectionner une catégorie",
+    "note": "Note",
+    "notePlaceholder": "Ajouter une note...",
+    "add": "Ajouter à la Liste",
+    "update": "Mettre à jour l'Article",
+    "nameRequired": "Le nom est requis",
+    "amountRequired": "Veuillez entrer un montant valide",
+    "saveError": "Échec de l'enregistrement. Veuillez réessayer.",
+    "markAsPurchased": "Marquer comme Acheté",
+    "purchased": "Acheté",
+    "active": "Actif",
+    "all": "Tous",
+    "history": "Historique",
+    "empty": "Aucun achat planifié",
+    "empty.subtitle": "Ajoutez des articles que vous souhaitez acheter",
+    "empty.history": "Aucun article acheté pour le moment",
+    "delete": {
+      "title": "Supprimer l'Achat Planifié",
+      "message": "Êtes-vous sûr de vouloir supprimer \"{{name}}\" ?"
+    }
   }
 }

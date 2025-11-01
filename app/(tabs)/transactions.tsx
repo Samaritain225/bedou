@@ -11,20 +11,21 @@ import {
   Text,
   View,
 } from "react-native";
-import { EditTransactionForm } from "../../src/components/forms/EditTransactionForm";
-import { DeleteModal } from "../../src/components/ui/DeleteModal";
-import { SimpleBottomSheet } from "../../src/components/ui/SimpleBottomSheet";
-import { TransactionDetailsModal } from "../../src/components/ui/TransactionDetailsModal";
-import { useDb } from "../../src/db/hooks";
+import { EditTransactionForm } from "@/src/components/forms/EditTransactionForm";
+import { DeleteModal } from "@/src/components/ui/DeleteModal";
+import { SimpleBottomSheet } from "@/src/components/ui/SimpleBottomSheet";
+import { TransactionDetailsModal } from "@/src/components/ui/TransactionDetailsModal";
+import { useDb } from "@/src/db/hooks";
 import {
   deleteTransaction,
   listTransactions,
-} from "../../src/features/transactions/repository";
-import { Transaction } from "../../src/features/transactions/types";
-import { useCategories } from "../../src/state/CategoriesProvider";
-import { useCurrency } from "../../src/state/CurrencyProvider";
-import { useTheme } from "../../src/state/ThemeProvider";
-import { useResponsive } from "../../src/utils/responsive";
+} from "@/src/features/transactions/repository";
+import { Transaction } from "@/src/features/transactions/types";
+import { useCategories } from "@/src/state/CategoriesProvider";
+import { useCurrency } from "@/src/state/CurrencyProvider";
+import { useTheme } from "@/src/state/ThemeProvider";
+import { useWallet } from "@/src/state/WalletProvider";
+import { useResponsive } from "@/src/utils/responsive";
 
 interface GroupedTransaction {
   date: string;
@@ -37,6 +38,7 @@ export default function TransactionsScreen() {
   const db = useDb();
   const { categories } = useCategories();
   const { baseCurrency } = useCurrency();
+  const { adjustWalletBalance } = useWallet();
   const { colorScheme } = useTheme();
   const isDark = colorScheme === "dark";
   const { scaleSpacing, scaleSize, scaleFont } = useResponsive();
@@ -163,6 +165,12 @@ export default function TransactionsScreen() {
 
     setIsDeleting(true);
     try {
+      // Reverse wallet adjustment: if expense was deducted, add it back; if income was added, deduct it
+      const amountDelta = selectedTransaction.type === "expense"
+        ? selectedTransaction.amountBase  // Reverse expense: add back
+        : -selectedTransaction.amountBase; // Reverse income: deduct
+      
+      await adjustWalletBalance(amountDelta, selectedTransaction.currencyCode);
       await deleteTransaction(selectedTransaction.id, db);
       await loadTransactions();
       setDeleteModalVisible(false);
