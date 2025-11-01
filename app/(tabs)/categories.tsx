@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useMemo, useState } from "react";
+import { useFocusEffect, useLocalSearchParams } from "expo-router";
+import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -20,6 +21,7 @@ import { useResponsive } from "../../src/utils/responsive";
 export default function CategoriesScreen() {
   const { t } = useTranslation();
   const { categories, deleteCategory, refresh } = useCategories();
+  const params = useLocalSearchParams<{ openAdd?: string }>();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [showBottomSheet, setShowBottomSheet] = useState(false);
@@ -28,6 +30,19 @@ export default function CategoriesScreen() {
   );
   const { width, scaleSpacing, getColumns, scaleSize, scaleFont } =
     useResponsive();
+
+  // Open bottom sheet if openAdd param is present
+  useFocusEffect(
+    useCallback(() => {
+      if (params.openAdd === "true") {
+        // Small delay to ensure screen is fully mounted
+        setTimeout(() => {
+          setShowBottomSheet(true);
+          setEditingCategory(null);
+        }, 100);
+      }
+    }, [params.openAdd])
+  );
 
   // Responsive grid calculations
   const numColumns = useMemo(() => getColumns(3), [getColumns]);

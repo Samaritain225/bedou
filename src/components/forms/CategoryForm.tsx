@@ -117,21 +117,21 @@ export function CategoryForm({
         });
       } else {
         // Create new category
-        await addCategory({
-          name: result.data.name,
-          type: result.data.type,
-          icon: result.data.icon,
-          color: result.data.color,
-        });
+      await addCategory({
+        name: result.data.name,
+        type: result.data.type,
+        icon: result.data.icon,
+        color: result.data.color,
+      });
       }
 
       // Reset form only if creating new
       if (!isEditing) {
-        setName("");
-        setType("expense");
-        setSelectedIcon(AVAILABLE_CATEGORY_ICONS[0]);
-        setSelectedColor(AVAILABLE_CATEGORY_COLORS[0]);
-        setErrors({});
+      setName("");
+      setType("expense");
+      setSelectedIcon(AVAILABLE_CATEGORY_ICONS[0]);
+      setSelectedColor(AVAILABLE_CATEGORY_COLORS[0]);
+      setErrors({});
       }
 
       onSuccess?.();

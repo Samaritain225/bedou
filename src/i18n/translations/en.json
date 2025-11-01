@@ -26,6 +26,10 @@
     "amountRequired": "Please enter a valid amount",
     "categoryRequired": "Please select a category",
     "noCategories": "No expense categories available",
+    "searchCategory": "Search categories...",
+    "noCategoryFound": "No category found for",
+    "createCategory": "Create New Category",
+    "new": "New",
     "success": "Success",
     "expenseAdded": "Expense added successfully",
     "saveError": "Failed to save expense. Please try again."

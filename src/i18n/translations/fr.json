@@ -26,6 +26,10 @@
     "amountRequired": "Veuillez entrer un montant valide",
     "categoryRequired": "Veuillez sélectionner une catégorie",
     "noCategories": "Aucune catégorie de dépense disponible",
+    "searchCategory": "Rechercher des catégories...",
+    "noCategoryFound": "Aucune catégorie trouvée pour",
+    "createCategory": "Créer une nouvelle catégorie",
+    "new": "Nouveau",
     "success": "Succès",
     "expenseAdded": "Dépense ajoutée avec succès",
     "saveError": "Échec de l'enregistrement de la dépense. Veuillez réessayer."

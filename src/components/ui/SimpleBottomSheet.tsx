@@ -113,23 +113,23 @@ export function SimpleBottomSheet({
       <View style={styles.overlay}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
         <Animated.View
-          style={[
-            styles.sheet,
-            isDark && styles.sheetDark,
+            style={[
+              styles.sheet,
+              isDark && styles.sheetDark,
             {
               height: sheetHeight,
               transform: [{ translateY }],
               paddingBottom: insets.bottom,
             },
-          ]}
+            ]}
           {...panResponder.panHandlers}
-        >
-          {/* Drag Handle */}
-          <View
-            style={[styles.dragHandle, isDark && styles.dragHandleDark]}
-          />
+          >
+            {/* Drag Handle */}
+            <View
+              style={[styles.dragHandle, isDark && styles.dragHandleDark]}
+            />
 
-          {/* Content */}
+            {/* Content */}
           <KeyboardAvoidingView
             style={styles.keyboardAvoid}
             behavior={Platform.OS === "ios" ? "padding" : "height"}
