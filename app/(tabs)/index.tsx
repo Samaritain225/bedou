@@ -546,7 +546,7 @@ export default function DashboardScreen() {
         >
           {/* Income Card */}
           <LinearGradient
-            colors={["#10B981", "#059669"]}
+            colors={["#34D399", "#10B981"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={{
@@ -592,7 +592,7 @@ export default function DashboardScreen() {
 
           {/* Expenses Card */}
           <LinearGradient
-            colors={["#EF4444", "#DC2626"]}
+            colors={["#F87171", "#EF4444"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={{

@@ -262,17 +262,6 @@ export function AddExpenseForm() {
         keyboardShouldPersistTaps="handled"
       >
         <View className="max-w-md w-full self-center">
-          {/* Title */}
-          <Text
-            className="text-2xl font-bold text-center mb-8"
-            style={{
-              color: isDark ? "#FFFFFF" : "#111827",
-              fontSize: scaleFont(24),
-            }}
-          >
-            {t("add.title", "Add Expense")}
-          </Text>
-
           {/* Success Message */}
           {showSuccess && (
             <Animated.View
