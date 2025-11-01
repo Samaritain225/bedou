@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Constants from "expo-constants";
 import { router } from "expo-router";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -17,6 +18,13 @@ import { useResponsive } from "../src/utils/responsive";
 
 const LANGUAGE_STORAGE_KEY = "@bedou_language";
 
+/**
+ * Settings Screen
+ * 
+ * Where users come to change their theme, language, and currency.
+ * Also where developers come to realize they've been staring at
+ * light mode for 8 hours straight. 👀
+ */
 export default function SettingsScreen() {
   const { t, i18n } = useTranslation();
   const { colorScheme, setColorScheme } = useTheme();
@@ -438,10 +446,30 @@ export default function SettingsScreen() {
               style={{
                 color: isDark ? "#9CA3AF" : "#6B7280",
                 fontSize: scaleFont(12),
+                marginBottom: scaleSpacing(12),
               }}
             >
-              {t("settings.appVersion", "Version 1.0.0")}
+              {t("settings.appVersion", "Version")} {Constants.expoConfig?.version || "1.0.0"}
             </Text>
+            <View
+              style={{
+                marginTop: scaleSpacing(12),
+                paddingTop: scaleSpacing(12),
+                borderTopWidth: 1,
+                borderTopColor: isDark ? "#4B5563" : "#E5E7EB",
+              }}
+            >
+              <Text
+                style={{
+                  color: isDark ? "#6B7280" : "#9CA3AF",
+                  fontSize: scaleFont(11),
+                  fontStyle: "italic",
+                  textAlign: "center",
+                }}
+              >
+                {t("settings.devNote", "Made with ❤️ and too much coffee")}
+              </Text>
+            </View>
           </View>
         </View>
       </ScrollView>

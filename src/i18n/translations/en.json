@@ -16,7 +16,8 @@
     "currency": "Currency",
     "about": "About",
     "appName": "Bedou",
-    "appVersion": "Version 1.0.0"
+    "appVersion": "Version 1.0.0",
+    "devNote": "Made with ❤️ and too much coffee"
   },
   "dashboard": {
     "title": "Dashboard",

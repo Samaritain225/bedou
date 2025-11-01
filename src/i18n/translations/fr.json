@@ -16,7 +16,8 @@
     "currency": "Devise",
     "about": "À propos",
     "appName": "Bedou",
-    "appVersion": "Version 1.0.0"
+    "appVersion": "Version 1.0.0",
+    "devNote": "Fait avec ❤️ et beaucoup trop de café"
   },
   "dashboard": {
     "title": "Tableau de bord",

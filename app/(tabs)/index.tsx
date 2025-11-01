@@ -154,6 +154,7 @@ export default function DashboardScreen() {
   }, [transactions]);
 
   // Calculate average daily expense (for month)
+  // If you're reading this, you've probably spent more today than this average 😅
   const averageDailyExpense = useMemo(() => {
     const today = new Date();
     const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
