@@ -4,7 +4,6 @@ import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Pressable,
   StyleSheet,
@@ -13,6 +12,7 @@ import {
 } from "react-native";
 import { CategoryForm } from "../../src/components/forms/CategoryForm";
 import { Card } from "../../src/components/ui/Card";
+import { DeleteModal } from "../../src/components/ui/DeleteModal";
 import { SimpleBottomSheet } from "../../src/components/ui/SimpleBottomSheet";
 import { Category } from "../../src/features/categories/types";
 import { useCategories } from "../../src/state/CategoriesProvider";
@@ -26,6 +26,10 @@ export default function CategoriesScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [showBottomSheet, setShowBottomSheet] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(
+    null
+  );
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(
     null
   );
   const { width, scaleSpacing, getColumns, scaleSize, scaleFont } =
@@ -60,36 +64,25 @@ export default function CategoriesScreen() {
     setRefreshing(false);
   };
 
-  const handleDelete = async (category: Category) => {
-    Alert.alert(
-      t("categories.delete.title") || "Delete Category",
-      t("categories.delete.message", { name: category.name }) ||
-        `Are you sure you want to delete "${category.name}"?`,
-      [
-        {
-          text: t("common.cancel") || "Cancel",
-          style: "cancel",
-        },
-        {
-          text: t("common.delete") || "Delete",
-          style: "destructive",
-          onPress: async () => {
-            setDeletingId(category.id);
-            try {
-              await deleteCategory(category.id);
-            } catch (error) {
-              Alert.alert(
-                t("common.error") || "Error",
-                t("categories.delete.error") ||
-                  "Failed to delete category. Please try again."
-              );
-            } finally {
-              setDeletingId(null);
-            }
-          },
-        },
-      ]
-    );
+  const handleDelete = (category: Category) => {
+    setCategoryToDelete(category);
+    setDeleteModalVisible(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!categoryToDelete) return;
+    
+    setDeletingId(categoryToDelete.id);
+    try {
+      await deleteCategory(categoryToDelete.id);
+      setDeleteModalVisible(false);
+      setCategoryToDelete(null);
+    } catch (error) {
+      // Error handling could show an inline error message
+      console.error("Failed to delete category:", error);
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   const handleEdit = (category: Category) => {
@@ -223,6 +216,24 @@ export default function CategoriesScreen() {
           initialCategory={editingCategory || undefined}
         />
       </SimpleBottomSheet>
+
+      <DeleteModal
+        visible={deleteModalVisible}
+        onClose={() => {
+          setDeleteModalVisible(false);
+          setCategoryToDelete(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        title={t("categories.delete.title", "Delete Category")}
+        message={
+          categoryToDelete
+            ? t("categories.delete.message", { name: categoryToDelete.name }) ||
+              `Are you sure you want to delete "${categoryToDelete.name}"? This action cannot be undone.`
+            : ""
+        }
+        confirmLabel={t("common.delete", "Delete")}
+        isLoading={deletingId !== null}
+      />
     </View>
   );
 }

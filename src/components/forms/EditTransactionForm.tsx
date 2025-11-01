@@ -2,34 +2,35 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  Animated,
-  Dimensions,
-  FlatList,
-  KeyboardAvoidingView,
-  Modal,
-  PanResponder,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View
+    Animated,
+    Dimensions,
+    FlatList,
+    KeyboardAvoidingView,
+    Modal,
+    PanResponder,
+    Platform,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { z } from "zod";
-import { generateUuid } from "../../db";
 import { useDb } from "../../db/hooks";
 import { Category } from "../../features/categories/types";
+import { updateTransaction } from "../../features/transactions/repository";
+import { Transaction } from "../../features/transactions/types";
 import { useCategories } from "../../state/CategoriesProvider";
 import { useCurrency } from "../../state/CurrencyProvider";
 import { useTheme } from "../../state/ThemeProvider";
 import { useResponsive } from "../../utils/responsive";
 
-const expenseSchema = z.object({
+const transactionSchema = z.object({
   amount: z.number().positive("Amount must be greater than 0"),
   categoryId: z.string().min(1, "Category is required"),
   note: z
@@ -39,7 +40,17 @@ const expenseSchema = z.object({
     .nullable(),
 });
 
-export function AddExpenseForm() {
+interface EditTransactionFormProps {
+  initialTransaction: Transaction;
+  onClose: () => void;
+  onSuccess?: () => void;
+}
+
+export function EditTransactionForm({
+  initialTransaction,
+  onClose,
+  onSuccess,
+}: EditTransactionFormProps) {
   const { t } = useTranslation();
   const db = useDb();
   const { categories } = useCategories();
@@ -49,11 +60,17 @@ export function AddExpenseForm() {
   const isDark = colorScheme === "dark";
   const insets = useSafeAreaInsets();
 
-  const [amount, setAmount] = useState("");
+  // Initialize form with transaction data
+  const initialAmount = (initialTransaction.amountBase / 100).toString();
+  const initialCategory = categories.find(
+    (cat) => cat.id === initialTransaction.categoryId
+  ) || null;
+
+  const [amount, setAmount] = useState(initialAmount);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
-    null
+    initialCategory
   );
-  const [note, setNote] = useState("");
+  const [note, setNote] = useState(initialTransaction.note || "");
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [categorySearchQuery, setCategorySearchQuery] = useState("");
   const [errors, setErrors] = useState<{
@@ -63,15 +80,14 @@ export function AddExpenseForm() {
   }>({});
   const [showSuccess, setShowSuccess] = useState(false);
   const [generalError, setGeneralError] = useState<string | null>(null);
-  const amountInputRef = useRef<TextInput>(null);
 
   // Bottom sheet animation for category modal
   const { height: SCREEN_HEIGHT } = Dimensions.get("window");
-  const modalSheetHeight = SCREEN_HEIGHT * 0.7; // 70% of screen
-  const translateY = useRef(new Animated.Value(modalSheetHeight)).current;
-  const currentPosition = useRef(modalSheetHeight);
+  const modalSheetHeight = SCREEN_HEIGHT * 0.7;
+  const translateY = React.useRef(new Animated.Value(modalSheetHeight)).current;
+  const currentPosition = React.useRef(modalSheetHeight);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (showCategoryModal) {
       translateY.setValue(modalSheetHeight);
       currentPosition.current = modalSheetHeight;
@@ -93,7 +109,7 @@ export function AddExpenseForm() {
     }
   }, [showCategoryModal, modalSheetHeight]);
 
-  const categoryModalPanResponder = useMemo(
+  const categoryModalPanResponder = React.useMemo(
     () =>
       PanResponder.create({
         onStartShouldSetPanResponder: () => true,
@@ -131,24 +147,25 @@ export function AddExpenseForm() {
     [modalSheetHeight]
   );
 
-  // Filter expense categories
-  const expenseCategories = categories.filter((cat) => cat.type === "expense");
+  // Filter categories based on transaction type
+  const transactionCategories = categories.filter(
+    (cat) => cat.type === initialTransaction.type
+  );
 
   // Filter categories based on search query
   const filteredCategories = useMemo(() => {
     if (!categorySearchQuery.trim()) {
-      return expenseCategories;
+      return transactionCategories;
     }
     const query = categorySearchQuery.toLowerCase().trim();
-    return expenseCategories.filter((cat) =>
+    return transactionCategories.filter((cat) =>
       cat.name.toLowerCase().includes(query)
     );
-  }, [expenseCategories, categorySearchQuery]);
+  }, [transactionCategories, categorySearchQuery]);
 
   const handleCreateCategory = () => {
     setShowCategoryModal(false);
     setCategorySearchQuery("");
-    // Navigate to categories tab and open bottom sheet
     router.push("/(tabs)/categories?openAdd=true");
   };
 
@@ -186,7 +203,7 @@ export function AddExpenseForm() {
       }
 
       // Validate with Zod
-      const result = expenseSchema.safeParse({
+      const result = transactionSchema.safeParse({
         amount: numericAmount,
         categoryId: selectedCategory.id,
         note: note.trim() || null,
@@ -208,45 +225,37 @@ export function AddExpenseForm() {
 
       // Convert to integer (stored as smallest unit)
       const amountBase = Math.round(numericAmount * 100);
-      const transactionId = generateUuid();
 
-      await db.runAsync(
-        "INSERT INTO transactions (id, dateISO, amountOriginal, currencyCode, amountBase, categoryId, note, type, tagsJSON) VALUES (?,?,?,?,?,?,?,?,?)",
-        transactionId,
-        new Date().toISOString(),
+      // Update transaction
+      const updatedTransaction: Transaction = {
+        ...initialTransaction,
         amountBase,
-        baseCurrency?.code || "XOF",
-        amountBase,
-        selectedCategory.id,
-        note.trim() || null,
-        "expense",
-        null
-      );
+        amountOriginal: amountBase,
+        categoryId: selectedCategory.id,
+        note: note.trim() || null,
+      };
+
+      await updateTransaction(updatedTransaction, db);
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-
-      // Reset form
-      setAmount("");
-      setNote("");
-      setSelectedCategory(expenseCategories[0] || null);
-      setShowCategoryModal(false);
 
       // Show success message
       setShowSuccess(true);
       setTimeout(() => {
         setShowSuccess(false);
-      }, 3000); // Hide after 3 seconds
+        onSuccess?.();
+        onClose();
+      }, 1500); // Close after 1.5 seconds
     } catch (error) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      setGeneralError(t("add.saveError") || "Failed to save expense. Please try again.");
+      setGeneralError(t("add.saveError") || "Failed to update transaction. Please try again.");
       setTimeout(() => {
         setGeneralError(null);
-      }, 5000); // Hide after 5 seconds
+      }, 5000);
     }
   };
 
   const canSubmit = amount && parseFloat(amount) > 0 && selectedCategory;
-
 
   return (
     <KeyboardAvoidingView
@@ -257,13 +266,39 @@ export function AddExpenseForm() {
         className="flex-1"
         contentContainerStyle={{
           flexGrow: 1,
-          justifyContent: "center",
           padding: scaleSpacing(24),
         }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
         <View className="max-w-md w-full self-center">
+          {/* Header */}
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: scaleSpacing(24),
+            }}
+          >
+            <Text
+              style={{
+                fontSize: scaleFont(24),
+                fontWeight: "700",
+                color: isDark ? "#FFFFFF" : "#111827",
+              }}
+            >
+              {t("transactions.edit", "Edit Transaction")}
+            </Text>
+            <Pressable onPress={onClose} style={{ padding: scaleSpacing(8) }}>
+              <Ionicons
+                name="close"
+                size={scaleSize(24)}
+                color={isDark ? "#FFFFFF" : "#111827"}
+              />
+            </Pressable>
+          </View>
+
           {/* Success Message */}
           {showSuccess && (
             <Animated.View
@@ -291,7 +326,7 @@ export function AddExpenseForm() {
                   flex: 1,
                 }}
               >
-                {t("add.expenseAdded", "Expense added successfully")}
+                {t("transactions.updated", "Transaction updated successfully")}
               </Text>
             </Animated.View>
           )}
@@ -367,7 +402,6 @@ export function AddExpenseForm() {
                 {baseCurrency?.symbol || baseCurrency?.code || ""}
               </Text>
               <TextInput
-                ref={amountInputRef}
                 style={{
                   flex: 1,
                   color: isDark ? "#FFFFFF" : "#111827",
@@ -571,9 +605,6 @@ export function AddExpenseForm() {
                         padding: scaleSpacing(8),
                         borderRadius: scaleSpacing(8),
                       }}
-                      android_ripple={{
-                        color: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
-                      }}
                     >
                       <Ionicons
                         name="close"
@@ -764,7 +795,6 @@ export function AddExpenseForm() {
                       }}
                     />
                   ) : categorySearchQuery.trim() ? (
-                    // No search results - show create option
                     <View
                       style={{
                         padding: scaleSpacing(24),
@@ -800,7 +830,7 @@ export function AddExpenseForm() {
                           marginTop: scaleSpacing(16),
                           paddingVertical: scaleSpacing(12),
                           paddingHorizontal: scaleSpacing(24),
-                          backgroundColor: isDark ? "#2563eb" : "#2563eb",
+                          backgroundColor: "#2563eb",
                           borderRadius: scaleSpacing(12),
                           alignItems: "center",
                           justifyContent: "center",
@@ -818,7 +848,6 @@ export function AddExpenseForm() {
                       </Pressable>
                     </View>
                   ) : (
-                    // No categories at all
                     <View
                       style={{
                         padding: scaleSpacing(24),
@@ -842,7 +871,7 @@ export function AddExpenseForm() {
                           textAlign: "center",
                         }}
                       >
-                        {t("add.noCategories", "No expense categories available")}
+                        {t("add.noCategories", "No categories available")}
                       </Text>
                     </View>
                   )}
@@ -923,7 +952,7 @@ export function AddExpenseForm() {
           >
             {({ pressed }) => (
               <LinearGradient
-                colors={canSubmit ? ["#EF4444", "#DC2626"] : isDark ? ["#4B5563", "#374151"] : ["#D1D5DB", "#9CA3AF"]}
+                colors={canSubmit ? ["#2563EB", "#1D4ED8"] : isDark ? ["#4B5563", "#374151"] : ["#D1D5DB", "#9CA3AF"]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={{
@@ -934,7 +963,7 @@ export function AddExpenseForm() {
                   justifyContent: "center",
                   opacity: pressed ? 0.9 : 1,
                   transform: [{ scale: pressed ? 0.98 : 1 }],
-                  shadowColor: canSubmit ? "#EF4444" : "transparent",
+                  shadowColor: canSubmit ? "#2563EB" : "transparent",
                   shadowOffset: { width: 0, height: 4 },
                   shadowOpacity: 0.2,
                   shadowRadius: 8,
@@ -949,7 +978,7 @@ export function AddExpenseForm() {
                     letterSpacing: 0.2,
                   }}
                 >
-                  {t("add.save", "Save Expense")}
+                  {t("transactions.save", "Save Changes")}
                 </Text>
               </LinearGradient>
             )}
@@ -959,3 +988,4 @@ export function AddExpenseForm() {
     </KeyboardAvoidingView>
   );
 }
+

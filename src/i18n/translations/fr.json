@@ -7,6 +7,7 @@
   },
   "settings": {
     "title": "Paramètres",
+    "subtitle": "Devises, formatage et export CSV",
     "theme": "Thème",
     "light": "Clair",
     "dark": "Sombre",
@@ -35,7 +36,14 @@
     "transactions": "transactions",
     "avgDaily": "Moy. Quotidien",
     "perDay": "par jour",
-    "activity": "Activité"
+    "activity": "Activité",
+    "charts": {
+      "monthlyTrends": "Tendances mensuelles des dépenses",
+      "categoryBreakdown": "Dépenses par catégorie",
+      "noData": "Aucune donnée de dépenses disponible",
+      "noCategoryData": "Aucune donnée de dépenses par catégorie disponible",
+      "libraryNotInstalled": "Bibliothèque de graphiques non installée. Veuillez installer react-native-chart-kit."
+    }
   },
   "transactions": {
     "title": "Transactions",
@@ -43,7 +51,16 @@
     "empty.subtitle": "Ajoutez votre première dépense pour commencer",
     "today": "Aujourd'hui",
     "yesterday": "Hier",
-    "uncategorized": "Sans catégorie"
+    "uncategorized": "Sans catégorie",
+    "date": "Date et heure",
+    "type": "Type",
+    "note": "Note",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "deleteTitle": "Supprimer la transaction",
+    "deleteMessage": "Êtes-vous sûr de vouloir supprimer cette transaction ? Cette action est irréversible.",
+    "updated": "Transaction mise à jour avec succès",
+    "save": "Enregistrer les modifications"
   },
   "add": {
     "title": "Ajouter une dépense",
@@ -94,10 +111,6 @@
       "title": "Modifier la catégorie",
       "comingSoon": "La fonctionnalité de modification arrivera bientôt"
     }
-  },
-  "settings": {
-    "title": "Paramètres",
-    "subtitle": "Devises, formatage et export CSV"
   },
   "common": {
     "cancel": "Annuler",

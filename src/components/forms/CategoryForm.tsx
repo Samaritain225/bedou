@@ -180,8 +180,16 @@ export function CategoryForm({
         <Text
           style={[
             styles.headerTitle,
-            { fontSize: scaleFont(20), color: isDark ? "#FFFFFF" : "#111827" },
+            { 
+              fontSize: scaleFont(18), 
+              color: isDark ? "#FFFFFF" : "#111827",
+              flex: 1,
+              textAlign: "center",
+            },
           ]}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.85}
         >
           {isEditing
             ? t("categories.form.editTitle", "Edit Category")
@@ -330,6 +338,9 @@ export function CategoryForm({
                           : "#6B7280",
                   },
                 ]}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.85}
               >
                 {t("categories.form.expense", "Expense")}
               </Text>
@@ -364,6 +375,9 @@ export function CategoryForm({
                           : "#6B7280",
                   },
                 ]}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.85}
               >
                 {t("categories.form.income", "Income")}
               </Text>

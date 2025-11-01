@@ -12,6 +12,8 @@ import {
   Text,
   View
 } from "react-native";
+import { CategoryBreakdownChart } from "../../src/components/charts/CategoryBreakdownChart";
+import { MonthlyTrendsChart } from "../../src/components/charts/MonthlyTrendsChart";
 import { useDb } from "../../src/db/hooks";
 import { listTransactions } from "../../src/features/transactions/repository";
 import { Transaction } from "../../src/features/transactions/types";
@@ -800,6 +802,20 @@ export default function DashboardScreen() {
             })}
           </View>
         )}
+
+        {/* Charts Section */}
+        <View
+          style={{
+            paddingHorizontal: scaleSpacing(20),
+            marginBottom: scaleSpacing(24),
+          }}
+        >
+          <MonthlyTrendsChart transactions={allTransactions} />
+          <CategoryBreakdownChart
+            transactions={transactions}
+            categories={categories}
+          />
+        </View>
 
         {/* Recent Transactions */}
         {recentTransactions.length > 0 && (

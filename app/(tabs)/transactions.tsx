@@ -11,8 +11,15 @@ import {
   Text,
   View,
 } from "react-native";
+import { EditTransactionForm } from "../../src/components/forms/EditTransactionForm";
+import { DeleteModal } from "../../src/components/ui/DeleteModal";
+import { SimpleBottomSheet } from "../../src/components/ui/SimpleBottomSheet";
+import { TransactionDetailsModal } from "../../src/components/ui/TransactionDetailsModal";
 import { useDb } from "../../src/db/hooks";
-import { listTransactions } from "../../src/features/transactions/repository";
+import {
+  deleteTransaction,
+  listTransactions,
+} from "../../src/features/transactions/repository";
 import { Transaction } from "../../src/features/transactions/types";
 import { useCategories } from "../../src/state/CategoriesProvider";
 import { useCurrency } from "../../src/state/CurrencyProvider";
@@ -37,6 +44,11 @@ export default function TransactionsScreen() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const [detailsModalVisible, setDetailsModalVisible] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const loadTransactions = useCallback(async () => {
     try {
@@ -125,6 +137,43 @@ export default function TransactionsScreen() {
     return categories.find((cat) => cat.id === categoryId) || null;
   };
 
+  const handleTransactionPress = (transaction: Transaction) => {
+    setSelectedTransaction(transaction);
+    setDetailsModalVisible(true);
+  };
+
+  const handleEdit = () => {
+    setDetailsModalVisible(false);
+    setEditModalVisible(true);
+  };
+
+  const handleDelete = () => {
+    setDetailsModalVisible(false);
+    setDeleteModalVisible(true);
+  };
+
+  const handleUpdateTransaction = async () => {
+    await loadTransactions();
+    setEditModalVisible(false);
+    setSelectedTransaction(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!selectedTransaction) return;
+
+    setIsDeleting(true);
+    try {
+      await deleteTransaction(selectedTransaction.id, db);
+      await loadTransactions();
+      setDeleteModalVisible(false);
+      setSelectedTransaction(null);
+    } catch (error) {
+      console.error("Failed to delete transaction:", error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const renderTransaction = ({ item }: { item: Transaction }) => {
     const category = getCategory(item.categoryId);
     const amount = formatAmount(item.amountBase);
@@ -143,6 +192,7 @@ export default function TransactionsScreen() {
             marginBottom: scaleSpacing(8),
           },
         ]}
+        onPress={() => handleTransactionPress(item)}
       >
         <View
           style={{
@@ -321,6 +371,63 @@ export default function TransactionsScreen() {
           />
         }
         showsVerticalScrollIndicator={false}
+      />
+
+      {/* Transaction Details Modal */}
+      <TransactionDetailsModal
+        visible={detailsModalVisible}
+        onClose={() => {
+          setDetailsModalVisible(false);
+          setSelectedTransaction(null);
+        }}
+        transaction={selectedTransaction}
+        category={selectedTransaction ? getCategory(selectedTransaction.categoryId) : null}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+      />
+
+      {/* Edit Transaction Modal */}
+      <SimpleBottomSheet
+        visible={editModalVisible}
+        onClose={() => {
+          setEditModalVisible(false);
+          setSelectedTransaction(null);
+        }}
+      >
+        {selectedTransaction && (
+          <EditTransactionForm
+            initialTransaction={selectedTransaction}
+            onClose={() => {
+              setEditModalVisible(false);
+              setSelectedTransaction(null);
+            }}
+            onSuccess={handleUpdateTransaction}
+          />
+        )}
+      </SimpleBottomSheet>
+
+      {/* Delete Modal */}
+      <DeleteModal
+        visible={deleteModalVisible}
+        onClose={() => {
+          setDeleteModalVisible(false);
+          if (!isDeleting) {
+            setSelectedTransaction(null);
+          }
+        }}
+        onConfirm={handleConfirmDelete}
+        title={t("transactions.deleteTitle", "Delete Transaction")}
+        message={
+          selectedTransaction
+            ? t("transactions.deleteMessage", {
+                amount: formatAmount(selectedTransaction.amountBase),
+                currency: baseCurrency?.symbol || baseCurrency?.code || "",
+              }) ||
+              `Are you sure you want to delete this transaction? This action cannot be undone.`
+            : ""
+        }
+        confirmLabel={t("common.delete", "Delete")}
+        isLoading={isDeleting}
       />
     </View>
   );

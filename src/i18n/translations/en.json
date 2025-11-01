@@ -7,6 +7,7 @@
   },
   "settings": {
     "title": "Settings",
+    "subtitle": "Currency, formatting and CSV export",
     "theme": "Theme",
     "light": "Light",
     "dark": "Dark",
@@ -35,7 +36,14 @@
     "transactions": "transactions",
     "avgDaily": "Avg Daily",
     "perDay": "per day",
-    "activity": "Activity"
+    "activity": "Activity",
+    "charts": {
+      "monthlyTrends": "Monthly Spending Trends",
+      "categoryBreakdown": "Spending by Category",
+      "noData": "No spending data available",
+      "noCategoryData": "No category spending data available",
+      "libraryNotInstalled": "Chart library not installed. Please install react-native-chart-kit."
+    }
   },
   "transactions": {
     "title": "Transactions",
@@ -43,7 +51,16 @@
     "empty.subtitle": "Add your first expense to get started",
     "today": "Today",
     "yesterday": "Yesterday",
-    "uncategorized": "Uncategorized"
+    "uncategorized": "Uncategorized",
+    "date": "Date & Time",
+    "type": "Type",
+    "note": "Note",
+    "edit": "Edit",
+    "delete": "Delete",
+    "deleteTitle": "Delete Transaction",
+    "deleteMessage": "Are you sure you want to delete this transaction? This action cannot be undone.",
+    "updated": "Transaction updated successfully",
+    "save": "Save Changes"
   },
   "add": {
     "title": "Add Expense",
@@ -94,10 +111,6 @@
       "title": "Edit Category",
       "comingSoon": "Edit functionality coming soon"
     }
-  },
-  "settings": {
-    "title": "Settings",
-    "subtitle": "Currency, formatting and CSV export"
   },
   "common": {
     "cancel": "Cancel",

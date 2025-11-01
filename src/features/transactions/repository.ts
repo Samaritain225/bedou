@@ -73,3 +73,58 @@ export async function getTransactionById(
   }
 }
 
+export async function updateTransaction(
+  transaction: Transaction,
+  db?: any
+): Promise<void> {
+  try {
+    if (db) {
+      await db.runAsync(
+        "UPDATE transactions SET dateISO=?, amountOriginal=?, currencyCode=?, amountBase=?, categoryId=?, note=?, type=?, tagsJSON=? WHERE id=?",
+        transaction.dateISO,
+        transaction.amountOriginal,
+        transaction.currencyCode,
+        transaction.amountBase,
+        transaction.categoryId,
+        transaction.note,
+        transaction.type,
+        transaction.tagsJSON,
+        transaction.id
+      );
+    } else {
+      await withTransaction(async (tx) => {
+        await tx.runAsync(
+          "UPDATE transactions SET dateISO=?, amountOriginal=?, currencyCode=?, amountBase=?, categoryId=?, note=?, type=?, tagsJSON=? WHERE id=?",
+          transaction.dateISO,
+          transaction.amountOriginal,
+          transaction.currencyCode,
+          transaction.amountBase,
+          transaction.categoryId,
+          transaction.note,
+          transaction.type,
+          transaction.tagsJSON,
+          transaction.id
+        );
+      });
+    }
+  } catch (error) {
+    console.error("Error updating transaction:", error);
+    throw error;
+  }
+}
+
+export async function deleteTransaction(id: string, db?: any): Promise<void> {
+  try {
+    if (db) {
+      await db.runAsync("DELETE FROM transactions WHERE id=?", id);
+    } else {
+      await withTransaction(async (tx) => {
+        await tx.runAsync("DELETE FROM transactions WHERE id=?", id);
+      });
+    }
+  } catch (error) {
+    console.error("Error deleting transaction:", error);
+    throw error;
+  }
+}
+

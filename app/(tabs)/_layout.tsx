@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Tabs, useRouter } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, useWindowDimensions } from "react-native";
+import { Pressable, Text, useWindowDimensions } from "react-native";
 import { useTheme } from "../../src/state/ThemeProvider";
 
 export default function TabsLayout() {
@@ -13,8 +13,8 @@ export default function TabsLayout() {
 
   // Responsive sizing based on screen width
   // Base sizes for phones, scale up for tablets/larger screens
-  const baseIconSize = 28;
-  const baseFontSize = 13;
+  const baseIconSize = 24;
+  const baseFontSize = 11;
   const scaleFactor = width > 768 ? 1.2 : 1; // Scale up 20% for tablets
 
   const iconSize = baseIconSize * scaleFactor;
@@ -55,6 +55,22 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: t("tabs.dashboard") || "Tableau de bord",
+          tabBarLabel: ({ focused }) => (
+            <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.75}
+              style={{
+                fontSize: fontSize,
+                fontWeight: "600",
+                color: focused ? "#2563eb" : "#6B7280",
+                textAlign: "center",
+                marginTop: 2,
+              }}
+            >
+              {t("tabs.dashboard") || "Dashboard"}
+            </Text>
+          ),
           tabBarIcon: ({ color }) => (
             <Ionicons name="grid-outline" color={color} size={iconSize} />
           ),
@@ -64,6 +80,22 @@ export default function TabsLayout() {
         name="add"
         options={{
           title: t("tabs.add") || "Ajouter",
+          tabBarLabel: ({ focused }) => (
+            <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.75}
+              style={{
+                fontSize: fontSize,
+                fontWeight: "600",
+                color: focused ? "#2563eb" : "#6B7280",
+                textAlign: "center",
+                marginTop: 2,
+              }}
+            >
+              {t("tabs.add") || "Add"}
+            </Text>
+          ),
           tabBarIcon: ({ color }) => (
             <Ionicons name="add-outline" color={color} size={iconSize} />
           ),
@@ -73,6 +105,22 @@ export default function TabsLayout() {
         name="categories"
         options={{
           title: t("tabs.categories") || "Catégories",
+          tabBarLabel: ({ focused }) => (
+            <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.75}
+              style={{
+                fontSize: fontSize,
+                fontWeight: "600",
+                color: focused ? "#2563eb" : "#6B7280",
+                textAlign: "center",
+                marginTop: 2,
+              }}
+            >
+              {t("tabs.categories") || "Categories"}
+            </Text>
+          ),
           tabBarIcon: ({ color }) => (
             <Ionicons name="pricetags-outline" color={color} size={iconSize} />
           ),
@@ -82,6 +130,22 @@ export default function TabsLayout() {
         name="transactions"
         options={{
           title: t("tabs.transactions") || "Transactions",
+          tabBarLabel: ({ focused }) => (
+            <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.75}
+              style={{
+                fontSize: fontSize,
+                fontWeight: "600",
+                color: focused ? "#2563eb" : "#6B7280",
+                textAlign: "center",
+                marginTop: 2,
+              }}
+            >
+              {t("tabs.transactions") || "Transactions"}
+            </Text>
+          ),
           tabBarIcon: ({ color }) => (
             <Ionicons name="list-outline" color={color} size={iconSize} />
           ),
