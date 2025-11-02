@@ -75,9 +75,10 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       ...config.extra,
       router: {},
       eas: {
-        projectId: '16f36a08-e61f-4693-b336-29d920a146ba',
+        projectId: 'fd26f55d-a79c-4408-ac77-5ba69d266784',
       },
     },
+    owner: 'doumbia-225',
   };
 };
 
