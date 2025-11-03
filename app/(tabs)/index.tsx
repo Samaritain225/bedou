@@ -1,23 +1,29 @@
+import { MonthlyBudgetCard } from "@/src/components/budgets/MonthlyBudgetCard";
+import { MonthlyBudgetForm } from "@/src/components/budgets/MonthlyBudgetForm";
 import { CategoryBreakdownChart } from "@/src/components/charts/CategoryBreakdownChart";
 import { MonthlyTrendsChart } from "@/src/components/charts/MonthlyTrendsChart";
+import { QuickActions } from "@/src/components/dashboard/QuickActions";
 import { PlannedPurchaseForm } from "@/src/components/forms/PlannedPurchaseForm";
 import { SimpleBottomSheet } from "@/src/components/ui/SimpleBottomSheet";
 import { PRIORITY_COLORS } from "@/src/constants/priorityColors";
 import { useDb } from "@/src/db/hooks";
 import { listPlannedPurchases, markAsPurchased } from "@/src/features/planned-purchases/repository";
 import { PlannedPurchase } from "@/src/features/planned-purchases/types";
+import { listRecurringBills } from "@/src/features/recurring-bills/repository";
+import { RecurringBill } from "@/src/features/recurring-bills/types";
 import { listTransactions } from "@/src/features/transactions/repository";
 import { Transaction } from "@/src/features/transactions/types";
 import { useCategories } from "@/src/state/CategoriesProvider";
 import { useCurrency } from "@/src/state/CurrencyProvider";
+import { useOnboarding } from "@/src/state/OnboardingProvider";
 import { useTheme } from "@/src/state/ThemeProvider";
 import { useWallet } from "@/src/state/WalletProvider";
 import { formatAmountFromBase } from "@/src/utils/format";
 import { useResponsive } from "@/src/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useFocusEffect } from "expo-router";
-import React, { useCallback, useMemo, useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -32,18 +38,28 @@ import {
 export default function DashboardScreen() {
   const { t } = useTranslation();
   const db = useDb();
-  const { categories, budgets, currentMonth } = useCategories();
+  const { categories, currentMonth, monthlyBudget } = useCategories();
   const { baseCurrency } = useCurrency();
   const { wallet } = useWallet();
   const { colorScheme } = useTheme();
   const isDark = colorScheme === "dark";
   const { scaleSpacing, scaleSize, scaleFont } = useResponsive();
+  const { hasCompletedOnboarding, isLoading: onboardingLoading } = useOnboarding();
+
+  // Redirect to onboarding if not completed
+  useEffect(() => {
+    if (!onboardingLoading && !hasCompletedOnboarding) {
+      router.replace("/onboarding");
+    }
+  }, [hasCompletedOnboarding, onboardingLoading]);
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [plannedPurchases, setPlannedPurchases] = useState<PlannedPurchase[]>([]);
+  const [recurringBills, setRecurringBills] = useState<RecurringBill[]>([]);
   const [showWishlistForm, setShowWishlistForm] = useState(false);
+  const [showBudgetForm, setShowBudgetForm] = useState(false);
 
   // Get current month range
   const getMonthRange = useCallback((monthYYYYMM: string) => {
@@ -87,11 +103,16 @@ export default function DashboardScreen() {
       // Load planned purchases
       const purchases = await listPlannedPurchases(db, { isPurchased: false });
       setPlannedPurchases(Array.isArray(purchases) ? purchases : []);
+
+      // Load recurring bills (only active ones)
+      const bills = await listRecurringBills(db, { isActive: true });
+      setRecurringBills(Array.isArray(bills) ? bills : []);
     } catch (error) {
       console.error("Error loading dashboard data:", error);
       setTransactions([]);
       setAllTransactions([]);
       setPlannedPurchases([]);
+      setRecurringBills([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -180,31 +201,7 @@ export default function DashboardScreen() {
     return daysPassed > 0 ? weeklyTotals.expenses / daysPassed : 0;
   }, [weeklyTotals.expenses, weekRange]);
 
-  // Get category spending
-  const categorySpending = useMemo(() => {
-    const spending: { [categoryId: string]: number } = {};
-    transactions
-      .filter((t) => t.type === "expense" && t.categoryId)
-      .forEach((t) => {
-        spending[t.categoryId!] = (spending[t.categoryId!] || 0) + t.amountBase;
-      });
-    return spending;
-  }, [transactions]);
 
-  // Get budget progress for categories
-  const budgetProgress = useMemo(() => {
-    return budgets.map((budget) => {
-      const spent = categorySpending[budget.categoryId] || 0;
-      const percentage = Math.min((spent / budget.amountBase) * 100, 100);
-      const category = categories.find((c) => c.id === budget.categoryId);
-      return {
-        ...budget,
-        spent,
-        percentage,
-        category,
-      };
-    });
-  }, [budgets, categorySpending, categories]);
 
   // Recent transactions (last 5)
   const recentTransactions = useMemo(() => {
@@ -293,6 +290,191 @@ export default function DashboardScreen() {
             {formatMonthLabel(currentMonth)}
           </Text>
         </View>
+
+        {/* Quick Actions */}
+        <QuickActions onRefresh={loadDashboardData} />
+
+        {/* Monthly Budget Card */}
+        <MonthlyBudgetCard
+          budget={monthlyBudget}
+          onEdit={() => setShowBudgetForm(true)}
+        />
+
+        {/* Recurring Bills Section */}
+        {recurringBills.length > 0 && (
+          <View style={{ marginBottom: scaleSpacing(24) }}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                paddingHorizontal: scaleSpacing(20),
+                marginBottom: scaleSpacing(16),
+              }}
+            >
+              <Text
+                style={{
+                  color: isDark ? "#FFFFFF" : "#111827",
+                  fontSize: scaleFont(18),
+                  fontWeight: "700",
+                }}
+              >
+                {t("dashboard.recurringBills", "Upcoming Bills")}
+              </Text>
+              <Pressable
+                onPress={() => router.push("/recurring-bills")}
+                style={{
+                  paddingHorizontal: scaleSpacing(12),
+                  paddingVertical: scaleSpacing(8),
+                  borderRadius: scaleSpacing(8),
+                  backgroundColor: isDark ? "#3B82F6" : "#2563EB",
+                }}
+              >
+                <Text
+                  style={{
+                    color: "#FFFFFF",
+                    fontSize: scaleFont(12),
+                    fontWeight: "600",
+                  }}
+                >
+                  {t("common.viewAll", "View All")}
+                </Text>
+              </Pressable>
+            </View>
+
+            <View style={{ paddingHorizontal: scaleSpacing(20) }}>
+              {recurringBills
+                .filter((bill) => {
+                  const dueDate = new Date(bill.nextDueDate);
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  dueDate.setHours(0, 0, 0, 0);
+                  // Show bills due in the next 30 days or overdue
+                  const daysUntilDue = Math.ceil(
+                    (dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+                  );
+                  return daysUntilDue <= 30;
+                })
+                .sort((a, b) => {
+                  return (
+                    new Date(a.nextDueDate).getTime() - new Date(b.nextDueDate).getTime()
+                  );
+                })
+                .slice(0, 3)
+                .map((bill) => {
+                  const category = categories.find((c) => c.id === bill.categoryId);
+                  const dueDate = new Date(bill.nextDueDate);
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  dueDate.setHours(0, 0, 0, 0);
+                  const isOverdue = dueDate < today;
+                  const daysUntilDue = Math.ceil(
+                    (dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+                  );
+
+                  return (
+                    <Pressable
+                      key={bill.id}
+                      onPress={() => router.push("/recurring-bills")}
+                      style={{
+                        borderRadius: scaleSpacing(12),
+                        padding: scaleSpacing(16),
+                        backgroundColor: isDark ? "#374151" : "#FFFFFF",
+                        borderWidth: 1.5,
+                        borderColor: isOverdue
+                          ? "#EF4444"
+                          : isDark
+                            ? "#4B5563"
+                            : "#E5E7EB",
+                        borderLeftWidth: 4,
+                        borderLeftColor: category?.color || "#6B7280",
+                        marginBottom: scaleSpacing(12),
+                      }}
+                    >
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <View style={{ flex: 1 }}>
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "center",
+                              gap: scaleSpacing(10),
+                              marginBottom: scaleSpacing(8),
+                            }}
+                          >
+                            {category && (
+                              <Ionicons
+                                name={category.icon as any}
+                                size={scaleSize(20)}
+                                color={category.color}
+                              />
+                            )}
+                            <Text
+                              style={{
+                                color: isDark ? "#FFFFFF" : "#111827",
+                                fontSize: scaleFont(16),
+                                fontWeight: "600",
+                                flex: 1,
+                              }}
+                              numberOfLines={1}
+                            >
+                              {bill.name}
+                            </Text>
+                          </View>
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                            }}
+                          >
+                            <Text
+                              style={{
+                                color: isOverdue
+                                  ? "#EF4444"
+                                  : isDark
+                                    ? "#9CA3AF"
+                                    : "#6B7280",
+                                fontSize: scaleFont(14),
+                                fontWeight: "500",
+                              }}
+                            >
+                              {isOverdue
+                                ? t("recurring.overdue", "Overdue")
+                                : daysUntilDue === 0
+                                  ? t("recurring.dueToday", "Due today")
+                                  : daysUntilDue === 1
+                                    ? t("recurring.dueTomorrow", "Due tomorrow")
+                                    : t(
+                                        "recurring.dueInDays",
+                                        `Due in ${daysUntilDue} days`,
+                                        { count: daysUntilDue }
+                                      )}
+                            </Text>
+                            <Text
+                              style={{
+                                color: isDark ? "#FFFFFF" : "#111827",
+                                fontSize: scaleFont(16),
+                                fontWeight: "600",
+                              }}
+                            >
+                              {formatAmountFromBase(bill.amountBase)}{" "}
+                              {baseCurrency?.symbol || baseCurrency?.code || ""}
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
+                    </Pressable>
+                  );
+                })}
+            </View>
+          </View>
+        )}
 
         {/* Wallet Balance Card */}
         {wallet && (
@@ -769,116 +951,6 @@ export default function DashboardScreen() {
           </View>
         </View>
 
-        {/* Budget Progress */}
-        {budgetProgress.length > 0 && (
-          <View style={{ marginBottom: scaleSpacing(24) }}>
-            <Text
-              style={{
-                color: isDark ? "#FFFFFF" : "#111827",
-                fontSize: scaleFont(18),
-                fontWeight: "700",
-                paddingHorizontal: scaleSpacing(20),
-                marginBottom: scaleSpacing(16),
-              }}
-            >
-              {t("dashboard.budgets", "Budgets")}
-            </Text>
-            {budgetProgress.map((budget) => {
-              if (!budget.category) return null;
-              return (
-                <View
-                  key={budget.id}
-                  style={{
-                    paddingHorizontal: scaleSpacing(20),
-                    marginBottom: scaleSpacing(12),
-                  }}
-                >
-                  <View
-                    style={{
-                      borderRadius: scaleSpacing(12),
-                      padding: scaleSpacing(16),
-                      backgroundColor: isDark ? "#374151" : "#FFFFFF",
-                      borderWidth: 1.5,
-                      borderColor: isDark ? "#4B5563" : "#E5E7EB",
-                    }}
-                  >
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        marginBottom: scaleSpacing(12),
-                      }}
-                    >
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          gap: scaleSpacing(10),
-                        }}
-                      >
-                        <View
-                          style={{
-                            borderRadius: scaleSpacing(8),
-                            padding: scaleSpacing(8),
-                            backgroundColor: budget.category.color + "20",
-                          }}
-                        >
-                          <Ionicons
-                            name={budget.category.icon as any}
-                            size={scaleSize(20)}
-                            color={budget.category.color}
-                          />
-                        </View>
-                        <Text
-                          style={{
-                            color: isDark ? "#FFFFFF" : "#111827",
-                            fontSize: scaleFont(16),
-                            fontWeight: "600",
-                          }}
-                        >
-                          {budget.category.name}
-                        </Text>
-                      </View>
-                      <Text
-                        style={{
-                          color: budget.percentage > 100 ? "#EF4444" : isDark ? "#9CA3AF" : "#6B7280",
-                          fontSize: scaleFont(14),
-                          fontWeight: "600",
-                        }}
-                      >
-                        {formatAmountFromBase(budget.spent)} {baseCurrency?.symbol || baseCurrency?.code || ""} / {formatAmountFromBase(budget.amountBase)} {baseCurrency?.symbol || baseCurrency?.code || ""}
-                      </Text>
-                    </View>
-                    {/* Progress Bar */}
-                    <View
-                      style={{
-                        height: scaleSize(8),
-                        borderRadius: scaleSize(4),
-                        backgroundColor: isDark ? "#4B5563" : "#E5E7EB",
-                        overflow: "hidden",
-                      }}
-                    >
-                      <View
-                        style={{
-                          height: "100%",
-                          width: `${Math.min(budget.percentage, 100)}%`,
-                          backgroundColor:
-                            budget.percentage > 100
-                              ? "#EF4444"
-                              : budget.percentage > 80
-                                ? "#F59E0B"
-                                : budget.category.color,
-                          borderRadius: scaleSize(4),
-                        }}
-                      />
-                    </View>
-                  </View>
-                </View>
-              );
-            })}
-          </View>
-        )}
 
         {/* Charts Section */}
         <View
@@ -969,7 +1041,7 @@ export default function DashboardScreen() {
                 return (
                   <Pressable
                     key={purchase.id}
-                    onPress={() => handleMarkAsPurchased(purchase.id)}
+                    onPress={() => router.push("/(tabs)/wishlist")}
                     style={{
                       borderRadius: scaleSpacing(12),
                       padding: scaleSpacing(16),
@@ -1044,7 +1116,10 @@ export default function DashboardScreen() {
                         </Text>
                       </View>
                       <Pressable
-                        onPress={() => handleMarkAsPurchased(purchase.id)}
+                        onPress={(e) => {
+                          e.stopPropagation();
+                          handleMarkAsPurchased(purchase.id);
+                        }}
                         style={{
                           marginLeft: scaleSpacing(12),
                           padding: scaleSpacing(8),
@@ -1220,6 +1295,21 @@ export default function DashboardScreen() {
             loadDashboardData();
           }}
           onCancel={() => setShowWishlistForm(false)}
+        />
+      </SimpleBottomSheet>
+
+      {/* Budget Form Modal */}
+      <SimpleBottomSheet
+        visible={showBudgetForm}
+        onClose={() => setShowBudgetForm(false)}
+      >
+        <MonthlyBudgetForm
+          initialBudget={monthlyBudget}
+          onSuccess={() => {
+            setShowBudgetForm(false);
+            loadDashboardData();
+          }}
+          onCancel={() => setShowBudgetForm(false)}
         />
       </SimpleBottomSheet>
     </View>

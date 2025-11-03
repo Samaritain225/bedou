@@ -1,5 +1,7 @@
 export type TransactionType = "expense" | "income";
 
+export type PaymentMethod = "cash" | "card" | "mobile" | "bank_transfer" | "other";
+
 export interface Transaction {
   id: string;
   dateISO: string; // ISO date string
@@ -10,4 +12,5 @@ export interface Transaction {
   note: string | null;
   type: TransactionType;
   tagsJSON: string | null; // JSON array of tags
+  paymentMethod: PaymentMethod | null; // Payment method used
 }

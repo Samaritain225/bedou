@@ -1,8 +1,10 @@
 import { FormField } from "@/src/components/ui/FormField";
+import { PaymentMethodPicker } from "@/src/components/ui/PaymentMethodPicker";
 import { TextInputField } from "@/src/components/ui/TextInputField";
 import { generateUuid } from "@/src/db";
 import { useDb } from "@/src/db/hooks";
 import { Category } from "@/src/features/categories/types";
+import { PaymentMethod } from "@/src/features/transactions/types";
 import { useCategories } from "@/src/state/CategoriesProvider";
 import { useCurrency } from "@/src/state/CurrencyProvider";
 import { useTheme } from "@/src/state/ThemeProvider";
@@ -32,6 +34,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { z } from "zod";
+import { DatePicker } from "../ui/DatePicker";
 
 const expenseSchema = z.object({
   amount: z.number().positive("Amount must be greater than 0"),
@@ -59,6 +62,8 @@ export function AddExpenseForm() {
     null
   );
   const [note, setNote] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [categorySearchQuery, setCategorySearchQuery] = useState("");
   const [errors, setErrors] = useState<{
@@ -213,16 +218,17 @@ export function AddExpenseForm() {
       const transactionId = generateUuid();
 
       await db.runAsync(
-        "INSERT INTO transactions (id, dateISO, amountOriginal, currencyCode, amountBase, categoryId, note, type, tagsJSON) VALUES (?,?,?,?,?,?,?,?,?)",
+        "INSERT INTO transactions (id, dateISO, amountOriginal, currencyCode, amountBase, categoryId, note, type, tagsJSON, paymentMethod) VALUES (?,?,?,?,?,?,?,?,?,?)",
         transactionId,
-        new Date().toISOString(),
+        selectedDate.toISOString(),
         amountBase,
         baseCurrency?.code || "XOF",
         amountBase,
         selectedCategory.id,
         note.trim() || null,
         "expense",
-        null
+        null,
+        paymentMethod
       );
 
       // Decrease wallet balance for expense
@@ -233,6 +239,8 @@ export function AddExpenseForm() {
       // Reset form
       setAmount("");
       setNote("");
+      setPaymentMethod(null);
+      setSelectedDate(new Date());
       setSelectedCategory(expenseCategories[0] || null);
       setShowCategoryModal(false);
 
@@ -392,6 +400,14 @@ export function AddExpenseForm() {
                 returnKeyType="next"
               />
             </View>
+          </FormField>
+
+          {/* Date Picker */}
+          <FormField label={t("add.date", "Date") || "Date"}>
+            <DatePicker
+              value={selectedDate}
+              onChange={setSelectedDate}
+            />
           </FormField>
 
           {/* Category Selector */}
@@ -831,6 +847,14 @@ export function AddExpenseForm() {
                 </Pressable>
               </View>
             </Modal>
+          </FormField>
+
+          {/* Payment Method Picker */}
+          <FormField label={t("add.paymentMethod", "Payment Method") || "Payment Method"}>
+            <PaymentMethodPicker
+              value={paymentMethod}
+              onChange={setPaymentMethod}
+            />
           </FormField>
 
           {/* Note Input */}

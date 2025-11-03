@@ -1,5 +1,6 @@
 import { generateUuid, withTransaction } from "../../db";
 import { Budget } from "../categories/types";
+import { MonthlyBudget } from "./types";
 
 /**
  * Get current month in YYYYMM format (e.g., "202401" for January 2024)
@@ -131,5 +132,120 @@ export async function deleteBudgetsByCategory(
     await withTransaction(async (tx) => {
       await tx.runAsync("DELETE FROM budgets WHERE categoryId=?", categoryId);
     });
+  }
+}
+
+// Monthly Budget Functions
+export async function getMonthlyBudget(
+  monthYYYYMM: string,
+  db?: any
+): Promise<MonthlyBudget | null> {
+  try {
+    if (db) {
+      const row = await db.getFirstAsync(
+        "SELECT * FROM monthly_budgets WHERE monthYYYYMM = ?",
+        monthYYYYMM
+      );
+      return row || null;
+    }
+    const result = await withTransaction(async (tx) => {
+      return await tx.getFirstAsync(
+        "SELECT * FROM monthly_budgets WHERE monthYYYYMM = ?",
+        monthYYYYMM
+      );
+    });
+    return result || null;
+  } catch (error) {
+    console.error("Error getting monthly budget:", error);
+    return null;
+  }
+}
+
+export async function setMonthlyBudget(
+  monthYYYYMM: string,
+  amountBase: number,
+  db?: any
+): Promise<string> {
+  const now = new Date().toISOString();
+  const budgetId = generateUuid();
+  
+  try {
+    if (db) {
+      // Check if budget exists
+      const existing = await db.getFirstAsync(
+        "SELECT id FROM monthly_budgets WHERE monthYYYYMM = ?",
+        monthYYYYMM
+      );
+      
+      if (existing) {
+        // Update existing
+        await db.runAsync(
+          "UPDATE monthly_budgets SET amountBase = ?, updatedAt = ? WHERE monthYYYYMM = ?",
+          amountBase,
+          now,
+          monthYYYYMM
+        );
+        return existing.id;
+      } else {
+        // Insert new
+        await db.runAsync(
+          "INSERT INTO monthly_budgets (id, monthYYYYMM, amountBase, createdAt, updatedAt) VALUES (?,?,?,?,?)",
+          budgetId,
+          monthYYYYMM,
+          amountBase,
+          now,
+          now
+        );
+        return budgetId;
+      }
+    } else {
+      return await withTransaction(async (tx) => {
+        const existing = await tx.getFirstAsync(
+          "SELECT id FROM monthly_budgets WHERE monthYYYYMM = ?",
+          monthYYYYMM
+        );
+        
+        if (existing) {
+          await tx.runAsync(
+            "UPDATE monthly_budgets SET amountBase = ?, updatedAt = ? WHERE monthYYYYMM = ?",
+            amountBase,
+            now,
+            monthYYYYMM
+          );
+          return existing.id;
+        } else {
+          await tx.runAsync(
+            "INSERT INTO monthly_budgets (id, monthYYYYMM, amountBase, createdAt, updatedAt) VALUES (?,?,?,?,?)",
+            budgetId,
+            monthYYYYMM,
+            amountBase,
+            now,
+            now
+          );
+          return budgetId;
+        }
+      });
+    }
+  } catch (error) {
+    console.error("Error setting monthly budget:", error);
+    throw error;
+  }
+}
+
+export async function deleteMonthlyBudget(
+  monthYYYYMM: string,
+  db?: any
+): Promise<void> {
+  try {
+    if (db) {
+      await db.runAsync("DELETE FROM monthly_budgets WHERE monthYYYYMM = ?", monthYYYYMM);
+    } else {
+      await withTransaction(async (tx) => {
+        await tx.runAsync("DELETE FROM monthly_budgets WHERE monthYYYYMM = ?", monthYYYYMM);
+      });
+    }
+  } catch (error) {
+    console.error("Error deleting monthly budget:", error);
+    throw error;
   }
 }

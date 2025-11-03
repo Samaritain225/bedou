@@ -9,11 +9,15 @@ import {
 import { useDb } from "../db/hooks";
 import {
   deleteBudget,
+  deleteMonthlyBudget as deleteMonthlyBudgetRepo,
   getBudgetByCategoryAndMonth,
   getCurrentMonthYYYYMM,
+  getMonthlyBudget,
   listBudgets,
+  setMonthlyBudget as setMonthlyBudgetRepo,
   upsertBudget,
 } from "../features/budgets/repository";
+import { MonthlyBudget } from "../features/budgets/types";
 import {
   addCategory,
   deleteCategory,
@@ -27,6 +31,7 @@ type CategoriesContextValue = {
   categories: Category[];
   budgets: Budget[];
   currentMonth: string;
+  monthlyBudget: MonthlyBudget | null;
   refresh: () => Promise<void>;
   addCategory: (c: Omit<Category, "id">) => Promise<string>;
   updateCategory: (c: Category) => Promise<void>;
@@ -42,6 +47,9 @@ type CategoriesContextValue = {
     monthYYYYMM?: string
   ) => Promise<Budget | null>;
   deleteBudget: (id: string) => Promise<void>;
+  getMonthlyBudget: (monthYYYYMM?: string) => Promise<MonthlyBudget | null>;
+  setMonthlyBudget: (monthYYYYMM: string, amountBase: number) => Promise<void>;
+  deleteMonthlyBudget: (monthYYYYMM: string) => Promise<void>;
   setCurrentMonth: (month: string) => void;
 };
 
@@ -57,22 +65,26 @@ export function CategoriesProvider({
   const db = useDb();
   const [categories, setCategories] = useState<Category[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
+  const [monthlyBudget, setMonthlyBudgetState] = useState<MonthlyBudget | null>(null);
   const [currentMonth, setCurrentMonth] = useState<string>(
     getCurrentMonthYYYYMM()
   );
 
   const refresh = useCallback(async () => {
     try {
-      const [cats, budgetsList] = await Promise.all([
+      const [cats, budgetsList, monthly] = await Promise.all([
         listCategories(db),
         listBudgets(currentMonth, db),
+        getMonthlyBudget(currentMonth, db),
       ]);
       setCategories(Array.isArray(cats) ? cats : []);
       setBudgets(Array.isArray(budgetsList) ? budgetsList : []);
+      setMonthlyBudgetState(monthly);
     } catch (error) {
       console.error("Error refreshing categories and budgets:", error);
       setCategories([]);
       setBudgets([]);
+      setMonthlyBudgetState(null);
     }
   }, [db, currentMonth]);
 
@@ -136,10 +148,48 @@ export function CategoriesProvider({
     [db, refresh]
   );
 
+  const handleGetMonthlyBudget = useCallback(
+    async (monthYYYYMM?: string) => {
+      const targetMonth = monthYYYYMM || currentMonth;
+      const budget = await getMonthlyBudget(targetMonth, db);
+      if (targetMonth === currentMonth) {
+        setMonthlyBudgetState(budget);
+      }
+      return budget;
+    },
+    [db, currentMonth]
+  );
+
+  const handleSetMonthlyBudget = useCallback(
+    async (monthYYYYMM: string, amountBase: number) => {
+      await setMonthlyBudgetRepo(monthYYYYMM, amountBase, db);
+      if (monthYYYYMM === currentMonth) {
+        const updated = await getMonthlyBudget(monthYYYYMM, db);
+        setMonthlyBudgetState(updated);
+      } else {
+        await refresh();
+      }
+    },
+    [db, currentMonth, refresh]
+  );
+
+  const handleDeleteMonthlyBudget = useCallback(
+    async (monthYYYYMM: string) => {
+      await deleteMonthlyBudgetRepo(monthYYYYMM, db);
+      if (monthYYYYMM === currentMonth) {
+        setMonthlyBudgetState(null);
+      } else {
+        await refresh();
+      }
+    },
+    [db, currentMonth, refresh]
+  );
+
   const value = useMemo<CategoriesContextValue>(
     () => ({
       categories,
       budgets,
+      monthlyBudget,
       currentMonth,
       refresh,
       addCategory: handleAddCategory,
@@ -149,11 +199,15 @@ export function CategoriesProvider({
       setBudget: handleSetBudget,
       getBudget: handleGetBudget,
       deleteBudget: handleDeleteBudget,
+      getMonthlyBudget: handleGetMonthlyBudget,
+      setMonthlyBudget: handleSetMonthlyBudget,
+      deleteMonthlyBudget: handleDeleteMonthlyBudget,
       setCurrentMonth,
     }),
     [
       categories,
       budgets,
+      monthlyBudget,
       currentMonth,
       refresh,
       handleAddCategory,
@@ -163,6 +217,9 @@ export function CategoriesProvider({
       handleSetBudget,
       handleGetBudget,
       handleDeleteBudget,
+      handleGetMonthlyBudget,
+      handleSetMonthlyBudget,
+      handleDeleteMonthlyBudget,
     ]
   );
 

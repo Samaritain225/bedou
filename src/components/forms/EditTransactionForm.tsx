@@ -1,9 +1,11 @@
+import { DatePicker } from "@/src/components/ui/DatePicker";
 import { FormField } from "@/src/components/ui/FormField";
+import { PaymentMethodPicker } from "@/src/components/ui/PaymentMethodPicker";
 import { TextInputField } from "@/src/components/ui/TextInputField";
 import { useDb } from "@/src/db/hooks";
 import { Category } from "@/src/features/categories/types";
 import { updateTransaction } from "@/src/features/transactions/repository";
-import { Transaction } from "@/src/features/transactions/types";
+import { PaymentMethod, Transaction } from "@/src/features/transactions/types";
 import { useCategories } from "@/src/state/CategoriesProvider";
 import { useCurrency } from "@/src/state/CurrencyProvider";
 import { useTheme } from "@/src/state/ThemeProvider";
@@ -17,19 +19,19 @@ import { router } from "expo-router";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-    Animated,
-    Dimensions,
-    FlatList,
-    KeyboardAvoidingView,
-    Modal,
-    PanResponder,
-    Platform,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  Animated,
+  Dimensions,
+  FlatList,
+  KeyboardAvoidingView,
+  Modal,
+  PanResponder,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { z } from "zod";
@@ -76,6 +78,12 @@ export function EditTransactionForm({
     initialCategory
   );
   const [note, setNote] = useState(initialTransaction.note || "");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(
+    (initialTransaction as any).paymentMethod || null
+  );
+  const [selectedDate, setSelectedDate] = useState<Date>(
+    new Date(initialTransaction.dateISO)
+  );
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [categorySearchQuery, setCategorySearchQuery] = useState("");
   const [errors, setErrors] = useState<{
@@ -231,10 +239,12 @@ export function EditTransactionForm({
       // Update transaction
       const updatedTransaction: Transaction = {
         ...initialTransaction,
+        dateISO: selectedDate.toISOString(),
         amountBase,
         amountOriginal: amountBase,
         categoryId: selectedCategory.id,
         note: note.trim() || null,
+        paymentMethod,
       };
 
       await updateTransaction(updatedTransaction, db);
@@ -379,6 +389,14 @@ export function EditTransactionForm({
               </Text>
             </Animated.View>
           )}
+
+          {/* Date Picker */}
+          <FormField label={t("add.date", "Date") || "Date"}>
+            <DatePicker
+              value={selectedDate}
+              onChange={setSelectedDate}
+            />
+          </FormField>
 
           {/* Amount Input */}
           <FormField label={t("add.amount", "Amount")} error={errors.amount}>
@@ -853,6 +871,14 @@ export function EditTransactionForm({
                 </Pressable>
               </View>
             </Modal>
+          </FormField>
+
+          {/* Payment Method Picker */}
+          <FormField label={t("add.paymentMethod", "Payment Method") || "Payment Method"}>
+            <PaymentMethodPicker
+              value={paymentMethod}
+              onChange={setPaymentMethod}
+            />
           </FormField>
 
           {/* Note Input */}

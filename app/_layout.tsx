@@ -98,6 +98,16 @@ function AppContent() {
                     headerBackVisible: false,
                   }}
                 />
+                <Stack.Screen
+                  name="recurring-bills"
+                  options={{
+                    presentation: "modal",
+                    headerShown: false,
+                    title: "",
+                    headerTitle: "",
+                    headerBackVisible: false,
+                  }}
+                />
               </Stack>
             </CategoriesProvider>
           </WalletProvider>

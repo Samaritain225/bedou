@@ -37,8 +37,15 @@ export async function initDatabase(db?: any): Promise<void> {
       if (currentNum < 2) {
         await migrateToV2(tx);
       }
+      if (currentNum < 3) {
+        await migrateToV3(tx);
+      }
+      if (currentNum < 4) {
+        await migrateToV4(tx);
+      }
       
-      await ensureVersion(tx, 2);
+      const finalVersion = Math.max(3, currentNum < 4 ? 4 : currentNum);
+      await ensureVersion(tx, finalVersion);
       await seedDefaults(tx);
     });
 
@@ -106,7 +113,8 @@ CREATE TABLE IF NOT EXISTS transactions (
   categoryId TEXT REFERENCES categories(id),
   note TEXT,
   type TEXT NOT NULL CHECK (type IN ('expense','income')),
-  tagsJSON TEXT
+  tagsJSON TEXT,
+  paymentMethod TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_txn_date ON transactions(dateISO);
 CREATE INDEX IF NOT EXISTS idx_txn_cat ON transactions(categoryId);
@@ -133,6 +141,23 @@ CREATE TABLE IF NOT EXISTS planned_purchases (
 CREATE INDEX IF NOT EXISTS idx_pp_priority ON planned_purchases(priority);
 CREATE INDEX IF NOT EXISTS idx_pp_purchased ON planned_purchases(isPurchased);
 CREATE INDEX IF NOT EXISTS idx_pp_cat ON planned_purchases(categoryId);
+CREATE TABLE IF NOT EXISTS recurring_bills (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  amountBase INTEGER NOT NULL,
+  currencyCode TEXT NOT NULL,
+  categoryId TEXT REFERENCES categories(id),
+  paymentMethod TEXT,
+  frequency TEXT NOT NULL CHECK (frequency IN ('daily','weekly','monthly','yearly')),
+  nextDueDate TEXT NOT NULL,
+  isActive INTEGER NOT NULL DEFAULT 1,
+  note TEXT,
+  createdAt TEXT NOT NULL,
+  updatedAt TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_rb_active ON recurring_bills(isActive);
+CREATE INDEX IF NOT EXISTS idx_rb_due_date ON recurring_bills(nextDueDate);
+CREATE INDEX IF NOT EXISTS idx_rb_category ON recurring_bills(categoryId);
 `;
 }
 
@@ -173,6 +198,63 @@ async function migrateToV2(tx: any) {
     `);
   } catch (error) {
     console.error("Error during migration to v2:", error);
+    throw error;
+  }
+}
+
+async function migrateToV3(tx: any) {
+  // Migration to version 3: Add paymentMethod to transactions and create monthly_budgets table
+  try {
+    // Add paymentMethod column to transactions table (if not exists)
+    try {
+      await tx.execAsync("ALTER TABLE transactions ADD COLUMN paymentMethod TEXT");
+    } catch (error: any) {
+      // Column might already exist, ignore error
+      if (!error?.message?.includes("duplicate column")) {
+        console.warn("Note: paymentMethod column may already exist:", error);
+      }
+    }
+
+    // Create monthly_budgets table
+    await tx.execAsync(`
+      CREATE TABLE IF NOT EXISTS monthly_budgets (
+        id TEXT PRIMARY KEY,
+        monthYYYYMM TEXT NOT NULL UNIQUE,
+        amountBase INTEGER NOT NULL,
+        createdAt TEXT NOT NULL,
+        updatedAt TEXT NOT NULL
+      );
+    `);
+  } catch (error) {
+    console.error("Error during migration to v3:", error);
+    throw error;
+  }
+}
+
+async function migrateToV4(tx: any) {
+  // Migration to version 4: Create recurring_bills table
+  try {
+    await tx.execAsync(`
+      CREATE TABLE IF NOT EXISTS recurring_bills (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        amountBase INTEGER NOT NULL,
+        currencyCode TEXT NOT NULL,
+        categoryId TEXT REFERENCES categories(id),
+        paymentMethod TEXT,
+        frequency TEXT NOT NULL CHECK (frequency IN ('daily','weekly','monthly','yearly')),
+        nextDueDate TEXT NOT NULL,
+        isActive INTEGER NOT NULL DEFAULT 1,
+        note TEXT,
+        createdAt TEXT NOT NULL,
+        updatedAt TEXT NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_rb_active ON recurring_bills(isActive);
+      CREATE INDEX IF NOT EXISTS idx_rb_due_date ON recurring_bills(nextDueDate);
+      CREATE INDEX IF NOT EXISTS idx_rb_category ON recurring_bills(categoryId);
+    `);
+  } catch (error) {
+    console.error("Error during migration to v4:", error);
     throw error;
   }
 }

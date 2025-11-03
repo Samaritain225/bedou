@@ -587,6 +587,72 @@ export default function SettingsScreen() {
           </View>
         )}
 
+        {/* Recurring Bills Section */}
+        <View
+          style={{
+            paddingHorizontal: scaleSpacing(20),
+            marginBottom: scaleSpacing(24),
+          }}
+        >
+          <Text
+            style={{
+              color: isDark ? "#FFFFFF" : "#111827",
+              fontSize: scaleFont(18),
+              fontWeight: "700",
+              marginBottom: scaleSpacing(16),
+            }}
+          >
+            {t("settings.management", "Management")}
+          </Text>
+          <View
+            style={{
+              borderRadius: scaleSpacing(12),
+              backgroundColor: isDark ? "#374151" : "#FFFFFF",
+              borderWidth: 1.5,
+              borderColor: isDark ? "#4B5563" : "#E5E7EB",
+              overflow: "hidden",
+            }}
+          >
+            <Pressable
+              onPress={() => router.push("/recurring-bills")}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: scaleSpacing(16),
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: scaleSpacing(12),
+                }}
+              >
+                <Ionicons
+                  name="receipt-outline"
+                  size={scaleSize(24)}
+                  color={isDark ? "#3B82F6" : "#2563EB"}
+                />
+                <Text
+                  style={{
+                    color: isDark ? "#FFFFFF" : "#111827",
+                    fontSize: scaleFont(16),
+                    fontWeight: "600",
+                  }}
+                >
+                  {t("settings.recurringBills", "Recurring Bills")}
+                </Text>
+              </View>
+              <Ionicons
+                name="chevron-forward"
+                size={scaleSize(20)}
+                color={isDark ? "#9CA3AF" : "#6B7280"}
+              />
+            </Pressable>
+          </View>
+        </View>
+
         {/* App Info Section */}
         <View
           style={{

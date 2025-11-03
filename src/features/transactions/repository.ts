@@ -80,7 +80,7 @@ export async function updateTransaction(
   try {
     if (db) {
       await db.runAsync(
-        "UPDATE transactions SET dateISO=?, amountOriginal=?, currencyCode=?, amountBase=?, categoryId=?, note=?, type=?, tagsJSON=? WHERE id=?",
+        "UPDATE transactions SET dateISO=?, amountOriginal=?, currencyCode=?, amountBase=?, categoryId=?, note=?, type=?, tagsJSON=?, paymentMethod=? WHERE id=?",
         transaction.dateISO,
         transaction.amountOriginal,
         transaction.currencyCode,
@@ -89,12 +89,13 @@ export async function updateTransaction(
         transaction.note,
         transaction.type,
         transaction.tagsJSON,
+        transaction.paymentMethod,
         transaction.id
       );
     } else {
       await withTransaction(async (tx) => {
         await tx.runAsync(
-          "UPDATE transactions SET dateISO=?, amountOriginal=?, currencyCode=?, amountBase=?, categoryId=?, note=?, type=?, tagsJSON=? WHERE id=?",
+          "UPDATE transactions SET dateISO=?, amountOriginal=?, currencyCode=?, amountBase=?, categoryId=?, note=?, type=?, tagsJSON=?, paymentMethod=? WHERE id=?",
           transaction.dateISO,
           transaction.amountOriginal,
           transaction.currencyCode,
@@ -103,6 +104,7 @@ export async function updateTransaction(
           transaction.note,
           transaction.type,
           transaction.tagsJSON,
+          transaction.paymentMethod,
           transaction.id
         );
       });
