@@ -292,10 +292,8 @@ export default function RecurringBillsScreen() {
                 fontWeight: "600",
               }}
             >
-              {formatAmountFromBase(
-                bill.amountBase,
-                baseCurrency?.code || "XOF"
-              )}
+              {formatAmountFromBase(bill.amountBase)}{" "}
+              {baseCurrency?.symbol || baseCurrency?.code || ""}
             </Text>
           </View>
         </View>
@@ -487,7 +485,7 @@ export default function RecurringBillsScreen() {
       <DeleteModal
         visible={deleteModalVisible}
         onConfirm={handleConfirmDelete}
-        onCancel={() => {
+        onClose={() => {
           setDeleteModalVisible(false);
           setSelectedBill(null);
         }}
@@ -496,7 +494,7 @@ export default function RecurringBillsScreen() {
           "recurring.deleteMessage",
           "Are you sure you want to delete this recurring bill? This action cannot be undone."
         )}
-        isDeleting={isDeleting}
+        isLoading={isDeleting}
       />
     </View>
   );

@@ -2,6 +2,7 @@ import { initDatabase } from "@/src/db";
 import "@/src/i18n/setup";
 import { CategoriesProvider } from "@/src/state/CategoriesProvider";
 import { CurrencyProvider } from "@/src/state/CurrencyProvider";
+import { OnboardingProvider } from "@/src/state/OnboardingProvider";
 import { ThemeProvider, useTheme } from "@/src/state/ThemeProvider";
 import { WalletProvider } from "@/src/state/WalletProvider";
 import {
@@ -83,35 +84,38 @@ function AppContent() {
         onInit={initDatabase}
         options={{ enableChangeListener: true }}
       >
-        <CurrencyProvider>
-          <WalletProvider>
-            <CategoriesProvider>
-              <Stack>
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                <Stack.Screen
-                  name="settings"
-                  options={{
-                    presentation: "modal",
-                    headerShown: false,
-                    title: "",
-                    headerTitle: "",
-                    headerBackVisible: false,
-                  }}
-                />
-                <Stack.Screen
-                  name="recurring-bills"
-                  options={{
-                    presentation: "modal",
-                    headerShown: false,
-                    title: "",
-                    headerTitle: "",
-                    headerBackVisible: false,
-                  }}
-                />
-              </Stack>
-            </CategoriesProvider>
-          </WalletProvider>
-        </CurrencyProvider>
+        <OnboardingProvider>
+          <CurrencyProvider>
+            <WalletProvider>
+              <CategoriesProvider>
+                <Stack>
+                  <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                  <Stack.Screen
+                    name="settings"
+                    options={{
+                      presentation: "modal",
+                      headerShown: false,
+                      title: "",
+                      headerTitle: "",
+                      headerBackVisible: false,
+                    }}
+                  />
+                  <Stack.Screen
+                    name="recurring-bills"
+                    options={{
+                      presentation: "modal",
+                      headerShown: false,
+                      title: "",
+                      headerTitle: "",
+                      headerBackVisible: false,
+                    }}
+                  />
+                </Stack>
+              </CategoriesProvider>
+            </WalletProvider>
+          </CurrencyProvider>
+        </OnboardingProvider>
       </SQLiteProvider>
       <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
     </NavigationThemeProvider>
