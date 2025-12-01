@@ -1,3 +1,4 @@
+import { FirestoreTestPanel } from "@/src/components/FirestoreTestPanel";
 import { useCurrency } from "@/src/state/CurrencyProvider";
 import { useTheme } from "@/src/state/ThemeProvider";
 import { useWallet } from "@/src/state/WalletProvider";
@@ -10,12 +11,12 @@ import { router } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -651,6 +652,16 @@ export default function SettingsScreen() {
               />
             </Pressable>
           </View>
+        </View>
+
+        {/* Firestore Test Panel (Temporary) */}
+        <View
+          style={{
+            paddingHorizontal: scaleSpacing(20),
+            marginBottom: scaleSpacing(24),
+          }}
+        >
+          <FirestoreTestPanel />
         </View>
 
         {/* App Info Section */}

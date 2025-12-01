@@ -1,16 +1,13 @@
 import { RecurringBillForm } from "@/src/components/forms/RecurringBillForm";
 import { DeleteModal } from "@/src/components/ui/DeleteModal";
 import { SimpleBottomSheet } from "@/src/components/ui/SimpleBottomSheet";
-import { useDb } from "@/src/db/hooks";
-import {
-    deleteRecurringBill,
-    listRecurringBills,
-    updateRecurringBill,
-} from "@/src/features/recurring-bills/repository";
-import { RecurringBill } from "@/src/features/recurring-bills/types";
+// import { useDb } from "@/src/db/hooks"; // REMOVED
+import { recurringBillsService } from "@/src/services/firestore/recurring-bills.service";
+import { useAuth } from "@/src/state/AuthProvider"; // Added useAuth
 import { useCategories } from "@/src/state/CategoriesProvider";
 import { useCurrency } from "@/src/state/CurrencyProvider";
 import { useTheme } from "@/src/state/ThemeProvider";
+import { RecurringBillDocument } from "@/src/types/firestore";
 import { formatAmountFromBase } from "@/src/utils/format";
 import { useResponsive } from "@/src/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
@@ -19,13 +16,13 @@ import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-    ActivityIndicator,
-    FlatList,
-    Pressable,
-    RefreshControl,
-    StyleSheet,
-    Text,
-    View,
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -33,7 +30,8 @@ type FilterType = "all" | "active" | "inactive";
 
 export default function RecurringBillsScreen() {
   const { t } = useTranslation();
-  const db = useDb();
+  // const db = useDb(); // REMOVED
+  const { user } = useAuth();
   const { categories } = useCategories();
   const { baseCurrency } = useCurrency();
   const { colorScheme } = useTheme();
@@ -41,20 +39,21 @@ export default function RecurringBillsScreen() {
   const { scaleSpacing, scaleSize, scaleFont } = useResponsive();
   const insets = useSafeAreaInsets();
 
-  const [recurringBills, setRecurringBills] = useState<RecurringBill[]>([]);
+  const [recurringBills, setRecurringBills] = useState<RecurringBillDocument[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterType>("all");
   const [showAddForm, setShowAddForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
-  const [selectedBill, setSelectedBill] = useState<RecurringBill | null>(null);
+  const [selectedBill, setSelectedBill] = useState<RecurringBillDocument | null>(null);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const loadRecurringBills = useCallback(async () => {
+    if (!user) return;
     try {
-      const bills = await listRecurringBills(db);
-      setRecurringBills(Array.isArray(bills) ? bills : []);
+      const bills = await recurringBillsService.getUserRecurringBills(user.uid);
+      setRecurringBills(bills);
     } catch (error) {
       console.error("Error loading recurring bills:", error);
       setRecurringBills([]);
@@ -62,7 +61,7 @@ export default function RecurringBillsScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [db]);
+  }, [user]);
 
   useFocusEffect(
     useCallback(() => {
@@ -75,18 +74,19 @@ export default function RecurringBillsScreen() {
     await loadRecurringBills();
   }, [loadRecurringBills]);
 
-  const handleToggleActive = useCallback(async (bill: RecurringBill) => {
+  const handleToggleActive = useCallback(async (bill: RecurringBillDocument) => {
+    if (!bill.id) return;
     try {
-      await updateRecurringBill(bill.id, { isActive: !bill.isActive }, db);
+      await recurringBillsService.toggleActive(bill.id, !bill.isActive);
       await loadRecurringBills();
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     } catch (error) {
       console.error("Error toggling bill status:", error);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
-  }, [db, loadRecurringBills]);
+  }, [loadRecurringBills]);
 
-  const handleEdit = useCallback((bill: RecurringBill) => {
+  const handleEdit = useCallback((bill: RecurringBillDocument) => {
     setSelectedBill(bill);
     setShowEditForm(true);
   }, []);
@@ -98,11 +98,11 @@ export default function RecurringBillsScreen() {
   }, [selectedBill]);
 
   const handleConfirmDelete = useCallback(async () => {
-    if (!selectedBill) return;
+    if (!selectedBill?.id) return;
 
     setIsDeleting(true);
     try {
-      await deleteRecurringBill(selectedBill.id, db);
+      await recurringBillsService.delete(selectedBill.id);
       await loadRecurringBills();
       setDeleteModalVisible(false);
       setSelectedBill(null);
@@ -113,16 +113,16 @@ export default function RecurringBillsScreen() {
     } finally {
       setIsDeleting(false);
     }
-  }, [selectedBill, db, loadRecurringBills]);
+  }, [selectedBill, loadRecurringBills]);
 
   const filteredBills = useMemo(() => {
     let filtered = [...recurringBills];
 
     // Apply filter
     if (filter === "active") {
-      filtered = filtered.filter((b) => b.isActive === 1);
+      filtered = filtered.filter((b) => b.isActive === true);
     } else if (filter === "inactive") {
-      filtered = filtered.filter((b) => b.isActive === 0);
+      filtered = filtered.filter((b) => b.isActive === false);
     }
 
     // Sort by next due date (earliest first), then by name
@@ -168,7 +168,7 @@ export default function RecurringBillsScreen() {
     return t(`recurring.frequency.${frequency}`, frequency);
   };
 
-  const renderBillItem = ({ item: bill }: { item: RecurringBill }) => {
+  const renderBillItem = ({ item: bill }: { item: RecurringBillDocument }) => {
     const category = bill.categoryId
       ? categories.find((c) => c.id === bill.categoryId)
       : null;
@@ -395,7 +395,7 @@ export default function RecurringBillsScreen() {
       {/* Bills List */}
       <FlatList
         data={filteredBills}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.id || Math.random().toString()}
         renderItem={renderBillItem}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />

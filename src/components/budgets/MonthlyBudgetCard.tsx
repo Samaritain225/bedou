@@ -1,9 +1,9 @@
-import { useDb } from "@/src/db/hooks";
-import { getCurrentMonthYYYYMM, yyyymmToDate } from "@/src/features/budgets/repository";
 import { MonthlyBudget } from "@/src/features/budgets/types";
-import { listTransactions } from "@/src/features/transactions/repository";
+import { transactionsService } from "@/src/services/firestore/transactions.service";
+import { useAuth } from "@/src/state/AuthProvider";
 import { useCurrency } from "@/src/state/CurrencyProvider";
 import { useTheme } from "@/src/state/ThemeProvider";
+import { getCurrentMonthYYYYMM, yyyymmToDate } from "@/src/utils/dateHelpers";
 import { formatAmountFromBase } from "@/src/utils/format";
 import { useResponsive } from "@/src/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
@@ -23,16 +23,17 @@ export function MonthlyBudgetCard({ budget, onEdit }: MonthlyBudgetCardProps) {
   const isDark = colorScheme === "dark";
   const { scaleSpacing, scaleSize, scaleFont } = useResponsive();
   const { baseCurrency } = useCurrency();
-  const db = useDb();
+  // const db = useDb(); // REMOVED
 
   const [spent, setSpent] = React.useState<number>(0);
   const [loading, setLoading] = React.useState(true);
+  const { user } = useAuth(); // Added useAuth
 
   const currentMonth = useMemo(() => getCurrentMonthYYYYMM(), []);
 
   React.useEffect(() => {
     async function loadSpending() {
-      if (!budget || budget.monthYYYYMM !== currentMonth) {
+      if (!budget || budget.monthYYYYMM !== currentMonth || !user) {
         setSpent(0);
         setLoading(false);
         return;
@@ -46,11 +47,13 @@ export function MonthlyBudgetCard({ budget, onEdit }: MonthlyBudgetCardProps) {
           return { startDate, endDate };
         })();
 
-        const transactions = await listTransactions(db, {
-          type: "expense",
-          startDate,
-          endDate,
-        });
+        // Use transactionsService instead of listTransactions
+        const transactions = await transactionsService.getAll([
+          ['userId', '==', user.uid],
+          ['type', '==', 'expense'],
+          ['dateISO', '>=', startDate],
+          ['dateISO', '<=', endDate],
+        ]);
 
         const totalSpent = transactions.reduce((sum, txn) => sum + txn.amountBase, 0);
         setSpent(totalSpent);
@@ -62,7 +65,7 @@ export function MonthlyBudgetCard({ budget, onEdit }: MonthlyBudgetCardProps) {
     }
 
     loadSpending();
-  }, [budget, currentMonth, db]);
+  }, [budget, currentMonth, user]);
 
   if (!budget) {
     return (

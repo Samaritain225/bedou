@@ -1,5 +1,4 @@
 import { FormField } from "@/src/components/ui/FormField";
-import { useDb } from "@/src/db/hooks";
 import { useCategories } from "@/src/state/CategoriesProvider";
 import { useCurrency } from "@/src/state/CurrencyProvider";
 import { useTheme } from "@/src/state/ThemeProvider";
@@ -11,13 +10,13 @@ import { LinearGradient } from "expo-linear-gradient";
 import React, { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    ScrollView,
-    Text,
-    TextInput,
-    View,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { z } from "zod";
@@ -38,7 +37,7 @@ export function MonthlyBudgetForm({
   onCancel,
 }: MonthlyBudgetFormProps) {
   const { t } = useTranslation();
-  const db = useDb();
+  // const db = useDb(); // REMOVED
   const { setMonthlyBudget, currentMonth } = useCategories();
   const { baseCurrency } = useCurrency();
   const { colorScheme } = useTheme();

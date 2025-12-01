@@ -1,23 +1,17 @@
 import { CurrencyAmountInput } from "@/src/components/ui/CurrencyAmountInput";
 import { DatePicker } from "@/src/components/ui/DatePicker";
 import { FormField } from "@/src/components/ui/FormField";
-import { PaymentMethodPicker } from "@/src/components/ui/PaymentMethodPicker";
+import { PaymentMethod, PaymentMethodPicker } from "@/src/components/ui/PaymentMethodPicker";
 import { SimpleBottomSheet } from "@/src/components/ui/SimpleBottomSheet";
 import { TextInputField } from "@/src/components/ui/TextInputField";
-import { useDb } from "@/src/db/hooks";
+// import { useDb } from "@/src/db/hooks"; // REMOVED
 import { Category } from "@/src/features/categories/types";
-import {
-    createRecurringBill,
-    updateRecurringBill,
-} from "@/src/features/recurring-bills/repository";
-import {
-    RecurringBill,
-    RecurringFrequency,
-} from "@/src/features/recurring-bills/types";
-import { PaymentMethod } from "@/src/features/transactions/types";
+import { recurringBillsService } from "@/src/services/firestore/recurring-bills.service";
+import { useAuth } from "@/src/state/AuthProvider"; // Added useAuth
 import { useCategories } from "@/src/state/CategoriesProvider";
 import { useCurrency } from "@/src/state/CurrencyProvider";
 import { useTheme } from "@/src/state/ThemeProvider";
+import { RecurringBillDocument } from "@/src/types/firestore";
 import { handleAmountChange } from "@/src/utils/formHelpers";
 import { useResponsive } from "@/src/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
@@ -25,19 +19,21 @@ import * as Haptics from "expo-haptics";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-    FlatList,
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    ScrollView,
-    Text,
-    View,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
 } from "react-native";
+
+type RecurringFrequency = "daily" | "weekly" | "monthly" | "yearly";
 
 interface RecurringBillFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
-  initialBill?: RecurringBill;
+  initialBill?: RecurringBillDocument;
 }
 
 const FREQUENCY_OPTIONS: Array<{
@@ -57,7 +53,8 @@ export function RecurringBillForm({
   initialBill,
 }: RecurringBillFormProps) {
   const { t } = useTranslation();
-  const db = useDb();
+  // const db = useDb(); // REMOVED
+  const { user } = useAuth();
   const { categories } = useCategories();
   const { baseCurrency } = useCurrency();
   const { scaleSpacing, scaleSize, scaleFont, isTablet } = useResponsive();
@@ -71,7 +68,7 @@ export function RecurringBillForm({
     initialBill ? (initialBill.amountBase / 100).toString() : ""
   );
   const [frequency, setFrequency] = useState<RecurringFrequency>(
-    initialBill?.frequency || "monthly"
+    (initialBill?.frequency as RecurringFrequency) || "monthly"
   );
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
     initialBill?.categoryId
@@ -79,7 +76,7 @@ export function RecurringBillForm({
       : null
   );
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(
-    initialBill?.paymentMethod || null
+    (initialBill?.paymentMethod as PaymentMethod) || null
   );
   const [nextDueDate, setNextDueDate] = useState<Date>(
     initialBill?.nextDueDate ? new Date(initialBill.nextDueDate) : new Date()
@@ -105,6 +102,8 @@ export function RecurringBillForm({
   );
 
   const handleSubmit = async () => {
+    if (!user) return;
+
     try {
       const numericAmount = parseFloat(amount);
       if (!name.trim()) {
@@ -130,38 +129,34 @@ export function RecurringBillForm({
 
       const amountBase = Math.round(numericAmount * 100);
 
-      if (isEditing && initialBill) {
+      if (isEditing && initialBill?.id) {
         // Update existing bill
-        await updateRecurringBill(
-          initialBill.id,
-          {
+        await recurringBillsService.update(initialBill.id, {
             name: name.trim(),
             amountBase,
             currencyCode: baseCurrency?.code || "XOF",
             categoryId: selectedCategory.id,
-            paymentMethod,
+            paymentMethod: paymentMethod || undefined,
             frequency,
             nextDueDate: nextDueDate.toISOString(),
-            note: note.trim() || null,
-          },
-          db
-        );
+            note: note.trim() || undefined,
+        });
       } else {
         // Add new bill
-        await createRecurringBill(
-          {
+        await recurringBillsService.create({
+            userId: user.uid,
             name: name.trim(),
             amountBase,
             currencyCode: baseCurrency?.code || "XOF",
             categoryId: selectedCategory.id,
-            paymentMethod,
+            paymentMethod: paymentMethod || undefined,
             frequency,
             nextDueDate: nextDueDate.toISOString(),
-            note: note.trim() || null,
+            note: note.trim() || undefined,
             isActive: true,
-          },
-          db
-        );
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        });
       }
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -245,7 +240,7 @@ export function RecurringBillForm({
                 }
               }}
               placeholder={t("recurring.namePlaceholder", "e.g., Rent, Internet, Netflix")}
-              error={errors.name}
+              error={!!errors.name}
             />
           </FormField>
 
@@ -254,7 +249,7 @@ export function RecurringBillForm({
             <CurrencyAmountInput
               value={amount}
               onChangeText={onAmountChange}
-              error={errors.amount}
+              error={!!errors.amount}
             />
           </FormField>
 
@@ -415,7 +410,7 @@ export function RecurringBillForm({
           </FormField>
 
           {/* Note Input */}
-          <FormField label={t("recurring.note", "Note")} optional>
+          <FormField label={t("recurring.note", "Note")}>
             <TextInputField
               value={note}
               onChangeText={setNote}

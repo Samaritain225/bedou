@@ -1,4 +1,3 @@
-import { PaymentMethod } from "@/src/features/transactions/types";
 import { useTheme } from "@/src/state/ThemeProvider";
 import { useResponsive } from "@/src/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
@@ -7,6 +6,8 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Modal, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+export type PaymentMethod = "cash" | "card" | "mobile" | "bank_transfer" | "other";
 
 interface PaymentMethodPickerProps {
   value: PaymentMethod | null;

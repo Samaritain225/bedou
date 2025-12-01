@@ -3,16 +3,13 @@ import { FormField } from "@/src/components/ui/FormField";
 import { PrioritySelector } from "@/src/components/ui/PrioritySelector";
 import { SimpleBottomSheet } from "@/src/components/ui/SimpleBottomSheet";
 import { TextInputField } from "@/src/components/ui/TextInputField";
-import { useDb } from "@/src/db/hooks";
 import { Category } from "@/src/features/categories/types";
-import {
-    addPlannedPurchase,
-    updatePlannedPurchase,
-} from "@/src/features/planned-purchases/repository";
-import { PlannedPurchase, Priority } from "@/src/features/planned-purchases/types";
+import { plannedPurchasesService } from "@/src/services/firestore/planned-purchases.service";
+import { useAuth } from "@/src/state/AuthProvider";
 import { useCategories } from "@/src/state/CategoriesProvider";
 import { useCurrency } from "@/src/state/CurrencyProvider";
 import { useTheme } from "@/src/state/ThemeProvider";
+import { PlannedPurchaseDocument } from "@/src/types/firestore";
 import { handleAmountChange } from "@/src/utils/formHelpers";
 import { useResponsive } from "@/src/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
@@ -20,19 +17,21 @@ import * as Haptics from "expo-haptics";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-    FlatList,
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    ScrollView,
-    Text,
-    View,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
 } from "react-native";
+
+type Priority = PlannedPurchaseDocument["priority"];
 
 interface PlannedPurchaseFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
-  initialPurchase?: PlannedPurchase;
+  initialPurchase?: PlannedPurchaseDocument;
 }
 
 export function PlannedPurchaseForm({
@@ -41,9 +40,8 @@ export function PlannedPurchaseForm({
   initialPurchase,
 }: PlannedPurchaseFormProps) {
   const { t } = useTranslation();
-  const db = useDb();
+  const { user } = useAuth();
   const { categories } = useCategories();
-  const { baseCurrency } = useCurrency();
   const { scaleSpacing, scaleSize, scaleFont, isTablet } = useResponsive();
   const { colorScheme } = useTheme();
   const isDark = colorScheme === "dark";
@@ -76,6 +74,8 @@ export function PlannedPurchaseForm({
   );
 
   const handleSubmit = async () => {
+    if (!user) return;
+
     try {
       const numericAmount = parseFloat(amount);
       if (!name.trim()) {
@@ -92,31 +92,28 @@ export function PlannedPurchaseForm({
 
       const amountBase = Math.round(numericAmount * 100);
 
-      if (isEditing && initialPurchase) {
+      if (isEditing && initialPurchase?.id) {
         // Update existing purchase
-        await updatePlannedPurchase(
-          {
-            ...initialPurchase,
+        await plannedPurchasesService.update(initialPurchase.id, {
             name: name.trim(),
             amountBase,
             priority,
-            categoryId: selectedCategory?.id || null,
-            note: note.trim() || null,
-          },
-          db
-        );
+            categoryId: selectedCategory?.id || undefined,
+            note: note.trim() || undefined,
+        });
       } else {
         // Add new purchase
-        await addPlannedPurchase(
-          {
+        await plannedPurchasesService.create({
+            userId: user.uid,
             name: name.trim(),
             amountBase,
             priority,
-            categoryId: selectedCategory?.id || null,
-            note: note.trim() || null,
-          },
-          db
-        );
+            categoryId: selectedCategory?.id || undefined,
+            note: note.trim() || undefined,
+            isPurchased: false,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        });
       }
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);

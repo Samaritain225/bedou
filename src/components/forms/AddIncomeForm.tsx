@@ -1,11 +1,10 @@
 import { DatePicker } from "@/src/components/ui/DatePicker";
 import { FormField } from "@/src/components/ui/FormField";
-import { PaymentMethodPicker } from "@/src/components/ui/PaymentMethodPicker";
+import { PaymentMethod, PaymentMethodPicker } from "@/src/components/ui/PaymentMethodPicker";
 import { TextInputField } from "@/src/components/ui/TextInputField";
-import { generateUuid } from "@/src/db";
-import { useDb } from "@/src/db/hooks";
 import { Category } from "@/src/features/categories/types";
-import { PaymentMethod } from "@/src/features/transactions/types";
+import { transactionsService } from "@/src/services/firestore/transactions.service";
+import { useAuth } from "@/src/state/AuthProvider";
 import { useCategories } from "@/src/state/CategoriesProvider";
 import { useCurrency } from "@/src/state/CurrencyProvider";
 import { useTheme } from "@/src/state/ThemeProvider";
@@ -46,7 +45,8 @@ interface AddIncomeFormProps {
 
 export function AddIncomeForm({ onSuccess, onCancel }: AddIncomeFormProps) {
   const { t } = useTranslation();
-  const db = useDb();
+  // const db = useDb(); // REMOVED
+  const { user } = useAuth();
   const { categories, refresh: refreshCategories } = useCategories();
   const { baseCurrency } = useCurrency();
   const { adjustWalletBalance } = useWallet();
@@ -123,21 +123,25 @@ export function AddIncomeForm({ onSuccess, onCancel }: AddIncomeFormProps) {
 
       // Convert to integer (stored as smallest unit)
       const amountBase = Math.round(numericAmount * 100);
-      const transactionId = generateUuid();
 
-      await db.runAsync(
-        "INSERT INTO transactions (id, dateISO, amountOriginal, currencyCode, amountBase, categoryId, note, type, tagsJSON, paymentMethod) VALUES (?,?,?,?,?,?,?,?,?,?)",
-        transactionId,
-        selectedDate.toISOString(),
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
+      await transactionsService.create({
+        userId: user.uid,
+        dateISO: selectedDate.toISOString(),
+        amountOriginal: amountBase,
+        currencyCode: baseCurrency?.code || "XOF",
         amountBase,
-        baseCurrency?.code || "XOF",
-        amountBase,
-        selectedCategory.id,
-        note.trim() || null,
-        "income",
-        null,
-        paymentMethod
-      );
+        categoryId: selectedCategory.id,
+        note: note.trim() || undefined,
+        type: "income",
+        paymentMethod: paymentMethod || undefined,
+        tags: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
 
       // Increase wallet balance for income
       await adjustWalletBalance(amountBase, baseCurrency?.code || "XOF");

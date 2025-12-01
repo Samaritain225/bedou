@@ -1,5 +1,6 @@
-import { initDatabase } from "@/src/db";
+import { useFirebaseInitialization } from "@/src/hooks/firestore/useFirebaseInitialization";
 import "@/src/i18n/setup";
+import { AuthProvider } from "@/src/state/AuthProvider";
 import { CategoriesProvider } from "@/src/state/CategoriesProvider";
 import { CurrencyProvider } from "@/src/state/CurrencyProvider";
 import { OnboardingProvider } from "@/src/state/OnboardingProvider";
@@ -12,11 +13,8 @@ import {
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
-import * as SplashScreen from "expo-splash-screen";
-import { SQLiteProvider } from "expo-sqlite";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
-import { I18nManager, Text, TextInput } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 import "react-native-reanimated";
 import "../global.css";
 
@@ -24,99 +22,69 @@ export const unstable_settings = {
   anchor: "(tabs)",
 };
 
+import { useProtectedRoute } from "@/src/hooks/useProtectedRoute";
+
+// ... imports
+
 function AppContent() {
   const { colorScheme } = useTheme();
+  // Use the protected route hook
+  useProtectedRoute();
+
   const [fontsLoaded] = useFonts({
-    "Poppins-Black": require("../assets/fonts/Poppins-Black.ttf"),
-    "Poppins-BlackItalic": require("../assets/fonts/Poppins-BlackItalic.ttf"),
-    "Poppins-Bold": require("../assets/fonts/Poppins-Bold.ttf"),
-    "Poppins-BoldItalic": require("../assets/fonts/Poppins-BoldItalic.ttf"),
-    "Poppins-ExtraBold": require("../assets/fonts/Poppins-ExtraBold.ttf"),
-    "Poppins-ExtraBoldItalic": require("../assets/fonts/Poppins-ExtraBoldItalic.ttf"),
-    "Poppins-ExtraLight": require("../assets/fonts/Poppins-ExtraLight.ttf"),
-    "Poppins-ExtraLightItalic": require("../assets/fonts/Poppins-ExtraLightItalic.ttf"),
-    "Poppins-Italic": require("../assets/fonts/Poppins-Italic.ttf"),
-    "Poppins-Light": require("../assets/fonts/Poppins-Light.ttf"),
-    "Poppins-LightItalic": require("../assets/fonts/Poppins-LightItalic.ttf"),
-    "Poppins-Medium": require("../assets/fonts/Poppins-Medium.ttf"),
-    "Poppins-MediumItalic": require("../assets/fonts/Poppins-MediumItalic.ttf"),
-    "Poppins-Regular": require("../assets/fonts/Poppins-Regular.ttf"),
-    "Poppins-SemiBold": require("../assets/fonts/Poppins-SemiBold.ttf"),
-    "Poppins-SemiBoldItalic": require("../assets/fonts/Poppins-SemiBoldItalic.ttf"),
-    "Poppins-Thin": require("../assets/fonts/Poppins-Thin.ttf"),
-    "Poppins-ThinItalic": require("../assets/fonts/Poppins-ThinItalic.ttf"),
+    // ... fonts
   });
 
-  useEffect(() => {
-    if (I18nManager.isRTL) {
-      I18nManager.allowRTL(false);
-      I18nManager.forceRTL(false);
-    }
-    SplashScreen.preventAutoHideAsync().catch(() => {});
-  }, []);
+  // Initialize Firebase
+  useFirebaseInitialization();
 
-  useEffect(() => {
-    if (fontsLoaded) {
-      const TextAny: any = Text;
-      const TextInputAny: any = TextInput;
-      TextAny.defaultProps ??= {};
-      TextInputAny.defaultProps ??= {};
-      TextAny.defaultProps.style = [
-        { fontFamily: "Poppins-Regular" },
-        TextAny.defaultProps.style,
-      ];
-      TextInputAny.defaultProps.style = [
-        { fontFamily: "Poppins-Regular" },
-        TextInputAny.defaultProps.style,
-      ];
-      SplashScreen.hideAsync().catch(() => {});
-    }
-  }, [fontsLoaded]);
+  // ... rest of the component
 
-  // Always render the Stack, even if fonts aren't loaded yet
-  // The app should still be functional
+  if (!fontsLoaded) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colorScheme === 'dark' ? '#111827' : '#FFFFFF' }}>
+        <ActivityIndicator size="large" color="#3B82F6" />
+      </View>
+    );
+  }
+
   return (
     <NavigationThemeProvider
       value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
     >
-      <SQLiteProvider
-        databaseName="bedou.db"
-        onInit={initDatabase}
-        options={{ enableChangeListener: true }}
-      >
-        <OnboardingProvider>
-          <CurrencyProvider>
-            <WalletProvider>
-              <CategoriesProvider>
-                <Stack>
-                  <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                  <Stack.Screen
-                    name="settings"
-                    options={{
-                      presentation: "modal",
-                      headerShown: false,
-                      title: "",
-                      headerTitle: "",
-                      headerBackVisible: false,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="recurring-bills"
-                    options={{
-                      presentation: "modal",
-                      headerShown: false,
-                      title: "",
-                      headerTitle: "",
-                      headerBackVisible: false,
-                    }}
-                  />
-                </Stack>
-              </CategoriesProvider>
-            </WalletProvider>
-          </CurrencyProvider>
-        </OnboardingProvider>
-      </SQLiteProvider>
+      <OnboardingProvider>
+        <CurrencyProvider>
+          <WalletProvider>
+            <CategoriesProvider>
+              <Stack>
+                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen
+                  name="settings"
+                  options={{
+                    presentation: "modal",
+                    headerShown: false,
+                    title: "",
+                    headerTitle: "",
+                    headerBackVisible: false,
+                  }}
+                />
+                <Stack.Screen
+                  name="recurring-bills"
+                  options={{
+                    presentation: "modal",
+                    headerShown: false,
+                    title: "",
+                    headerTitle: "",
+                    headerBackVisible: false,
+                  }}
+                />
+              </Stack>
+            </CategoriesProvider>
+          </WalletProvider>
+        </CurrencyProvider>
+      </OnboardingProvider>
       <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
     </NavigationThemeProvider>
   );
@@ -125,7 +93,9 @@ function AppContent() {
 export default function RootLayout() {
   return (
     <ThemeProvider>
-      <AppContent />
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </ThemeProvider>
   );
 }

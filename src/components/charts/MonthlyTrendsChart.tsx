@@ -1,5 +1,5 @@
-import { Transaction } from "@/src/features/transactions/types";
 import { useTheme } from "@/src/state/ThemeProvider";
+import { TransactionDocument } from "@/src/types/firestore";
 import { useResponsive } from "@/src/utils/responsive";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -16,7 +16,7 @@ try {
 }
 
 interface MonthlyTrendsChartProps {
-  transactions: Transaction[];
+  transactions: TransactionDocument[];
 }
 
 export function MonthlyTrendsChart({ transactions }: MonthlyTrendsChartProps) {

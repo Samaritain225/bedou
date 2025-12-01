@@ -6,18 +6,17 @@ import { QuickActions } from "@/src/components/dashboard/QuickActions";
 import { PlannedPurchaseForm } from "@/src/components/forms/PlannedPurchaseForm";
 import { SimpleBottomSheet } from "@/src/components/ui/SimpleBottomSheet";
 import { PRIORITY_COLORS } from "@/src/constants/priorityColors";
-import { useDb } from "@/src/db/hooks";
-import { listPlannedPurchases, markAsPurchased } from "@/src/features/planned-purchases/repository";
-import { PlannedPurchase } from "@/src/features/planned-purchases/types";
-import { listRecurringBills } from "@/src/features/recurring-bills/repository";
-import { RecurringBill } from "@/src/features/recurring-bills/types";
-import { listTransactions } from "@/src/features/transactions/repository";
-import { Transaction } from "@/src/features/transactions/types";
+// import { useDb } from "@/src/db/hooks"; // REMOVED
+import { plannedPurchasesService } from "@/src/services/firestore/planned-purchases.service";
+import { recurringBillsService } from "@/src/services/firestore/recurring-bills.service";
+import { transactionsService } from "@/src/services/firestore/transactions.service";
+import { useAuth } from "@/src/state/AuthProvider"; // Added useAuth
 import { useCategories } from "@/src/state/CategoriesProvider";
 import { useCurrency } from "@/src/state/CurrencyProvider";
 import { useOnboarding } from "@/src/state/OnboardingProvider";
 import { useTheme } from "@/src/state/ThemeProvider";
 import { useWallet } from "@/src/state/WalletProvider";
+import { PlannedPurchaseDocument, RecurringBillDocument, TransactionDocument } from "@/src/types/firestore";
 import { formatAmountFromBase } from "@/src/utils/format";
 import { useResponsive } from "@/src/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
@@ -37,7 +36,8 @@ import {
 
 export default function DashboardScreen() {
   const { t } = useTranslation();
-  const db = useDb();
+  // const db = useDb(); // REMOVED
+  const { user } = useAuth(); // Get authenticated user
   const { categories, currentMonth, monthlyBudget } = useCategories();
   const { baseCurrency } = useCurrency();
   const { wallet } = useWallet();
@@ -53,11 +53,14 @@ export default function DashboardScreen() {
     }
   }, [hasCompletedOnboarding, onboardingLoading]);
 
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [transactions, setTransactions] = useState<TransactionDocument[]>( // Renamed from recentTransactions to transactions
+    []
+  );
+  const [allTransactions, setAllTransactions] = useState<TransactionDocument[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [plannedPurchases, setPlannedPurchases] = useState<PlannedPurchase[]>([]);
-  const [recurringBills, setRecurringBills] = useState<RecurringBill[]>([]);
+  const [plannedPurchases, setPlannedPurchases] = useState<PlannedPurchaseDocument[]>([]);
+  const [recurringBills, setRecurringBills] = useState<RecurringBillDocument[]>([]);
   const [showWishlistForm, setShowWishlistForm] = useState(false);
   const [showBudgetForm, setShowBudgetForm] = useState(false);
 
@@ -87,26 +90,24 @@ export default function DashboardScreen() {
   }, []);
 
   const loadDashboardData = useCallback(async () => {
+    if (!user) return;
+
     try {
       // Load month transactions
       const { startDate, endDate } = getMonthRange(currentMonth);
-      const txns = await listTransactions(db, {
-        startDate,
-        endDate,
-      });
-      setTransactions(Array.isArray(txns) ? txns : []);
+      const txns = await transactionsService.getByDateRange(user.uid, startDate, endDate);
+      setTransactions(txns);
 
-      // Load all transactions for stats
-      const allTxns = await listTransactions(db);
-      setAllTransactions(Array.isArray(allTxns) ? allTxns : []);
+      const allTxns = await transactionsService.getAll([['userId', '==', user.uid]]);
+      setAllTransactions(allTxns);
 
-      // Load planned purchases
-      const purchases = await listPlannedPurchases(db, { isPurchased: false });
-      setPlannedPurchases(Array.isArray(purchases) ? purchases : []);
+      // Load planned purchases (pending)
+      const purchases = await plannedPurchasesService.getActivePlannedPurchases(user.uid);
+      setPlannedPurchases(purchases);
 
       // Load recurring bills (only active ones)
-      const bills = await listRecurringBills(db, { isActive: true });
-      setRecurringBills(Array.isArray(bills) ? bills : []);
+      const bills = await recurringBillsService.getActiveRecurringBills(user.uid);
+      setRecurringBills(bills);
     } catch (error) {
       console.error("Error loading dashboard data:", error);
       setTransactions([]);
@@ -117,7 +118,7 @@ export default function DashboardScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [db, currentMonth, getMonthRange]);
+  }, [user, currentMonth, getMonthRange]);
 
   useFocusEffect(
     useCallback(() => {
@@ -132,7 +133,7 @@ export default function DashboardScreen() {
 
 
   // All transactions for week and month calculations
-  const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
+  // const [allTransactions, setAllTransactions] = useState<TransactionDocument[]>([]); // REMOVED DUPLICATE
 
   // Get week range
   const weekRange = useMemo(() => getWeekRange(), [getWeekRange]);
@@ -163,16 +164,16 @@ export default function DashboardScreen() {
 
   // Calculate monthly totals
   const monthlyTotals = useMemo(() => {
-    const expenses = transactions
+    const expenses = allTransactions
       .filter((t) => t.type === "expense")
       .reduce((sum, t) => sum + t.amountBase, 0);
-    const income = transactions
+    const income = allTransactions
       .filter((t) => t.type === "income")
       .reduce((sum, t) => sum + t.amountBase, 0);
     const balance = income - expenses;
-    const count = transactions.length;
-    const expenseCount = transactions.filter((t) => t.type === "expense").length;
-    const incomeCount = transactions.filter((t) => t.type === "income").length;
+    const count = allTransactions.length;
+    const expenseCount = allTransactions.filter((t) => t.type === "expense").length;
+    const incomeCount = allTransactions.filter((t) => t.type === "income").length;
 
     return {
       expenses,
@@ -224,12 +225,12 @@ export default function DashboardScreen() {
 
   const handleMarkAsPurchased = useCallback(async (id: string) => {
     try {
-      await markAsPurchased(id, db);
+      await plannedPurchasesService.markAsPurchased(id);
       await loadDashboardData();
     } catch (error) {
       console.error("Error marking as purchased:", error);
     }
-  }, [db, loadDashboardData]);
+  }, [loadDashboardData]);
 
   if (loading) {
     return (
@@ -1118,7 +1119,9 @@ export default function DashboardScreen() {
                       <Pressable
                         onPress={(e) => {
                           e.stopPropagation();
-                          handleMarkAsPurchased(purchase.id);
+                          if (purchase.id) {
+                            handleMarkAsPurchased(purchase.id);
+                          }
                         }}
                         style={{
                           marginLeft: scaleSpacing(12),
@@ -1153,12 +1156,12 @@ export default function DashboardScreen() {
             >
               {t("dashboard.recent", "Recent Transactions")}
             </Text>
-            {recentTransactions.map((txn) => {
-              const category = getCategory(txn.categoryId);
-              const isExpense = txn.type === "expense";
+            {recentTransactions.map((item) => {
+              const category = getCategory(item.categoryId || "");
+              const isExpense = item.type === "expense";
               return (
                 <Pressable
-                  key={txn.id}
+                  key={item.id}
                   style={{
                     paddingHorizontal: scaleSpacing(20),
                     marginBottom: scaleSpacing(8),
@@ -1166,67 +1169,52 @@ export default function DashboardScreen() {
                 >
                   <View
                     style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      padding: scaleSpacing(16),
                       borderRadius: scaleSpacing(12),
-                      padding: scaleSpacing(14),
                       backgroundColor: isDark ? "#374151" : "#FFFFFF",
                       borderWidth: 1.5,
                       borderColor: isDark ? "#4B5563" : "#E5E7EB",
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: scaleSpacing(12),
                     }}
                   >
-                    {category ? (
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: scaleSpacing(12) }}>
                       <View
                         style={{
-                          borderRadius: scaleSpacing(8),
-                          padding: scaleSpacing(8),
-                          backgroundColor: category.color + "20",
+                          width: scaleSize(40),
+                          height: scaleSize(40),
+                          borderRadius: scaleSpacing(20),
+                          backgroundColor: category ? category.color + "20" : isDark ? "#4B5563" : "#E5E7EB",
+                          alignItems: "center",
+                          justifyContent: "center",
                         }}
                       >
                         <Ionicons
-                          name={category.icon as any}
-                          size={scaleSize(24)}
-                          color={category.color}
+                          name={category ? (category.icon as any) : "help-outline"}
+                          size={scaleSize(20)}
+                          color={category ? category.color : isDark ? "#9CA3AF" : "#6B7280"}
                         />
                       </View>
-                    ) : (
-                      <View
-                        style={{
-                          borderRadius: scaleSpacing(8),
-                          padding: scaleSpacing(8),
-                          backgroundColor: isDark ? "#4B5563" : "#F3F4F6",
-                        }}
-                      >
-                        <Ionicons
-                          name="ellipse-outline"
-                          size={scaleSize(24)}
-                          color={isDark ? "#9CA3AF" : "#6B7280"}
-                        />
-                      </View>
-                    )}
-                    <View style={{ flex: 1 }}>
-                      <Text
-                        style={{
-                          color: isDark ? "#FFFFFF" : "#111827",
-                          fontSize: scaleFont(16),
-                          fontWeight: "600",
-                          marginBottom: scaleSpacing(4),
-                        }}
-                      >
-                        {category?.name || t("transactions.uncategorized", "Uncategorized")}
-                      </Text>
-                      {txn.note && (
+                      <View>
+                        <Text
+                          style={{
+                            color: isDark ? "#FFFFFF" : "#111827",
+                            fontSize: scaleFont(16),
+                            fontWeight: "600",
+                          }}
+                        >
+                          {category ? category.name : t("common.uncategorized", "Uncategorized")}
+                        </Text>
                         <Text
                           style={{
                             color: isDark ? "#9CA3AF" : "#6B7280",
-                            fontSize: scaleFont(14),
+                            fontSize: scaleFont(12),
                           }}
-                          numberOfLines={1}
                         >
-                          {txn.note}
+                          {new Date(item.dateISO).toLocaleDateString()}
                         </Text>
-                      )}
+                      </View>
                     </View>
                     <Text
                       style={{
@@ -1236,7 +1224,7 @@ export default function DashboardScreen() {
                       }}
                     >
                       {isExpense ? "-" : "+"}
-                      {formatAmountFromBase(txn.amountBase)} {baseCurrency?.symbol || baseCurrency?.code || ""}
+                      {formatAmountFromBase(item.amountBase)} {baseCurrency?.symbol || baseCurrency?.code || ""}
                     </Text>
                   </View>
                 </Pressable>

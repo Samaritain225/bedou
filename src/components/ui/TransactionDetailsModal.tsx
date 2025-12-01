@@ -1,3 +1,5 @@
+import { Category } from "@/src/features/categories/types";
+import { TransactionDocument } from "@/src/types/firestore";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
@@ -12,8 +14,6 @@ import {
     View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Category } from "../../features/categories/types";
-import { Transaction } from "../../features/transactions/types";
 import { useCurrency } from "../../state/CurrencyProvider";
 import { useTheme } from "../../state/ThemeProvider";
 import { useResponsive } from "../../utils/responsive";
@@ -23,7 +23,7 @@ const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 interface TransactionDetailsModalProps {
   visible: boolean;
   onClose: () => void;
-  transaction: Transaction | null;
+  transaction: TransactionDocument | null;
   category: Category | null;
   onEdit: () => void;
   onDelete: () => void;

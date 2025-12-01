@@ -1,24 +1,23 @@
-import { DatePicker } from "@/src/components/ui/DatePicker";
 import { FormField } from "@/src/components/ui/FormField";
-import { PaymentMethodPicker } from "@/src/components/ui/PaymentMethodPicker";
 import { TextInputField } from "@/src/components/ui/TextInputField";
-import { useDb } from "@/src/db/hooks";
+// import { useDb } from "@/src/db/hooks"; // REMOVED
+import { DatePicker } from "@/src/components/ui/DatePicker";
 import { Category } from "@/src/features/categories/types";
-import { updateTransaction } from "@/src/features/transactions/repository";
-import { PaymentMethod, Transaction } from "@/src/features/transactions/types";
+import { transactionsService } from "@/src/services/firestore/transactions.service";
 import { useCategories } from "@/src/state/CategoriesProvider";
 import { useCurrency } from "@/src/state/CurrencyProvider";
 import { useTheme } from "@/src/state/ThemeProvider";
 import { useWallet } from "@/src/state/WalletProvider";
+import { TransactionDocument } from "@/src/types/firestore";
 import { handleAmountChange } from "@/src/utils/formHelpers";
 import { useResponsive } from "@/src/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  ActivityIndicator,
   Animated,
   Dimensions,
   FlatList,
@@ -34,22 +33,11 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { z } from "zod";
-
-const transactionSchema = z.object({
-  amount: z.number().positive("Amount must be greater than 0"),
-  categoryId: z.string().min(1, "Category is required"),
-  note: z
-    .string()
-    .max(300, "Note must be less than 300 characters")
-    .optional()
-    .nullable(),
-});
 
 interface EditTransactionFormProps {
-  initialTransaction: Transaction;
+  initialTransaction: TransactionDocument;
   onClose: () => void;
-  onSuccess?: () => void;
+  onSuccess: () => void;
 }
 
 export function EditTransactionForm({
@@ -58,32 +46,23 @@ export function EditTransactionForm({
   onSuccess,
 }: EditTransactionFormProps) {
   const { t } = useTranslation();
-  const db = useDb();
+  // const db = useDb(); // REMOVED
   const { categories } = useCategories();
   const { baseCurrency } = useCurrency();
   const { adjustWalletBalance } = useWallet();
-  const { scaleSpacing, scaleSize, scaleFont } = useResponsive();
+  const { scaleSpacing, scaleSize, scaleFont, isTablet } = useResponsive();
   const { colorScheme } = useTheme();
   const isDark = colorScheme === "dark";
   const insets = useSafeAreaInsets();
 
-  // Initialize form with transaction data
-  const initialAmount = (initialTransaction.amountBase / 100).toString();
-  const initialCategory = categories.find(
-    (cat) => cat.id === initialTransaction.categoryId
-  ) || null;
-
-  const [amount, setAmount] = useState(initialAmount);
+  const [amount, setAmount] = useState((initialTransaction.amountBase / 100).toString());
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
-    initialCategory
+    initialTransaction.categoryId
+      ? categories.find((c) => c.id === initialTransaction.categoryId) || null
+      : null
   );
   const [note, setNote] = useState(initialTransaction.note || "");
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(
-    (initialTransaction as any).paymentMethod || null
-  );
-  const [selectedDate, setSelectedDate] = useState<Date>(
-    new Date(initialTransaction.dateISO)
-  );
+  const [date, setDate] = useState(new Date(initialTransaction.dateISO));
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [categorySearchQuery, setCategorySearchQuery] = useState("");
   const [errors, setErrors] = useState<{
@@ -93,14 +72,15 @@ export function EditTransactionForm({
   }>({});
   const [showSuccess, setShowSuccess] = useState(false);
   const [generalError, setGeneralError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Bottom sheet animation for category modal
   const { height: SCREEN_HEIGHT } = Dimensions.get("window");
   const modalSheetHeight = SCREEN_HEIGHT * 0.7;
-  const translateY = React.useRef(new Animated.Value(modalSheetHeight)).current;
-  const currentPosition = React.useRef(modalSheetHeight);
+  const translateY = useRef(new Animated.Value(modalSheetHeight)).current;
+  const currentPosition = useRef(modalSheetHeight);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (showCategoryModal) {
       translateY.setValue(modalSheetHeight);
       currentPosition.current = modalSheetHeight;
@@ -122,7 +102,7 @@ export function EditTransactionForm({
     }
   }, [showCategoryModal, modalSheetHeight]);
 
-  const categoryModalPanResponder = React.useMemo(
+  const categoryModalPanResponder = useMemo(
     () =>
       PanResponder.create({
         onStartShouldSetPanResponder: () => true,
@@ -212,73 +192,49 @@ export function EditTransactionForm({
         return;
       }
 
-      // Validate with Zod
-      const result = transactionSchema.safeParse({
-        amount: numericAmount,
-        categoryId: selectedCategory.id,
-        note: note.trim() || null,
-      });
-
-      if (!result.success) {
-        const newErrors: typeof errors = {};
-        for (const err of result.error.errors) {
-          const field = err.path[0] as keyof typeof errors;
-          if (field) {
-            newErrors[field] = err.message;
-          }
-        }
-        setErrors(newErrors);
-        return;
-      }
+      if (!initialTransaction.id) return;
 
       setErrors({});
+      setIsSubmitting(true);
 
-      // Convert to integer (stored as smallest unit)
-      const amountBase = Math.round(numericAmount * 100);
+      const newAmountBase = Math.round(numericAmount * 100);
+      const oldAmountBase = initialTransaction.amountBase;
 
-      // Update transaction
-      const updatedTransaction: Transaction = {
-        ...initialTransaction,
-        dateISO: selectedDate.toISOString(),
-        amountBase,
-        amountOriginal: amountBase,
+      // Calculate balance adjustment
+      let balanceAdjustment = 0;
+      if (initialTransaction.type === "expense") {
+        balanceAdjustment = oldAmountBase - newAmountBase;
+      } else {
+        balanceAdjustment = newAmountBase - oldAmountBase;
+      }
+
+      await transactionsService.update(initialTransaction.id, {
+        amountBase: newAmountBase,
         categoryId: selectedCategory.id,
-        note: note.trim() || null,
-        paymentMethod,
-      };
+        note: note.trim() || undefined,
+        dateISO: date.toISOString(),
+      });
 
-      await updateTransaction(updatedTransaction, db);
-
-      // Adjust wallet: reverse old transaction effect, apply new transaction effect
-      // If expense was deducted, we add it back; if income was added, we deduct it
-      const oldAmountDelta = initialTransaction.type === "expense" 
-        ? initialTransaction.amountBase  // Reverse expense: add back
-        : -initialTransaction.amountBase; // Reverse income: deduct
-      // Then apply the new transaction effect
-      const newAmountDelta = initialTransaction.type === "expense"
-        ? -updatedTransaction.amountBase  // Apply expense: deduct
-        : updatedTransaction.amountBase;  // Apply income: add
-      
-      // First reverse the old transaction
-      await adjustWalletBalance(oldAmountDelta, baseCurrency?.code || "XOF");
-      // Then apply the new transaction
-      await adjustWalletBalance(newAmountDelta, baseCurrency?.code || "XOF");
+      if (balanceAdjustment !== 0) {
+        await adjustWalletBalance(balanceAdjustment, initialTransaction.currencyCode);
+      }
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-
-      // Show success message
       setShowSuccess(true);
       setTimeout(() => {
         setShowSuccess(false);
-        onSuccess?.();
+        onSuccess();
         onClose();
-      }, 1500); // Close after 1.5 seconds
+      }, 1500);
     } catch (error) {
+      console.error("Error updating transaction:", error);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       setGeneralError(t("add.saveError") || "Failed to update transaction. Please try again.");
       setTimeout(() => {
         setGeneralError(null);
       }, 5000);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -393,8 +349,8 @@ export function EditTransactionForm({
           {/* Date Picker */}
           <FormField label={t("add.date", "Date") || "Date"}>
             <DatePicker
-              value={selectedDate}
-              onChange={setSelectedDate}
+              value={date}
+              onChange={setDate}
             />
           </FormField>
 
@@ -873,37 +829,22 @@ export function EditTransactionForm({
             </Modal>
           </FormField>
 
-          {/* Payment Method Picker */}
-          <FormField label={t("add.paymentMethod", "Payment Method") || "Payment Method"}>
-            <PaymentMethodPicker
-              value={paymentMethod}
-              onChange={setPaymentMethod}
-            />
-          </FormField>
-
           {/* Note Input */}
-          <FormField
-            label={t("add.note", "Note")}
-            labelOptional
-            labelOptionalText={t("add.optional", "(Optional)")}
-            error={errors.note}
-          >
+          <FormField label={t("add.note", "Note")} error={errors.note}>
             <TextInputField
               value={note}
               onChangeText={handleNoteChange}
               placeholder={t("add.notePlaceholder", "Add a note...")}
               multiline
+              numberOfLines={3}
               maxLength={300}
-              returnKeyType="done"
-              error={!!errors.note}
             />
             <Text
               style={{
-                color: isDark ? "#6B7280" : "#9CA3AF",
-                fontSize: scaleFont(12),
-                marginTop: scaleSpacing(4),
                 textAlign: "right",
-                fontWeight: "500",
+                fontSize: scaleFont(12),
+                color: isDark ? "#9CA3AF" : "#6B7280",
+                marginTop: scaleSpacing(4),
               }}
             >
               {note.length}/300
@@ -911,50 +852,51 @@ export function EditTransactionForm({
           </FormField>
 
           {/* Submit Button */}
-          <Pressable
-            onPress={handleSubmit}
-            disabled={!canSubmit}
-            style={{
-              opacity: canSubmit ? 1 : 0.5,
-              marginTop: scaleSpacing(8),
-            }}
-          >
-            {({ pressed }) => (
-              <LinearGradient
-                colors={canSubmit ? ["#2563EB", "#1D4ED8"] : isDark ? ["#4B5563", "#374151"] : ["#D1D5DB", "#9CA3AF"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={{
-                  borderRadius: scaleSpacing(12),
-                  paddingVertical: scaleSpacing(16),
-                  paddingHorizontal: scaleSpacing(20),
-                  alignItems: "center",
-                  justifyContent: "center",
-                  opacity: pressed ? 0.9 : 1,
-                  transform: [{ scale: pressed ? 0.98 : 1 }],
-                  shadowColor: canSubmit ? "#2563EB" : "transparent",
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.2,
-                  shadowRadius: 8,
-                  elevation: canSubmit ? 4 : 0,
-                }}
-              >
+          <View style={{ marginTop: scaleSpacing(24), marginBottom: scaleSpacing(40) }}>
+            <Pressable
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                handleSubmit();
+              }}
+              disabled={!canSubmit || isSubmitting}
+              style={({ pressed }) => ({
+                backgroundColor: !canSubmit || isSubmitting
+                  ? isDark ? "#374151" : "#E5E7EB"
+                  : isDark ? "#3B82F6" : "#2563EB",
+                paddingVertical: scaleSpacing(16),
+                borderRadius: scaleSpacing(16),
+                alignItems: "center",
+                justifyContent: "center",
+                opacity: pressed ? 0.9 : 1,
+                shadowColor: !canSubmit || isSubmitting ? "transparent" : (isDark ? "#3B82F6" : "#2563EB"),
+                shadowOffset: {
+                  width: 0,
+                  height: 4,
+                },
+                shadowOpacity: !canSubmit || isSubmitting ? 0 : 0.3,
+                shadowRadius: 8,
+                elevation: !canSubmit || isSubmitting ? 0 : 8,
+              })}
+            >
+              {isSubmitting ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
                 <Text
                   style={{
-                    color: "#FFFFFF",
-                    fontSize: scaleFont(16),
-                    fontWeight: "600",
-                    letterSpacing: 0.2,
+                    color: !canSubmit || isSubmitting
+                      ? isDark ? "#9CA3AF" : "#9CA3AF"
+                      : "#FFFFFF",
+                    fontSize: scaleFont(18),
+                    fontWeight: "700",
                   }}
                 >
-                  {t("transactions.save", "Save Changes")}
+                  {t("common.save", "Save Changes")}
                 </Text>
-              </LinearGradient>
-            )}
-          </Pressable>
+              )}
+            </Pressable>
+          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
-

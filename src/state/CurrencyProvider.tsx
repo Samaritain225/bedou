@@ -1,18 +1,12 @@
 import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useState,
 } from "react";
-import { useDb } from "../db/hooks";
-import {
-  addCurrency,
-  listCurrencies,
-  setBaseCurrency,
-  updateCurrencyRate,
-} from "../features/currency/repository";
+
 import { Currency } from "../features/currency/types";
 
 type CurrencyContextValue = {
@@ -29,21 +23,25 @@ const CurrencyContext = createContext<CurrencyContextValue | undefined>(
 );
 
 export function CurrencyProvider({ children }: { children: React.ReactNode }) {
-  const db = useDb(); // Use SQLiteProvider context
-  const [currencies, setCurrencies] = useState<Currency[]>([]);
+  
+  // Default currency (XOF - Franc CFA)
+  const defaultCurrency: Currency = {
+    id: 'default-xof',
+    code: 'XOF',
+    label: 'Franc CFA',
+    symbol: 'F CFA',
+    rateToBase: 1,
+    isBase: 1,
+    updatedAt: new Date().toISOString(),
+  };
+  
+  const [currencies, setCurrencies] = useState<Currency[]>([defaultCurrency]);
 
   const refresh = useCallback(async () => {
-    try {
-      const list = await listCurrencies(db);
-      setCurrencies(Array.isArray(list) ? list : []);
-    } catch (error) {
-      console.error("Error refreshing currencies:", error);
-      setCurrencies([]);
-    }
-  }, [db]);
+    console.log('Currency refresh - using default currency until Firestore migration');
+  }, []);
 
   useEffect(() => {
-    // Database initialization is handled by SQLiteProvider's onInit
     refresh();
   }, [refresh]);
 
@@ -54,26 +52,25 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
 
   const add = useCallback(
     async (c: Currency) => {
-      await addCurrency(c, db);
-      await refresh();
+      console.log('Add currency - not implemented yet');
     },
-    [refresh, db]
+    [refresh]
   );
 
   const updateRate = useCallback(
     async (id: string, rate: number) => {
-      await updateCurrencyRate(id, rate, db);
-      await refresh();
+      // TODO: Implement with Firestore
+      console.log('Update rate - not implemented yet');
     },
-    [refresh, db]
+    [refresh]
   );
 
   const makeBase = useCallback(
     async (id: string) => {
-      await setBaseCurrency(id, db);
-      await refresh();
+      // TODO: Implement with Firestore
+      console.log('Make base currency - not implemented yet');
     },
-    [refresh, db]
+    [refresh]
   );
 
   const value = useMemo<CurrencyContextValue>(

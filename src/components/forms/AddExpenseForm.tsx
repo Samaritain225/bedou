@@ -1,10 +1,9 @@
 import { FormField } from "@/src/components/ui/FormField";
-import { PaymentMethodPicker } from "@/src/components/ui/PaymentMethodPicker";
+import { PaymentMethod, PaymentMethodPicker } from "@/src/components/ui/PaymentMethodPicker";
 import { TextInputField } from "@/src/components/ui/TextInputField";
-import { generateUuid } from "@/src/db";
-import { useDb } from "@/src/db/hooks";
 import { Category } from "@/src/features/categories/types";
-import { PaymentMethod } from "@/src/features/transactions/types";
+import { transactionsService } from "@/src/services/firestore/transactions.service";
+import { useAuth } from "@/src/state/AuthProvider";
 import { useCategories } from "@/src/state/CategoriesProvider";
 import { useCurrency } from "@/src/state/CurrencyProvider";
 import { useTheme } from "@/src/state/ThemeProvider";
@@ -48,7 +47,8 @@ const expenseSchema = z.object({
 
 export function AddExpenseForm() {
   const { t } = useTranslation();
-  const db = useDb();
+  // const db = useDb(); // REMOVED
+  const { user } = useAuth();
   const { categories } = useCategories();
   const { baseCurrency } = useCurrency();
   const { adjustWalletBalance } = useWallet();
@@ -215,21 +215,25 @@ export function AddExpenseForm() {
 
       // Convert to integer (stored as smallest unit)
       const amountBase = Math.round(numericAmount * 100);
-      const transactionId = generateUuid();
 
-      await db.runAsync(
-        "INSERT INTO transactions (id, dateISO, amountOriginal, currencyCode, amountBase, categoryId, note, type, tagsJSON, paymentMethod) VALUES (?,?,?,?,?,?,?,?,?,?)",
-        transactionId,
-        selectedDate.toISOString(),
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
+      await transactionsService.create({
+        userId: user.uid,
+        dateISO: selectedDate.toISOString(),
+        amountOriginal: amountBase,
+        currencyCode: baseCurrency?.code || "XOF",
         amountBase,
-        baseCurrency?.code || "XOF",
-        amountBase,
-        selectedCategory.id,
-        note.trim() || null,
-        "expense",
-        null,
-        paymentMethod
-      );
+        categoryId: selectedCategory.id,
+        note: note.trim() || undefined,
+        type: "expense",
+        paymentMethod: paymentMethod || undefined,
+        tags: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
 
       // Decrease wallet balance for expense
       await adjustWalletBalance(-amountBase, baseCurrency?.code || "XOF");
@@ -250,6 +254,7 @@ export function AddExpenseForm() {
         setShowSuccess(false);
       }, 3000); // Hide after 3 seconds
     } catch (error) {
+      console.error("Error adding expense:", error);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       setGeneralError(t("add.saveError") || "Failed to save expense. Please try again.");
       setTimeout(() => {

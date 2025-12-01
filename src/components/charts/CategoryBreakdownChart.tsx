@@ -1,6 +1,6 @@
 import { Category } from "@/src/features/categories/types";
-import { Transaction } from "@/src/features/transactions/types";
 import { useTheme } from "@/src/state/ThemeProvider";
+import { TransactionDocument } from "@/src/types/firestore";
 import { useResponsive } from "@/src/utils/responsive";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -17,7 +17,7 @@ try {
 }
 
 interface CategoryBreakdownChartProps {
-  transactions: Transaction[];
+  transactions: TransactionDocument[];
   categories: Category[];
 }
 

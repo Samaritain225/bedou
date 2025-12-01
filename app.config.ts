@@ -28,6 +28,8 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       },
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
+      softwareKeyboardLayoutMode: 'resize',
+      googleServicesFile: "./google-services.json",
       package: isDev ? 'com.bedou.io.dev' : 'com.bedou.io',
     },
     web: {
@@ -37,6 +39,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     },
     plugins: [
       'expo-router',
+      '@react-native-firebase/app',
       [
         'expo-splash-screen',
         {

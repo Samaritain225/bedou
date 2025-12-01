@@ -6,26 +6,12 @@ import {
   useMemo,
   useState,
 } from "react";
-import { useDb } from "../db/hooks";
-import {
-  deleteBudget,
-  deleteMonthlyBudget as deleteMonthlyBudgetRepo,
-  getBudgetByCategoryAndMonth,
-  getCurrentMonthYYYYMM,
-  getMonthlyBudget,
-  listBudgets,
-  setMonthlyBudget as setMonthlyBudgetRepo,
-  upsertBudget,
-} from "../features/budgets/repository";
 import { MonthlyBudget } from "../features/budgets/types";
-import {
-  addCategory,
-  deleteCategory,
-  getCategoryById,
-  listCategories,
-  updateCategory,
-} from "../features/categories/repository";
 import { Budget, Category } from "../features/categories/types";
+import { budgetsService, categoriesService, monthlyBudgetsService } from "../services/firestore";
+import type { CategoryDocument } from "../types/firestore";
+import { getCurrentMonthYYYYMM } from "../utils/dateHelpers";
+import { useAuth } from "./AuthProvider"; // Added import
 
 type CategoriesContextValue = {
   categories: Category[];
@@ -62,7 +48,7 @@ export function CategoriesProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const db = useDb();
+  const { user } = useAuth(); // Get user from auth context
   const [categories, setCategories] = useState<Category[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [monthlyBudget, setMonthlyBudgetState] = useState<MonthlyBudget | null>(null);
@@ -72,21 +58,44 @@ export function CategoriesProvider({
 
   const refresh = useCallback(async () => {
     try {
-      const [cats, budgetsList, monthly] = await Promise.all([
-        listCategories(db),
-        listBudgets(currentMonth, db),
-        getMonthlyBudget(currentMonth, db),
+      // Load categories and budgets from Firestore
+      const [categoriesDocs, budgetsDocs] = await Promise.all([
+        categoriesService.getAll([['userId', '==', 'test-user']]),
+        budgetsService.getBudgetsForMonth('test-user', currentMonth),
       ]);
-      setCategories(Array.isArray(cats) ? cats : []);
-      setBudgets(Array.isArray(budgetsList) ? budgetsList : []);
-      setMonthlyBudgetState(monthly);
+
+      // Convert Firestore documents to local types
+      const cats: Category[] = categoriesDocs.map(doc => ({
+        id: doc.id!,
+        userId: doc.userId,
+        name: doc.name,
+        type: doc.type,
+        icon: doc.icon || '',
+        color: doc.color || '',
+        createdAt: typeof doc.createdAt === 'string' ? doc.createdAt : doc.createdAt?.toDate().toISOString() || new Date().toISOString(),
+        updatedAt: typeof doc.updatedAt === 'string' ? doc.updatedAt : doc.updatedAt?.toDate().toISOString() || new Date().toISOString(),
+      }));
+
+      const buds: Budget[] = budgetsDocs.map(doc => ({
+        id: doc.id!,
+        categoryId: doc.categoryId,
+        monthYYYYMM: doc.monthYYYYMM,
+        amountBase: doc.amountBase,
+        createdAt: typeof doc.createdAt === 'string' ? doc.createdAt : doc.createdAt?.toDate().toISOString() || new Date().toISOString(),
+        updatedAt: typeof doc.updatedAt === 'string' ? doc.updatedAt : doc.updatedAt?.toDate().toISOString() || new Date().toISOString(),
+      }));
+
+      setCategories(cats);
+      setBudgets(buds);
+      
+      console.log(`📦 Loaded ${cats.length} categories and ${buds.length} budgets from Firestore`);
     } catch (error) {
-      console.error("Error refreshing categories and budgets:", error);
+      console.error('Error refreshing categories and budgets:', error);
       setCategories([]);
       setBudgets([]);
       setMonthlyBudgetState(null);
     }
-  }, [db, currentMonth]);
+  }, [currentMonth]);
 
   useEffect(() => {
     refresh();
@@ -94,95 +103,145 @@ export function CategoriesProvider({
 
   const handleAddCategory = useCallback(
     async (c: Omit<Category, "id">) => {
-      const id = await addCategory(c, db);
+      const categoryDoc: Omit<CategoryDocument, 'id'> = {
+        userId: 'test-user',
+        name: c.name,
+        type: c.type,
+        icon: c.icon,
+        color: c.color,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      const id = await categoriesService.create(categoryDoc);
       await refresh();
+      console.log(`✅ Category created: ${c.name}`);
       return id;
     },
-    [db, refresh]
+    [refresh]
   );
 
   const handleUpdateCategory = useCallback(
     async (c: Category) => {
-      await updateCategory(c, db);
+      await categoriesService.update(c.id, {
+        name: c.name,
+        type: c.type,
+        icon: c.icon,
+        color: c.color,
+        updatedAt: new Date().toISOString(),
+      });
       await refresh();
+      console.log(`✅ Category updated: ${c.name}`);
     },
-    [db, refresh]
+    [refresh]
   );
 
   const handleDeleteCategory = useCallback(
     async (id: string) => {
-      await deleteCategory(id, db);
+      await categoriesService.delete(id);
       await refresh();
+      console.log(`✅ Category deleted: ${id}`);
     },
-    [db, refresh]
+    [refresh]
   );
 
   const handleGetCategory = useCallback(
     async (id: string) => {
-      return await getCategoryById(id, db);
+      const doc = await categoriesService.getById(id);
+      if (!doc) return null;
+      return {
+        id: doc.id!,
+        userId: doc.userId,
+        name: doc.name,
+        type: doc.type,
+        icon: doc.icon,
+        color: doc.color,
+        createdAt: doc.createdAt,
+        updatedAt: doc.updatedAt,
+      };
     },
-    [db]
+    []
   );
 
   const handleSetBudget = useCallback(
     async (categoryId: string, monthYYYYMM: string, amountBase: number) => {
-      await upsertBudget({ categoryId, monthYYYYMM, amountBase }, db);
+      await budgetsService.upsertBudget({
+        categoryId,
+        monthYYYYMM,
+        amountBase,
+        userId: 'test-user', // TODO: Use actual user ID
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
       await refresh();
+      console.log(`✅ Budget set for category ${categoryId}`);
     },
-    [db, refresh]
+    [refresh]
   );
 
   const handleGetBudget = useCallback(
     async (categoryId: string, monthYYYYMM?: string) => {
       const targetMonth = monthYYYYMM || currentMonth;
-      return await getBudgetByCategoryAndMonth(categoryId, targetMonth, db);
+      const budget = budgets.find(
+        (b) => b.categoryId === categoryId && b.monthYYYYMM === targetMonth
+      );
+      return budget || null;
     },
-    [db, currentMonth]
+    [budgets, currentMonth]
   );
 
   const handleDeleteBudget = useCallback(
     async (id: string) => {
-      await deleteBudget(id, db);
+      await budgetsService.deleteBudget(id);
       await refresh();
+      console.log(`✅ Budget deleted: ${id}`);
     },
-    [db, refresh]
+    [refresh]
   );
 
   const handleGetMonthlyBudget = useCallback(
     async (monthYYYYMM?: string) => {
       const targetMonth = monthYYYYMM || currentMonth;
-      const budget = await getMonthlyBudget(targetMonth, db);
-      if (targetMonth === currentMonth) {
-        setMonthlyBudgetState(budget);
+      if (monthlyBudget && monthlyBudget.monthYYYYMM === targetMonth) {
+        return monthlyBudget;
       }
-      return budget;
+      // If not in state, try to fetch (though refresh should handle it)
+      const doc = await monthlyBudgetsService.getMonthlyBudget('test-user', targetMonth);
+      if (doc) {
+        return {
+          id: doc.id!,
+          monthYYYYMM: doc.monthYYYYMM,
+          amountBase: doc.amountBase,
+          createdAt: typeof doc.createdAt === 'string' ? doc.createdAt : doc.createdAt?.toDate().toISOString() || new Date().toISOString(),
+          updatedAt: typeof doc.updatedAt === 'string' ? doc.updatedAt : doc.updatedAt?.toDate().toISOString() || new Date().toISOString(),
+        };
+      }
+      return null;
     },
-    [db, currentMonth]
+    [currentMonth, monthlyBudget]
   );
 
   const handleSetMonthlyBudget = useCallback(
     async (monthYYYYMM: string, amountBase: number) => {
-      await setMonthlyBudgetRepo(monthYYYYMM, amountBase, db);
-      if (monthYYYYMM === currentMonth) {
-        const updated = await getMonthlyBudget(monthYYYYMM, db);
-        setMonthlyBudgetState(updated);
-      } else {
-        await refresh();
-      }
+      await monthlyBudgetsService.upsertMonthlyBudget({
+        monthYYYYMM,
+        amountBase,
+        userId: 'test-user', // TODO: Use actual user ID
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+      await refresh();
+      console.log(`✅ Monthly budget set for ${monthYYYYMM}`);
     },
-    [db, currentMonth, refresh]
+    [refresh]
   );
 
   const handleDeleteMonthlyBudget = useCallback(
     async (monthYYYYMM: string) => {
-      await deleteMonthlyBudgetRepo(monthYYYYMM, db);
-      if (monthYYYYMM === currentMonth) {
-        setMonthlyBudgetState(null);
-      } else {
-        await refresh();
-      }
+      await monthlyBudgetsService.deleteMonthlyBudget('test-user', monthYYYYMM);
+      await refresh();
+      console.log(`✅ Monthly budget deleted for ${monthYYYYMM}`);
     },
-    [db, currentMonth, refresh]
+    [refresh]
   );
 
   const value = useMemo<CategoriesContextValue>(

@@ -3,6 +3,7 @@ import { Tabs, useRouter } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, Text, useWindowDimensions } from "react-native";
+import { useAuth } from "../../src/state/AuthProvider";
 import { useTheme } from "../../src/state/ThemeProvider";
 
 export default function TabsLayout() {
@@ -10,6 +11,13 @@ export default function TabsLayout() {
   const { width } = useWindowDimensions();
   const router = useRouter();
   const { colorScheme } = useTheme();
+  const { user, loading } = useAuth();
+  
+  // Protect tabs route
+  if (!loading && !user) {
+    // This should be handled by root layout, but as a safety check
+    return null;
+  }
 
   // Responsive sizing based on screen width
   // Base sizes for phones, scale up for tablets/larger screens

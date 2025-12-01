@@ -1,3 +1,15 @@
+import { PlannedPurchaseForm } from "@/src/components/forms/PlannedPurchaseForm";
+import { DeleteModal } from "@/src/components/ui/DeleteModal";
+import { SimpleBottomSheet } from "@/src/components/ui/SimpleBottomSheet";
+import { PRIORITY_COLORS } from "@/src/constants/priorityColors";
+import { plannedPurchasesService } from "@/src/services/firestore/planned-purchases.service";
+import { useAuth } from "@/src/state/AuthProvider";
+import { useCategories } from "@/src/state/CategoriesProvider";
+import { useCurrency } from "@/src/state/CurrencyProvider";
+import { useTheme } from "@/src/state/ThemeProvider";
+import { PlannedPurchaseDocument } from "@/src/types/firestore";
+import { formatAmountFromBase } from "@/src/utils/format";
+import { useResponsive } from "@/src/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
 import React, { useCallback, useMemo, useState } from "react";
@@ -11,49 +23,34 @@ import {
   Text,
   View,
 } from "react-native";
-import { PlannedPurchaseForm } from "@/src/components/forms/PlannedPurchaseForm";
-import { DeleteModal } from "@/src/components/ui/DeleteModal";
-import { SimpleBottomSheet } from "@/src/components/ui/SimpleBottomSheet";
-import { PRIORITY_COLORS } from "@/src/constants/priorityColors";
-import { useDb } from "@/src/db/hooks";
-import {
-  deletePlannedPurchase,
-  listPlannedPurchases,
-  markAsPurchased,
-  unmarkAsPurchased,
-} from "@/src/features/planned-purchases/repository";
-import { PlannedPurchase, Priority } from "@/src/features/planned-purchases/types";
-import { useCategories } from "@/src/state/CategoriesProvider";
-import { useCurrency } from "@/src/state/CurrencyProvider";
-import { useTheme } from "@/src/state/ThemeProvider";
-import { formatAmountFromBase } from "@/src/utils/format";
-import { useResponsive } from "@/src/utils/responsive";
 
+type Priority = PlannedPurchaseDocument["priority"];
 type FilterType = "all" | "active" | "purchased";
 
 export default function WishlistScreen() {
   const { t } = useTranslation();
-  const db = useDb();
+  const { user } = useAuth();
   const { categories } = useCategories();
   const { baseCurrency } = useCurrency();
   const { colorScheme } = useTheme();
   const isDark = colorScheme === "dark";
   const { scaleSpacing, scaleSize, scaleFont } = useResponsive();
 
-  const [plannedPurchases, setPlannedPurchases] = useState<PlannedPurchase[]>([]);
+  const [plannedPurchases, setPlannedPurchases] = useState<PlannedPurchaseDocument[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterType>("all");
   const [showAddForm, setShowAddForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
-  const [selectedPurchase, setSelectedPurchase] = useState<PlannedPurchase | null>(null);
+  const [selectedPurchase, setSelectedPurchase] = useState<PlannedPurchaseDocument | null>(null);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const loadPlannedPurchases = useCallback(async () => {
+    if (!user) return;
     try {
-      const purchases = await listPlannedPurchases(db);
-      setPlannedPurchases(Array.isArray(purchases) ? purchases : []);
+      const purchases = await plannedPurchasesService.getUserPlannedPurchases(user.uid);
+      setPlannedPurchases(purchases);
     } catch (error) {
       console.error("Error loading planned purchases:", error);
       setPlannedPurchases([]);
@@ -61,7 +58,7 @@ export default function WishlistScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [db]);
+  }, [user]);
 
   useFocusEffect(
     useCallback(() => {
@@ -76,29 +73,32 @@ export default function WishlistScreen() {
 
   const handleMarkAsPurchased = useCallback(async (id: string) => {
     try {
-      await markAsPurchased(id, db);
+      await plannedPurchasesService.markAsPurchased(id);
       await loadPlannedPurchases();
     } catch (error) {
       console.error("Error marking as purchased:", error);
     }
-  }, [db, loadPlannedPurchases]);
+  }, [loadPlannedPurchases]);
 
   const handleUnmarkAsPurchased = useCallback(async (id: string) => {
     try {
-      await unmarkAsPurchased(id, db);
+      // Assuming unmark is just updating isPurchased to false
+      await plannedPurchasesService.update(id, { isPurchased: false, purchasedAt: undefined });
       await loadPlannedPurchases();
     } catch (error) {
       console.error("Error unmarking as purchased:", error);
     }
-  }, [db, loadPlannedPurchases]);
+  }, [loadPlannedPurchases]);
 
-  const handleEdit = useCallback((purchase: PlannedPurchase) => {
+  const handleEdit = useCallback((purchase: PlannedPurchaseDocument) => {
     setSelectedPurchase(purchase);
     setShowEditForm(true);
   }, []);
 
-  const handleUnmark = useCallback((purchase: PlannedPurchase) => {
-    handleUnmarkAsPurchased(purchase.id);
+  const handleUnmark = useCallback((purchase: PlannedPurchaseDocument) => {
+    if (purchase.id) {
+        handleUnmarkAsPurchased(purchase.id);
+    }
   }, [handleUnmarkAsPurchased]);
 
   const handleDelete = useCallback(() => {
@@ -108,11 +108,11 @@ export default function WishlistScreen() {
   }, [selectedPurchase]);
 
   const handleConfirmDelete = useCallback(async () => {
-    if (!selectedPurchase) return;
+    if (!selectedPurchase?.id) return;
 
     setIsDeleting(true);
     try {
-      await deletePlannedPurchase(selectedPurchase.id, db);
+      await plannedPurchasesService.delete(selectedPurchase.id);
       await loadPlannedPurchases();
       setDeleteModalVisible(false);
       setSelectedPurchase(null);
@@ -121,7 +121,7 @@ export default function WishlistScreen() {
     } finally {
       setIsDeleting(false);
     }
-  }, [selectedPurchase, db, loadPlannedPurchases]);
+  }, [selectedPurchase, loadPlannedPurchases]);
 
   const filteredPurchases = useMemo(() => {
     let filtered = [...plannedPurchases];
@@ -146,7 +146,9 @@ export default function WishlistScreen() {
 
       // Sort purchased by date (newest first)
       if (a.purchasedAt && b.purchasedAt) {
-        return new Date(b.purchasedAt).getTime() - new Date(a.purchasedAt).getTime();
+        const dateA = typeof a.purchasedAt === 'object' && 'toDate' in a.purchasedAt ? a.purchasedAt.toDate() : new Date(a.purchasedAt);
+        const dateB = typeof b.purchasedAt === 'object' && 'toDate' in b.purchasedAt ? b.purchasedAt.toDate() : new Date(b.purchasedAt);
+        return dateB.getTime() - dateA.getTime();
       }
       return 0;
     });
@@ -320,11 +322,11 @@ export default function WishlistScreen() {
       ) : (
         <FlatList
           data={filteredPurchases}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.id || Math.random().toString()}
           renderItem={({ item }) => {
             const category = categories.find((c) => c.id === item.categoryId);
             const priorityColor = PRIORITY_COLORS[item.priority];
-            const isPurchased = item.isPurchased === 1;
+            const isPurchased = item.isPurchased === true;
 
             return (
               <Pressable
@@ -435,7 +437,12 @@ export default function WishlistScreen() {
                         }}
                       >
                         {t("wishlist.purchased", "Purchased")}{" "}
-                        {new Date(item.purchasedAt).toLocaleDateString()}
+                        {(() => {
+                            const date = typeof item.purchasedAt === 'object' && 'toDate' in item.purchasedAt 
+                                ? item.purchasedAt.toDate() 
+                                : new Date(item.purchasedAt);
+                            return date.toLocaleDateString();
+                        })()}
                       </Text>
                     )}
                   </View>
@@ -462,7 +469,7 @@ export default function WishlistScreen() {
                           />
                         </Pressable>
                         <Pressable
-                          onPress={() => handleMarkAsPurchased(item.id)}
+                          onPress={() => item.id && handleMarkAsPurchased(item.id)}
                           style={{
                             padding: scaleSpacing(8),
                           }}

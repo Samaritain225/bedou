@@ -1,18 +1,11 @@
 import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useState,
 } from "react";
-import { useDb } from "@/src/db/hooks";
-import {
-  getWallet,
-  setBalance,
-  updateBalance,
-  upsertWallet,
-} from "@/src/features/wallets/repository";
 import { Wallet } from "@/src/features/wallets/types";
 
 type WalletContextValue = {
@@ -36,18 +29,11 @@ export function WalletProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const db = useDb();
   const [wallet, setWallet] = useState<Wallet | null>(null);
 
   const refresh = useCallback(async () => {
-    try {
-      const walletData = await getWallet(db);
-      setWallet(walletData);
-    } catch (error) {
-      console.error("Error refreshing wallet:", error);
-      setWallet(null);
-    }
-  }, [db]);
+    console.log('Wallet refresh - using default wallet until Firestore migration');
+  }, []);
 
   useEffect(() => {
     refresh();
@@ -61,27 +47,27 @@ export function WalletProvider({
         updatedAt?: string;
       }
     ) => {
-      const id = await upsertWallet(walletData, db);
-      await refresh();
-      return id;
+      // TODO: Implement with Firestore
+      console.log('Update wallet - not implemented yet');
+      return 'temp-id';
     },
-    [db, refresh]
+    [refresh]
   );
 
   const handleSetWalletBalance = useCallback(
     async (amountBase: number, currencyCode: string) => {
-      await setBalance(amountBase, currencyCode, db);
-      await refresh();
+      // TODO: Implement with Firestore
+      console.log('Set wallet balance - not implemented yet');
     },
-    [db, refresh]
+    [refresh]
   );
 
   const handleAdjustWalletBalance = useCallback(
     async (amountDelta: number, currencyCode: string) => {
-      await updateBalance(amountDelta, currencyCode, db);
-      await refresh();
+      // TODO: Implement with Firestore
+      console.log('Adjust wallet balance - not implemented yet');
     },
-    [db, refresh]
+    [refresh]
   );
 
   const value = useMemo<WalletContextValue>(

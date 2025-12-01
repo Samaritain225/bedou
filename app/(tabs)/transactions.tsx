@@ -1,3 +1,7 @@
+import { EditTransactionForm } from "@/src/components/forms/EditTransactionForm";
+import { DeleteModal } from "@/src/components/ui/DeleteModal";
+import { SimpleBottomSheet } from "@/src/components/ui/SimpleBottomSheet";
+import { TransactionDetailsModal } from "@/src/components/ui/TransactionDetailsModal";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
 import React, { useCallback, useMemo, useState } from "react";
@@ -11,31 +15,26 @@ import {
   Text,
   View,
 } from "react-native";
-import { EditTransactionForm } from "@/src/components/forms/EditTransactionForm";
-import { DeleteModal } from "@/src/components/ui/DeleteModal";
-import { SimpleBottomSheet } from "@/src/components/ui/SimpleBottomSheet";
-import { TransactionDetailsModal } from "@/src/components/ui/TransactionDetailsModal";
-import { useDb } from "@/src/db/hooks";
-import {
-  deleteTransaction,
-  listTransactions,
-} from "@/src/features/transactions/repository";
-import { Transaction } from "@/src/features/transactions/types";
+// import { useDb } from "@/src/db/hooks"; // REMOVED
+import { transactionsService } from "@/src/services/firestore/transactions.service";
+import { useAuth } from "@/src/state/AuthProvider"; // Added useAuth
 import { useCategories } from "@/src/state/CategoriesProvider";
 import { useCurrency } from "@/src/state/CurrencyProvider";
 import { useTheme } from "@/src/state/ThemeProvider";
 import { useWallet } from "@/src/state/WalletProvider";
+import { TransactionDocument } from "@/src/types/firestore";
 import { useResponsive } from "@/src/utils/responsive";
 
 interface GroupedTransaction {
   date: string;
   dateLabel: string;
-  transactions: Transaction[];
+  transactions: TransactionDocument[];
 }
 
 export default function TransactionsScreen() {
   const { t } = useTranslation();
-  const db = useDb();
+  // const db = useDb(); // REMOVED
+  const { user } = useAuth();
   const { categories } = useCategories();
   const { baseCurrency } = useCurrency();
   const { adjustWalletBalance } = useWallet();
@@ -43,19 +42,20 @@ export default function TransactionsScreen() {
   const isDark = colorScheme === "dark";
   const { scaleSpacing, scaleSize, scaleFont } = useResponsive();
 
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [transactions, setTransactions] = useState<TransactionDocument[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const [selectedTransaction, setSelectedTransaction] = useState<TransactionDocument | null>(null);
   const [detailsModalVisible, setDetailsModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const loadTransactions = useCallback(async () => {
+    if (!user) return;
     try {
-      const txns = await listTransactions(db);
-      setTransactions(Array.isArray(txns) ? txns : []);
+      const txns = await transactionsService.getAll([['userId', '==', user.uid]], [['dateISO', 'desc']]);
+      setTransactions(txns);
     } catch (error) {
       console.error("Error loading transactions:", error);
       setTransactions([]);
@@ -63,7 +63,7 @@ export default function TransactionsScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [db]);
+  }, [user]);
 
   useFocusEffect(
     useCallback(() => {
@@ -111,7 +111,7 @@ export default function TransactionsScreen() {
   );
 
   const groupTransactionsByDate = useMemo(() => {
-    const grouped: { [key: string]: Transaction[] } = {};
+    const grouped: { [key: string]: TransactionDocument[] } = {};
     transactions.forEach((txn) => {
       const dateKey = txn.dateISO.split("T")[0];
       if (!grouped[dateKey]) {
@@ -134,12 +134,12 @@ export default function TransactionsScreen() {
     return result;
   }, [transactions, formatDate]);
 
-  const getCategory = (categoryId: string | null) => {
+  const getCategory = (categoryId: string | undefined) => {
     if (!categoryId) return null;
     return categories.find((cat) => cat.id === categoryId) || null;
   };
 
-  const handleTransactionPress = (transaction: Transaction) => {
+  const handleTransactionPress = (transaction: TransactionDocument) => {
     setSelectedTransaction(transaction);
     setDetailsModalVisible(true);
   };
@@ -161,7 +161,7 @@ export default function TransactionsScreen() {
   };
 
   const handleConfirmDelete = async () => {
-    if (!selectedTransaction) return;
+    if (!selectedTransaction?.id) return;
 
     setIsDeleting(true);
     try {
@@ -171,7 +171,7 @@ export default function TransactionsScreen() {
         : -selectedTransaction.amountBase; // Reverse income: deduct
       
       await adjustWalletBalance(amountDelta, selectedTransaction.currencyCode);
-      await deleteTransaction(selectedTransaction.id, db);
+      await transactionsService.delete(selectedTransaction.id);
       await loadTransactions();
       setDeleteModalVisible(false);
       setSelectedTransaction(null);
@@ -182,7 +182,7 @@ export default function TransactionsScreen() {
     }
   };
 
-  const renderTransaction = ({ item }: { item: Transaction }) => {
+  const renderTransaction = ({ item }: { item: TransactionDocument }) => {
     const category = getCategory(item.categoryId);
     const amount = formatAmount(item.amountBase);
     const isExpense = item.type === "expense";
@@ -290,7 +290,7 @@ export default function TransactionsScreen() {
         {item.dateLabel}
       </Text>
       {item.transactions.map((txn) => (
-        <View key={txn.id} style={{ paddingHorizontal: scaleSpacing(20) }}>
+        <View key={txn.id || Math.random().toString()} style={{ paddingHorizontal: scaleSpacing(20) }}>
           {renderTransaction({ item: txn })}
         </View>
       ))}
