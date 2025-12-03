@@ -1,60 +1,48 @@
-import { COLLECTIONS } from '@/src/constants/firestore';
+import { SUBCOLLECTIONS } from '@/src/constants/firestore';
 import { WalletDocument } from '@/src/types/firestore';
 import { BaseFirestoreService } from './base.service';
 
 /**
  * Wallets Service
  * Handles all wallet-related Firestore operations
+ * Uses subcollections: users/{userId}/wallets
  */
 class WalletsService extends BaseFirestoreService<WalletDocument> {
-  constructor() {
-    super(COLLECTIONS.WALLETS);
-  }
-
   /**
-   * Get all wallets for a user
+   * Get all wallets
    */
-  async getUserWallets(userId: string): Promise<WalletDocument[]> {
-    return this.getAll(
-      [['userId', '==', userId]],
-      [['createdAt', 'desc']]
-    );
-  }
-
-  /**
-   * Get wallet by name
-   */
-  async getWalletByName(userId: string, name: string): Promise<WalletDocument | null> {
-    const wallets = await this.getAll([
-      ['userId', '==', userId],
-      ['name', '==', name],
-    ]);
-    return wallets.length > 0 ? wallets[0] : null;
+  async getWallets(): Promise<WalletDocument[]> {
+    return this.getAll(undefined, [['createdAt', 'desc']]);
   }
 
   /**
    * Get total balance across all wallets
    */
-  async getTotalBalance(userId: string): Promise<number> {
-    const wallets = await this.getUserWallets(userId);
+  async getTotalBalance(): Promise<number> {
+    const wallets = await this.getWallets();
     return wallets.reduce((sum, wallet) => sum + wallet.amountBase, 0);
   }
 
   /**
    * Listen to user's wallets in real-time
    */
-  onUserWalletsSnapshot(
-    userId: string,
+  onWalletsSnapshot(
     callback: (data: WalletDocument[]) => void,
     onError?: (error: Error) => void
   ): () => void {
     return this.onSnapshot(
       callback,
       onError,
-      [['userId', '==', userId]],
+      undefined,
       [['createdAt', 'desc']]
     );
   }
 }
 
-export const walletsService = new WalletsService();
+/**
+ * Factory function to create a WalletsService instance for a specific user
+ */
+export const createWalletsService = (userId: string): WalletsService => {
+  const service = new WalletsService(`users/${userId}/${SUBCOLLECTIONS.USER_WALLETS}`);
+  return service;
+};

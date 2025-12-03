@@ -535,6 +535,7 @@ export default function WishlistScreen() {
           contentContainerStyle={{
             paddingBottom: scaleSpacing(20),
           }}
+          contentInsetAdjustmentBehavior="automatic"
           showsVerticalScrollIndicator={false}
         />
       )}

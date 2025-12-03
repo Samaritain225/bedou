@@ -23,6 +23,7 @@ export interface UserDocument extends BaseDocument {
 
 /**
  * Transaction document structure
+ * Note: userId is in the subcollection path (users/{userId}/transactions)
  */
 export interface TransactionDocument extends BaseDocument {
   dateISO: string;
@@ -34,42 +35,42 @@ export interface TransactionDocument extends BaseDocument {
   type: 'expense' | 'income';
   tags?: string[];
   paymentMethod?: string;
-  userId: string;
 }
 
 /**
  * Category document structure
+ * Note: userId is in the subcollection path (users/{userId}/categories)
  */
 export interface CategoryDocument extends BaseDocument {
   name: string;
   color: string;
   icon: string;
   type: 'expense' | 'income';
-  userId: string;
 }
 
 /**
  * Budget document structure
+ * Note: userId is in the subcollection path (users/{userId}/budgets)
  */
 export interface BudgetDocument extends BaseDocument {
   categoryId: string;
   monthYYYYMM: string;
   amountBase: number;
-  userId: string;
 }
 
 /**
  * Wallet document structure
+ * Note: userId is in the subcollection path (users/{userId}/wallets)
  */
 export interface WalletDocument extends BaseDocument {
   name: string;
   amountBase: number;
   currencyCode: string;
-  userId: string;
 }
 
 /**
  * Planned purchase document structure
+ * Note: userId is in the subcollection path (users/{userId}/plannedPurchases)
  */
 export interface PlannedPurchaseDocument extends BaseDocument {
   name: string;
@@ -79,11 +80,11 @@ export interface PlannedPurchaseDocument extends BaseDocument {
   note?: string;
   isPurchased: boolean;
   purchasedAt?: FirebaseFirestoreTypes.Timestamp;
-  userId: string;
 }
 
 /**
  * Recurring bill document structure
+ * Note: userId is in the subcollection path (users/{userId}/recurringBills)
  */
 export interface RecurringBillDocument extends BaseDocument {
   name: string;
@@ -95,16 +96,15 @@ export interface RecurringBillDocument extends BaseDocument {
   nextDueDate: string;
   isActive: boolean;
   note?: string;
-  userId: string;
 }
 
 /**
  * Monthly budget document structure
+ * Note: userId is in the subcollection path (users/{userId}/monthlyBudgets)
  */
 export interface MonthlyBudgetDocument extends BaseDocument {
   monthYYYYMM: string;
   amountBase: number;
-  userId: string;
 }
 
 /**

@@ -2,7 +2,6 @@ import { authService } from '@/src/services/auth/auth.service';
 import { usersService } from '@/src/services/firestore/users.service';
 import { AuthState } from '@/src/types/auth';
 import { UserDocument } from '@/src/types/firestore';
-import { FirebaseAuthTypes } from '@react-native-firebase/auth';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 interface AuthContextType extends AuthState {
@@ -76,7 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const verifyOtp = async (confirmation: FirebaseAuthTypes.ConfirmationResult, code: string) => {
+  const verifyOtp = async (confirmation: any, code: string) => {
     try {
       setState(prev => ({ ...prev, loading: true, error: null }));
       await authService.verifyCode(confirmation, code);

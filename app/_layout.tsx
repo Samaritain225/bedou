@@ -16,6 +16,7 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { ActivityIndicator, View } from "react-native";
 import "react-native-reanimated";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import "../global.css";
 
 export const unstable_settings = {
@@ -49,44 +50,46 @@ function AppContent() {
   }
 
   return (
-    <NavigationThemeProvider
-      value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-    >
-      <OnboardingProvider>
-        <CurrencyProvider>
-          <WalletProvider>
-            <CategoriesProvider>
-              <Stack>
-                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-                <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                <Stack.Screen
-                  name="settings"
-                  options={{
-                    presentation: "modal",
-                    headerShown: false,
-                    title: "",
-                    headerTitle: "",
-                    headerBackVisible: false,
-                  }}
-                />
-                <Stack.Screen
-                  name="recurring-bills"
-                  options={{
-                    presentation: "modal",
-                    headerShown: false,
-                    title: "",
-                    headerTitle: "",
-                    headerBackVisible: false,
-                  }}
-                />
-              </Stack>
-            </CategoriesProvider>
-          </WalletProvider>
-        </CurrencyProvider>
-      </OnboardingProvider>
-      <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
-    </NavigationThemeProvider>
+    <SafeAreaProvider>
+      <NavigationThemeProvider
+        value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+      >
+        <OnboardingProvider>
+          <CurrencyProvider>
+            <WalletProvider>
+              <CategoriesProvider>
+                <Stack>
+                  <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                  <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                  <Stack.Screen
+                    name="settings"
+                    options={{
+                      presentation: "modal",
+                      headerShown: false,
+                      title: "",
+                      headerTitle: "",
+                      headerBackVisible: false,
+                    }}
+                  />
+                  <Stack.Screen
+                    name="recurring-bills"
+                    options={{
+                      presentation: "modal",
+                      headerShown: false,
+                      title: "",
+                      headerTitle: "",
+                      headerBackVisible: false,
+                    }}
+                  />
+                </Stack>
+              </CategoriesProvider>
+            </WalletProvider>
+          </CurrencyProvider>
+        </OnboardingProvider>
+        <StatusBar style={colorScheme === "dark" ? "light" : "dark"} translucent />
+      </NavigationThemeProvider>
+    </SafeAreaProvider>
   );
 }
 

@@ -1,5 +1,5 @@
 import NetInfo from '@react-native-community/netinfo';
-import firestore from '@react-native-firebase/firestore';
+import { clearIndexedDbPersistence, disableNetwork, enableNetwork, getFirestore, waitForPendingWrites } from '@react-native-firebase/firestore';
 
 /**
  * Sync Service
@@ -7,7 +7,7 @@ import firestore from '@react-native-firebase/firestore';
  */
 class SyncService {
   private isOnline = true;
-  private listeners: Set<(isOnline: boolean) => void> = new Set();
+  private readonly listeners: Set<(isOnline: boolean) => void> = new Set();
   private unsubscribeNetInfo?: () => void;
 
   constructor() {
@@ -71,11 +71,12 @@ class SyncService {
    */
   async enableNetwork(enable: boolean): Promise<void> {
     try {
+      const db = getFirestore();
       if (enable) {
-        await firestore().enableNetwork();
+        await enableNetwork(db);
         console.log('✅ Firestore network enabled');
       } else {
-        await firestore().disableNetwork();
+        await disableNetwork(db);
         console.log('⏸️ Firestore network disabled');
       }
     } catch (error) {
@@ -89,7 +90,8 @@ class SyncService {
    */
   async waitForPendingWrites(): Promise<void> {
     try {
-      await firestore().waitForPendingWrites();
+      const db = getFirestore();
+      await waitForPendingWrites(db);
     } catch (error) {
       console.error('❌ Error waiting for pending writes:', error);
       throw error;
@@ -101,7 +103,8 @@ class SyncService {
    */
   async clearCache(): Promise<void> {
     try {
-      await firestore().clearPersistence();
+      const db = getFirestore();
+      await clearIndexedDbPersistence(db);
       console.log('✅ Firestore cache cleared');
     } catch (error) {
       console.error('❌ Error clearing Firestore cache:', error);

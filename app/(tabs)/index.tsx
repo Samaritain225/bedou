@@ -7,9 +7,9 @@ import { PlannedPurchaseForm } from "@/src/components/forms/PlannedPurchaseForm"
 import { SimpleBottomSheet } from "@/src/components/ui/SimpleBottomSheet";
 import { PRIORITY_COLORS } from "@/src/constants/priorityColors";
 // import { useDb } from "@/src/db/hooks"; // REMOVED
-import { plannedPurchasesService } from "@/src/services/firestore/planned-purchases.service";
-import { recurringBillsService } from "@/src/services/firestore/recurring-bills.service";
-import { transactionsService } from "@/src/services/firestore/transactions.service";
+import { createPlannedPurchasesService } from "@/src/services/firestore/planned-purchases.service";
+import { createRecurringBillsService } from "@/src/services/firestore/recurring-bills.service";
+import { createTransactionsService } from "@/src/services/firestore/transactions.service";
 import { useAuth } from "@/src/state/AuthProvider"; // Added useAuth
 import { useCategories } from "@/src/state/CategoriesProvider";
 import { useCurrency } from "@/src/state/CurrencyProvider";
@@ -66,8 +66,8 @@ export default function DashboardScreen() {
 
   // Get current month range
   const getMonthRange = useCallback((monthYYYYMM: string) => {
-    const year = parseInt(monthYYYYMM.substring(0, 4));
-    const month = parseInt(monthYYYYMM.substring(4, 6)) - 1;
+    const year = Number.parseInt(monthYYYYMM.substring(0, 4));
+    const month = Number.parseInt(monthYYYYMM.substring(4, 6)) - 1;
     const startDate = new Date(year, month, 1).toISOString();
     const endDate = new Date(year, month + 1, 0, 23, 59, 59).toISOString();
     return { startDate, endDate };
@@ -93,20 +93,25 @@ export default function DashboardScreen() {
     if (!user) return;
 
     try {
+      // Create service instances for this user
+      const transactionsService = createTransactionsService(user.uid);
+      const plannedPurchasesService = createPlannedPurchasesService(user.uid);
+      const recurringBillsService = createRecurringBillsService(user.uid);
+
       // Load month transactions
       const { startDate, endDate } = getMonthRange(currentMonth);
-      const txns = await transactionsService.getByDateRange(user.uid, startDate, endDate);
+      const txns = await transactionsService.getByDateRange(startDate, endDate);
       setTransactions(txns);
 
-      const allTxns = await transactionsService.getAll([['userId', '==', user.uid]]);
+      const allTxns = await transactionsService.getAll();
       setAllTransactions(allTxns);
 
       // Load planned purchases (pending)
-      const purchases = await plannedPurchasesService.getActivePlannedPurchases(user.uid);
+      const purchases = await plannedPurchasesService.getActivePlannedPurchases();
       setPlannedPurchases(purchases);
 
       // Load recurring bills (only active ones)
-      const bills = await recurringBillsService.getActiveRecurringBills(user.uid);
+      const bills = await recurringBillsService.getActiveRecurringBills();
       setRecurringBills(bills);
     } catch (error) {
       console.error("Error loading dashboard data:", error);
@@ -215,8 +220,8 @@ export default function DashboardScreen() {
   };
 
   const formatMonthLabel = (monthYYYYMM: string): string => {
-    const year = parseInt(monthYYYYMM.substring(0, 4));
-    const month = parseInt(monthYYYYMM.substring(4, 6)) - 1;
+    const year = Number.parseInt(monthYYYYMM.substring(0, 4));
+    const month = Number.parseInt(monthYYYYMM.substring(4, 6)) - 1;
     return new Date(year, month, 1).toLocaleDateString("en-US", {
       month: "long",
       year: "numeric",
@@ -224,13 +229,15 @@ export default function DashboardScreen() {
   };
 
   const handleMarkAsPurchased = useCallback(async (id: string) => {
+    if (!user) return;
     try {
+      const plannedPurchasesService = createPlannedPurchasesService(user.uid);
       await plannedPurchasesService.markAsPurchased(id);
       await loadDashboardData();
     } catch (error) {
       console.error("Error marking as purchased:", error);
     }
-  }, [loadDashboardData]);
+  }, [loadDashboardData, user]);
 
   if (loading) {
     return (
@@ -262,6 +269,7 @@ export default function DashboardScreen() {
     >
       <ScrollView
         showsVerticalScrollIndicator={false}
+        contentInsetAdjustmentBehavior="automatic"
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

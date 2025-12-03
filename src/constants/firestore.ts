@@ -1,17 +1,11 @@
 /**
  * Firestore Collection Names
- * Centralized constants for all Firestore collections following DRY principle
+ * Centralized constants for all top-level Firestore collections
+ * User-specific data is stored in subcollections under users/{userId}/
  */
 export const COLLECTIONS = {
   USERS: 'users',
-  TRANSACTIONS: 'transactions',
-  CATEGORIES: 'categories',
-  BUDGETS: 'budgets',
-  WALLETS: 'wallets',
-  PLANNED_PURCHASES: 'plannedPurchases',
-  RECURRING_BILLS: 'recurringBills',
   CURRENCIES: 'currencies',
-  MONTHLY_BUDGETS: 'monthlyBudgets',
 } as const;
 
 /**

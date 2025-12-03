@@ -1,9 +1,11 @@
 import { FirebaseAuthTypes } from '@react-native-firebase/auth';
 import React, { createContext, useContext, useState } from 'react';
 
+type ConfirmationResult = FirebaseAuthTypes.ConfirmationResult;
+
 interface ConfirmationContextType {
-  confirmation: FirebaseAuthTypes.ConfirmationResult | null;
-  setConfirmation: (confirmation: FirebaseAuthTypes.ConfirmationResult | null) => void;
+  confirmation: ConfirmationResult | null;
+  setConfirmation: (confirmation: ConfirmationResult | null) => void;
   phoneNumber: string | null;
   setPhoneNumber: (phoneNumber: string | null) => void;
 }
@@ -11,7 +13,7 @@ interface ConfirmationContextType {
 const ConfirmationContext = createContext<ConfirmationContextType | undefined>(undefined);
 
 export function ConfirmationProvider({ children }: { children: React.ReactNode }) {
-  const [confirmation, setConfirmation] = useState<FirebaseAuthTypes.ConfirmationResult | null>(null);
+  const [confirmation, setConfirmation] = useState<ConfirmationResult | null>(null);
   const [phoneNumber, setPhoneNumber] = useState<string | null>(null);
 
   return (

@@ -1,6 +1,8 @@
 import { FirebaseAuthTypes } from '@react-native-firebase/auth';
 import { UserDocument } from './firestore';
 
+type ConfirmationResult = FirebaseAuthTypes.ConfirmationResult;
+
 /**
  * Authentication user type
  */
@@ -26,7 +28,7 @@ export type AuthState = {
  * Phone authentication result
  */
 export interface PhoneAuthResult {
-  confirmation: FirebaseAuthTypes.ConfirmationResult;
+  confirmation: ConfirmationResult;
 }
 
 /**

@@ -1,4 +1,4 @@
-import { FirestoreTestPanel } from "@/src/components/FirestoreTestPanel";
+import { useAuth } from "@/src/state/AuthProvider";
 import { useCurrency } from "@/src/state/CurrencyProvider";
 import { useTheme } from "@/src/state/ThemeProvider";
 import { useWallet } from "@/src/state/WalletProvider";
@@ -11,12 +11,12 @@ import { router } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -34,6 +34,7 @@ export default function SettingsScreen() {
   const { colorScheme, setColorScheme } = useTheme();
   const { currencies, baseCurrency, makeBase } = useCurrency();
   const { wallet, setWalletBalance } = useWallet();
+  const { signOut } = useAuth();
   const isDark = colorScheme === "dark";
   const { scaleSpacing, scaleSize, scaleFont } = useResponsive();
   const insets = useSafeAreaInsets();
@@ -41,6 +42,7 @@ export default function SettingsScreen() {
   const [balanceInput, setBalanceInput] = useState("");
   const [showBalanceInput, setShowBalanceInput] = useState(false);
   const [randomNoteIndex, setRandomNoteIndex] = useState(1);
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   // Randomly select a dev note when component mounts
   useEffect(() => {
@@ -76,8 +78,8 @@ export default function SettingsScreen() {
   );
 
   const handleSetBalance = useCallback(async () => {
-    const numericBalance = parseFloat(balanceInput);
-    if (isNaN(numericBalance) || numericBalance < 0) {
+    const numericBalance = Number.parseFloat(balanceInput);
+    if (Number.isNaN(numericBalance) || numericBalance < 0) {
       return;
     }
     const amountBase = Math.round(numericBalance * 100);
@@ -86,6 +88,18 @@ export default function SettingsScreen() {
     setShowBalanceInput(false);
   }, [balanceInput, setWalletBalance, baseCurrency]);
 
+  const handleSignOut = useCallback(async () => {
+    try {
+      setIsSigningOut(true);
+      await signOut();
+      // Redirect to login page
+      router.replace('/(auth)/phone-input' as any);
+    } catch (error) {
+      console.error("Error signing out:", error);
+      setIsSigningOut(false);
+    }
+  }, [signOut]);
+
 
   return (
     <View
@@ -93,15 +107,20 @@ export default function SettingsScreen() {
         styles.container,
         {
           backgroundColor: isDark ? "#111827" : "#FFFFFF",
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom,
         },
       ]}
     >
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        showsVerticalScrollIndicator={false}
+        contentInsetAdjustmentBehavior="automatic"
+      >
         {/* Header */}
         <View
           style={{
             paddingHorizontal: scaleSpacing(20),
-            paddingTop: Math.max(scaleSpacing(20), insets.top),
+            paddingTop: scaleSpacing(20),
             paddingBottom: scaleSpacing(16),
             flexDirection: "row",
             alignItems: "center",
@@ -654,14 +673,65 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {/* Firestore Test Panel (Temporary) */}
+        {/* Account Section */}
         <View
           style={{
             paddingHorizontal: scaleSpacing(20),
             marginBottom: scaleSpacing(24),
           }}
         >
-          <FirestoreTestPanel />
+          <Text
+            style={{
+              color: isDark ? "#FFFFFF" : "#111827",
+              fontSize: scaleFont(18),
+              fontWeight: "700",
+              marginBottom: scaleSpacing(16),
+            }}
+          >
+            {t("settings.account", "Account")}
+          </Text>
+          <View
+            style={{
+              borderRadius: scaleSpacing(12),
+              backgroundColor: isDark ? "#374151" : "#FFFFFF",
+              borderWidth: 1.5,
+              borderColor: isDark ? "#4B5563" : "#E5E7EB",
+              overflow: "hidden",
+            }}
+          >
+            <Pressable
+              onPress={handleSignOut}
+              disabled={isSigningOut}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: scaleSpacing(16),
+                backgroundColor: isSigningOut
+                  ? isDark ? "#4B5563" : "#F3F4F6"
+                  : "transparent",
+                opacity: isSigningOut ? 0.6 : 1,
+              }}
+            >
+              <Ionicons
+                name="log-out-outline"
+                size={scaleSize(24)}
+                color="#EF4444"
+                style={{ marginRight: scaleSpacing(12) }}
+              />
+              <Text
+                style={{
+                  color: "#EF4444",
+                  fontSize: scaleFont(16),
+                  fontWeight: "600",
+                }}
+              >
+                {isSigningOut
+                  ? t("settings.signingOut", "Signing out...")
+                  : t("settings.signOut", "Sign Out")}
+              </Text>
+            </Pressable>
+          </View>
         </View>
 
         {/* App Info Section */}
@@ -729,6 +799,8 @@ export default function SettingsScreen() {
             </View>
           </View>
         </View>
+        {/* Bottom padding for safe area */}
+        <View style={{ height: insets.bottom }} />
       </ScrollView>
     </View>
   );

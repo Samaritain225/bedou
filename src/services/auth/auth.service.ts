@@ -1,5 +1,8 @@
 import { AuthError, AuthErrorCode, AuthUser, PhoneAuthResult } from '@/src/types/auth';
-import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
+import { FirebaseAuthTypes, getAuth, onAuthStateChanged, signInWithPhoneNumber, signOut, updateProfile } from '@react-native-firebase/auth';
+
+type FirebaseUser = FirebaseAuthTypes.User;
+type ConfirmationResult = FirebaseAuthTypes.ConfirmationResult;
 
 /**
  * Phone Authentication Service
@@ -12,7 +15,7 @@ class AuthService {
    */
   formatPhoneNumber(phoneNumber: string, countryCode: string = '+225'): string {
     // Remove all non-numeric characters except leading +
-    const cleaned = phoneNumber.replace(/[^\d+]/g, '');
+    const cleaned = phoneNumber.replaceAll(/[^\d+]/g, '');
 
     // If it already starts with +, assume it's properly formatted
     if (cleaned.startsWith('+')) {
@@ -52,7 +55,7 @@ class AuthService {
 
       console.log('📱 Sending verification code to:', formattedNumber);
 
-      const confirmation = await auth().signInWithPhoneNumber(formattedNumber);
+      const confirmation = await signInWithPhoneNumber(getAuth(), formattedNumber);
 
       console.log('✅ Verification code sent successfully');
 
@@ -67,9 +70,9 @@ class AuthService {
    * Verify OTP code
    */
   async verifyCode(
-    confirmation: FirebaseAuthTypes.ConfirmationResult,
+    confirmation: ConfirmationResult,
     code: string
-  ): Promise<FirebaseAuthTypes.UserCredential> {
+  ): Promise<any> {
     try {
       console.log('🔐 Verifying OTP code...');
 
@@ -92,7 +95,7 @@ class AuthService {
    * Get current authenticated user
    */
   getCurrentUser(): AuthUser | null {
-    const firebaseUser = auth().currentUser;
+    const firebaseUser = getAuth().currentUser;
 
     if (!firebaseUser) {
       return null;
@@ -107,7 +110,7 @@ class AuthService {
   async signOut(): Promise<void> {
     try {
       console.log('👋 Signing out user...');
-      await auth().signOut();
+      await signOut(getAuth());
       console.log('✅ User signed out successfully');
     } catch (error: any) {
       console.error('❌ Error signing out:', error);
@@ -121,7 +124,7 @@ class AuthService {
   onAuthStateChanged(
     callback: (user: AuthUser | null) => void
   ): () => void {
-    return auth().onAuthStateChanged((firebaseUser) => {
+    return onAuthStateChanged(getAuth(), (firebaseUser) => {
       const user = firebaseUser ? this.mapFirebaseUser(firebaseUser) : null;
       callback(user);
     });
@@ -135,13 +138,13 @@ class AuthService {
     photoURL?: string;
   }): Promise<void> {
     try {
-      const currentUser = auth().currentUser;
+      const currentUser = getAuth().currentUser;
 
       if (!currentUser) {
         throw this.createError(AuthErrorCode.UNKNOWN, 'No user is currently signed in');
       }
 
-      await currentUser.updateProfile(updates);
+      await updateProfile(currentUser, updates);
       console.log('✅ User profile updated successfully');
     } catch (error: any) {
       console.error('❌ Error updating profile:', error);
@@ -152,7 +155,7 @@ class AuthService {
   /**
    * Map Firebase user to AuthUser
    */
-  private mapFirebaseUser(firebaseUser: FirebaseAuthTypes.User): AuthUser {
+  private mapFirebaseUser(firebaseUser: FirebaseUser): AuthUser {
     return {
       uid: firebaseUser.uid,
       phoneNumber: firebaseUser.phoneNumber,

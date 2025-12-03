@@ -1,68 +1,50 @@
-import { COLLECTIONS } from '@/src/constants/firestore';
+import { SUBCOLLECTIONS } from '@/src/constants/firestore';
 import { CategoryDocument } from '@/src/types/firestore';
 import { BaseFirestoreService } from './base.service';
 
 /**
  * Categories Service
  * Handles all category-related Firestore operations
+ * Uses subcollections: users/{userId}/categories
  */
 class CategoriesService extends BaseFirestoreService<CategoryDocument> {
-  constructor() {
-    super(COLLECTIONS.CATEGORIES);
-  }
-
   /**
-   * Get categories by user
+   * Get all categories
    */
-  async getUserCategories(userId: string): Promise<CategoryDocument[]> {
-    return this.getAll(
-      [['userId', '==', userId]],
-      [['name', 'asc']]
-    );
+  async getCategories(): Promise<CategoryDocument[]> {
+    return this.getAll(undefined, [['name', 'asc']]);
   }
 
   /**
    * Get categories by type
    */
-  async getCategoriesByType(
-    userId: string,
-    type: 'expense' | 'income'
-  ): Promise<CategoryDocument[]> {
+  async getCategoriesByType(type: 'expense' | 'income'): Promise<CategoryDocument[]> {
     return this.getAll(
-      [
-        ['userId', '==', userId],
-        ['type', '==', type],
-      ],
+      [['type', '==', type]],
       [['name', 'asc']]
     );
   }
 
   /**
-   * Get category by name
-   */
-  async getCategoryByName(userId: string, name: string): Promise<CategoryDocument | null> {
-    const categories = await this.getAll([
-      ['userId', '==', userId],
-      ['name', '==', name],
-    ]);
-    return categories.length > 0 ? categories[0] : null;
-  }
-
-  /**
    * Listen to user's categories in real-time
    */
-  onUserCategoriesSnapshot(
-    userId: string,
+  onCategoriesSnapshot(
     callback: (data: CategoryDocument[]) => void,
     onError?: (error: Error) => void
   ): () => void {
     return this.onSnapshot(
       callback,
       onError,
-      [['userId', '==', userId]],
+      undefined,
       [['name', 'asc']]
     );
   }
 }
 
-export const categoriesService = new CategoriesService();
+/**
+ * Factory function to create a CategoriesService instance for a specific user
+ */
+export const createCategoriesService = (userId: string): CategoriesService => {
+  const service = new CategoriesService(`users/${userId}/${SUBCOLLECTIONS.USER_CATEGORIES}`);
+  return service;
+};

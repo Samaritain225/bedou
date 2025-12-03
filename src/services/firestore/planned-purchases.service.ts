@@ -1,35 +1,26 @@
-import { COLLECTIONS } from '@/src/constants/firestore';
+import { SUBCOLLECTIONS } from '@/src/constants/firestore';
 import { PlannedPurchaseDocument } from '@/src/types/firestore';
 import { BaseFirestoreService } from './base.service';
 
 /**
  * Planned Purchases Service
  * Handles all planned purchase-related Firestore operations
+ * Uses subcollections: users/{userId}/plannedPurchases
  */
 class PlannedPurchasesService extends BaseFirestoreService<PlannedPurchaseDocument> {
-  constructor() {
-    super(COLLECTIONS.PLANNED_PURCHASES);
-  }
-
   /**
-   * Get all planned purchases for a user
+   * Get all planned purchases
    */
-  async getUserPlannedPurchases(userId: string): Promise<PlannedPurchaseDocument[]> {
-    return this.getAll(
-      [['userId', '==', userId]],
-      [['createdAt', 'desc']]
-    );
+  async getPlannedPurchases(): Promise<PlannedPurchaseDocument[]> {
+    return this.getAll(undefined, [['createdAt', 'desc']]);
   }
 
   /**
    * Get active (unpurchased) planned purchases
    */
-  async getActivePlannedPurchases(userId: string): Promise<PlannedPurchaseDocument[]> {
+  async getActivePlannedPurchases(): Promise<PlannedPurchaseDocument[]> {
     return this.getAll(
-      [
-        ['userId', '==', userId],
-        ['isPurchased', '==', false],
-      ],
+      [['isPurchased', '==', false]],
       [['priority', 'asc'], ['createdAt', 'desc']]
     );
   }
@@ -37,12 +28,9 @@ class PlannedPurchasesService extends BaseFirestoreService<PlannedPurchaseDocume
   /**
    * Get purchased items
    */
-  async getPurchasedItems(userId: string): Promise<PlannedPurchaseDocument[]> {
+  async getPurchasedItems(): Promise<PlannedPurchaseDocument[]> {
     return this.getAll(
-      [
-        ['userId', '==', userId],
-        ['isPurchased', '==', true],
-      ],
+      [['isPurchased', '==', true]],
       [['purchasedAt', 'desc']]
     );
   }
@@ -50,13 +38,9 @@ class PlannedPurchasesService extends BaseFirestoreService<PlannedPurchaseDocume
   /**
    * Get planned purchases by priority
    */
-  async getByPriority(
-    userId: string,
-    priority: 'high' | 'medium' | 'low'
-  ): Promise<PlannedPurchaseDocument[]> {
+  async getByPriority(priority: 'high' | 'medium' | 'low'): Promise<PlannedPurchaseDocument[]> {
     return this.getAll(
       [
-        ['userId', '==', userId],
         ['priority', '==', priority],
         ['isPurchased', '==', false],
       ],
@@ -79,20 +63,22 @@ class PlannedPurchasesService extends BaseFirestoreService<PlannedPurchaseDocume
    * Listen to active planned purchases in real-time
    */
   onActivePurchasesSnapshot(
-    userId: string,
     callback: (data: PlannedPurchaseDocument[]) => void,
     onError?: (error: Error) => void
   ): () => void {
     return this.onSnapshot(
       callback,
       onError,
-      [
-        ['userId', '==', userId],
-        ['isPurchased', '==', false],
-      ],
+      [['isPurchased', '==', false]],
       [['priority', 'asc'], ['createdAt', 'desc']]
     );
   }
 }
 
-export const plannedPurchasesService = new PlannedPurchasesService();
+/**
+ * Factory function to create a PlannedPurchasesService instance for a specific user
+ */
+export const createPlannedPurchasesService = (userId: string): PlannedPurchasesService => {
+  const service = new PlannedPurchasesService(`users/${userId}/${SUBCOLLECTIONS.USER_PLANNED_PURCHASES}`);
+  return service;
+};

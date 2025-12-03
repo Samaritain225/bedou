@@ -188,6 +188,7 @@ export default function CategoriesScreen() {
         ListEmptyComponent={renderEmpty}
         refreshing={refreshing}
         onRefresh={handleRefresh}
+        contentInsetAdjustmentBehavior="automatic"
         showsVerticalScrollIndicator={false}
       />
       <Pressable

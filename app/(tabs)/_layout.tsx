@@ -2,7 +2,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { Tabs, useRouter } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, Text, useWindowDimensions } from "react-native";
+import { Platform, Pressable, Text, useWindowDimensions } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../../src/state/AuthProvider";
 import { useTheme } from "../../src/state/ThemeProvider";
 
@@ -12,6 +13,7 @@ export default function TabsLayout() {
   const router = useRouter();
   const { colorScheme } = useTheme();
   const { user, loading } = useAuth();
+  const insets = useSafeAreaInsets();
   
   // Protect tabs route
   if (!loading && !user) {
@@ -48,6 +50,20 @@ export default function TabsLayout() {
       screenOptions={{
         headerShown: true,
         headerRight: () => <SettingsIcon />,
+        headerStyle: {
+          backgroundColor: colorScheme === "dark" ? "#111827" : "#FFFFFF",
+          elevation: 0, // Android
+          shadowOpacity: 0, // iOS
+          borderBottomWidth: 1,
+          borderBottomColor: colorScheme === "dark" ? "#374151" : "#E5E7EB",
+          height: Platform.OS === "android" ? 56 + insets.top : undefined, // Account for status bar on Android
+        },
+        headerStatusBarHeight: Platform.OS === "android" ? insets.top : undefined,
+        headerTintColor: colorScheme === "dark" ? "#FFFFFF" : "#111827",
+        headerTitleStyle: {
+          fontWeight: "700",
+          fontSize: 18,
+        },
         tabBarActiveTintColor: "#2563eb",
         tabBarIconStyle: {
           marginTop: 4,

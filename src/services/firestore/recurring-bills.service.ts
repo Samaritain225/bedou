@@ -1,35 +1,26 @@
-import { COLLECTIONS } from '@/src/constants/firestore';
+import { SUBCOLLECTIONS } from '@/src/constants/firestore';
 import { RecurringBillDocument } from '@/src/types/firestore';
 import { BaseFirestoreService } from './base.service';
 
 /**
  * Recurring Bills Service
  * Handles all recurring bill-related Firestore operations
+ * Uses subcollections: users/{userId}/recurringBills
  */
 class RecurringBillsService extends BaseFirestoreService<RecurringBillDocument> {
-  constructor() {
-    super(COLLECTIONS.RECURRING_BILLS);
-  }
-
   /**
-   * Get all recurring bills for a user
+   * Get all recurring bills
    */
-  async getUserRecurringBills(userId: string): Promise<RecurringBillDocument[]> {
-    return this.getAll(
-      [['userId', '==', userId]],
-      [['nextDueDate', 'asc']]
-    );
+  async getRecurringBills(): Promise<RecurringBillDocument[]> {
+    return this.getAll(undefined, [['nextDueDate', 'asc']]);
   }
 
   /**
    * Get active recurring bills
    */
-  async getActiveRecurringBills(userId: string): Promise<RecurringBillDocument[]> {
+  async getActiveRecurringBills(): Promise<RecurringBillDocument[]> {
     return this.getAll(
-      [
-        ['userId', '==', userId],
-        ['isActive', '==', true],
-      ],
+      [['isActive', '==', true]],
       [['nextDueDate', 'asc']]
     );
   }
@@ -37,12 +28,9 @@ class RecurringBillsService extends BaseFirestoreService<RecurringBillDocument> 
   /**
    * Get inactive recurring bills
    */
-  async getInactiveRecurringBills(userId: string): Promise<RecurringBillDocument[]> {
+  async getInactiveRecurringBills(): Promise<RecurringBillDocument[]> {
     return this.getAll(
-      [
-        ['userId', '==', userId],
-        ['isActive', '==', false],
-      ],
+      [['isActive', '==', false]],
       [['updatedAt', 'desc']]
     );
   }
@@ -50,13 +38,9 @@ class RecurringBillsService extends BaseFirestoreService<RecurringBillDocument> 
   /**
    * Get bills by frequency
    */
-  async getByFrequency(
-    userId: string,
-    frequency: 'daily' | 'weekly' | 'monthly' | 'yearly'
-  ): Promise<RecurringBillDocument[]> {
+  async getByFrequency(frequency: 'daily' | 'weekly' | 'monthly' | 'yearly'): Promise<RecurringBillDocument[]> {
     return this.getAll(
       [
-        ['userId', '==', userId],
         ['frequency', '==', frequency],
         ['isActive', '==', true],
       ],
@@ -67,7 +51,7 @@ class RecurringBillsService extends BaseFirestoreService<RecurringBillDocument> 
   /**
    * Get bills due soon (within the next X days)
    */
-  async getBillsDueSoon(userId: string, daysAhead: number = 7): Promise<RecurringBillDocument[]> {
+  async getBillsDueSoon(daysAhead: number = 7): Promise<RecurringBillDocument[]> {
     const today = new Date().toISOString().split('T')[0];
     const futureDate = new Date();
     futureDate.setDate(futureDate.getDate() + daysAhead);
@@ -75,7 +59,6 @@ class RecurringBillsService extends BaseFirestoreService<RecurringBillDocument> 
 
     return this.getAll(
       [
-        ['userId', '==', userId],
         ['isActive', '==', true],
         ['nextDueDate', '>=', today],
         ['nextDueDate', '<=', futureDateStr],
@@ -102,20 +85,22 @@ class RecurringBillsService extends BaseFirestoreService<RecurringBillDocument> 
    * Listen to active recurring bills in real-time
    */
   onActiveRecurringBillsSnapshot(
-    userId: string,
     callback: (data: RecurringBillDocument[]) => void,
     onError?: (error: Error) => void
   ): () => void {
     return this.onSnapshot(
       callback,
       onError,
-      [
-        ['userId', '==', userId],
-        ['isActive', '==', true],
-      ],
+      [['isActive', '==', true]],
       [['nextDueDate', 'asc']]
     );
   }
 }
 
-export const recurringBillsService = new RecurringBillsService();
+/**
+ * Factory function to create a RecurringBillsService instance for a specific user
+ */
+export const createRecurringBillsService = (userId: string): RecurringBillsService => {
+  const service = new RecurringBillsService(`users/${userId}/${SUBCOLLECTIONS.USER_RECURRING_BILLS}`);
+  return service;
+};

@@ -1,5 +1,5 @@
 import { MonthlyBudget } from "@/src/features/budgets/types";
-import { transactionsService } from "@/src/services/firestore/transactions.service";
+import { createTransactionsService } from "@/src/services/firestore/transactions.service";
 import { useAuth } from "@/src/state/AuthProvider";
 import { useCurrency } from "@/src/state/CurrencyProvider";
 import { useTheme } from "@/src/state/ThemeProvider";
@@ -48,8 +48,8 @@ export function MonthlyBudgetCard({ budget, onEdit }: MonthlyBudgetCardProps) {
         })();
 
         // Use transactionsService instead of listTransactions
+        const transactionsService = createTransactionsService(user.uid);
         const transactions = await transactionsService.getAll([
-          ['userId', '==', user.uid],
           ['type', '==', 'expense'],
           ['dateISO', '>=', startDate],
           ['dateISO', '<=', endDate],

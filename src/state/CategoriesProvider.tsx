@@ -8,7 +8,7 @@ import {
 } from "react";
 import { MonthlyBudget } from "../features/budgets/types";
 import { Budget, Category } from "../features/categories/types";
-import { budgetsService, categoriesService, monthlyBudgetsService } from "../services/firestore";
+import { createBudgetsService, createCategoriesService, createMonthlyBudgetsService } from "../services/firestore";
 import type { CategoryDocument } from "../types/firestore";
 import { getCurrentMonthYYYYMM } from "../utils/dateHelpers";
 import { useAuth } from "./AuthProvider"; // Added import
@@ -57,17 +57,22 @@ export function CategoriesProvider({
   );
 
   const refresh = useCallback(async () => {
+    if (!user) return;
     try {
+      // Create service instances for this user
+      const categoriesService = createCategoriesService(user.uid);
+      const budgetsService = createBudgetsService(user.uid);
+      
       // Load categories and budgets from Firestore
       const [categoriesDocs, budgetsDocs] = await Promise.all([
-        categoriesService.getAll([['userId', '==', 'test-user']]),
-        budgetsService.getBudgetsForMonth('test-user', currentMonth),
+        categoriesService.getCategories(),
+        budgetsService.getBudgetsForMonth(currentMonth),
       ]);
 
       // Convert Firestore documents to local types
       const cats: Category[] = categoriesDocs.map(doc => ({
         id: doc.id!,
-        userId: doc.userId,
+        userId: user.uid,
         name: doc.name,
         type: doc.type,
         icon: doc.icon || '',
@@ -95,7 +100,7 @@ export function CategoriesProvider({
       setBudgets([]);
       setMonthlyBudgetState(null);
     }
-  }, [currentMonth]);
+  }, [currentMonth, user]);
 
   useEffect(() => {
     refresh();
@@ -103,8 +108,9 @@ export function CategoriesProvider({
 
   const handleAddCategory = useCallback(
     async (c: Omit<Category, "id">) => {
+      if (!user) throw new Error('User not authenticated');
+      const categoriesService = createCategoriesService(user.uid);
       const categoryDoc: Omit<CategoryDocument, 'id'> = {
-        userId: 'test-user',
         name: c.name,
         type: c.type,
         icon: c.icon,
@@ -117,11 +123,13 @@ export function CategoriesProvider({
       console.log(`✅ Category created: ${c.name}`);
       return id;
     },
-    [refresh]
+    [refresh, user]
   );
 
   const handleUpdateCategory = useCallback(
     async (c: Category) => {
+      if (!user) throw new Error('User not authenticated');
+      const categoriesService = createCategoriesService(user.uid);
       await categoriesService.update(c.id, {
         name: c.name,
         type: c.type,
@@ -132,25 +140,29 @@ export function CategoriesProvider({
       await refresh();
       console.log(`✅ Category updated: ${c.name}`);
     },
-    [refresh]
+    [refresh, user]
   );
 
   const handleDeleteCategory = useCallback(
     async (id: string) => {
+      if (!user) throw new Error('User not authenticated');
+      const categoriesService = createCategoriesService(user.uid);
       await categoriesService.delete(id);
       await refresh();
       console.log(`✅ Category deleted: ${id}`);
     },
-    [refresh]
+    [refresh, user]
   );
 
   const handleGetCategory = useCallback(
     async (id: string) => {
+      if (!user) return null;
+      const categoriesService = createCategoriesService(user.uid);
       const doc = await categoriesService.getById(id);
       if (!doc) return null;
       return {
         id: doc.id!,
-        userId: doc.userId,
+        userId: user.uid,
         name: doc.name,
         type: doc.type,
         icon: doc.icon,
@@ -159,23 +171,24 @@ export function CategoriesProvider({
         updatedAt: doc.updatedAt,
       };
     },
-    []
+    [user]
   );
 
   const handleSetBudget = useCallback(
     async (categoryId: string, monthYYYYMM: string, amountBase: number) => {
+      if (!user) throw new Error('User not authenticated');
+      const budgetsService = createBudgetsService(user.uid);
       await budgetsService.upsertBudget({
         categoryId,
         monthYYYYMM,
         amountBase,
-        userId: 'test-user', // TODO: Use actual user ID
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       });
       await refresh();
       console.log(`✅ Budget set for category ${categoryId}`);
     },
-    [refresh]
+    [refresh, user]
   );
 
   const handleGetBudget = useCallback(
@@ -191,21 +204,25 @@ export function CategoriesProvider({
 
   const handleDeleteBudget = useCallback(
     async (id: string) => {
+      if (!user) throw new Error('User not authenticated');
+      const budgetsService = createBudgetsService(user.uid);
       await budgetsService.deleteBudget(id);
       await refresh();
       console.log(`✅ Budget deleted: ${id}`);
     },
-    [refresh]
+    [refresh, user]
   );
 
   const handleGetMonthlyBudget = useCallback(
     async (monthYYYYMM?: string) => {
+      if (!user) return null;
       const targetMonth = monthYYYYMM || currentMonth;
       if (monthlyBudget && monthlyBudget.monthYYYYMM === targetMonth) {
         return monthlyBudget;
       }
       // If not in state, try to fetch (though refresh should handle it)
-      const doc = await monthlyBudgetsService.getMonthlyBudget('test-user', targetMonth);
+      const monthlyBudgetsService = createMonthlyBudgetsService(user.uid);
+      const doc = await monthlyBudgetsService.getMonthlyBudget(targetMonth);
       if (doc) {
         return {
           id: doc.id!,
@@ -217,31 +234,34 @@ export function CategoriesProvider({
       }
       return null;
     },
-    [currentMonth, monthlyBudget]
+    [currentMonth, monthlyBudget, user]
   );
 
   const handleSetMonthlyBudget = useCallback(
     async (monthYYYYMM: string, amountBase: number) => {
+      if (!user) throw new Error('User not authenticated');
+      const monthlyBudgetsService = createMonthlyBudgetsService(user.uid);
       await monthlyBudgetsService.upsertMonthlyBudget({
         monthYYYYMM,
         amountBase,
-        userId: 'test-user', // TODO: Use actual user ID
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       });
       await refresh();
       console.log(`✅ Monthly budget set for ${monthYYYYMM}`);
     },
-    [refresh]
+    [refresh, user]
   );
 
   const handleDeleteMonthlyBudget = useCallback(
     async (monthYYYYMM: string) => {
-      await monthlyBudgetsService.deleteMonthlyBudget('test-user', monthYYYYMM);
+      if (!user) throw new Error('User not authenticated');
+      const monthlyBudgetsService = createMonthlyBudgetsService(user.uid);
+      await monthlyBudgetsService.deleteMonthlyBudget(monthYYYYMM);
       await refresh();
       console.log(`✅ Monthly budget deleted for ${monthYYYYMM}`);
     },
-    [refresh]
+    [refresh, user]
   );
 
   const value = useMemo<CategoriesContextValue>(

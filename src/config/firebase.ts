@@ -1,16 +1,13 @@
-import firestore from '@react-native-firebase/firestore';
+import { getFirestore } from '@react-native-firebase/firestore';
 
 /**
  * Initialize Firestore with offline persistence
+ * Note: React Native Firebase enables offline persistence by default
  */
 export const initializeFirestore = async (): Promise<void> => {
   try {
-    // Enable offline persistence with unlimited cache
-    await firestore().settings({
-      persistence: true,
-      cacheSizeBytes: firestore.CACHE_SIZE_UNLIMITED,
-    });
-
+    // Get Firestore instance - persistence is enabled by default in React Native Firebase
+    getFirestore();
     console.log('✅ Firestore initialized with offline persistence');
   } catch (error) {
     console.error('❌ Error initializing Firestore:', error);
@@ -21,15 +18,14 @@ export const initializeFirestore = async (): Promise<void> => {
 /**
  * Get Firestore instance
  */
-export const getFirestore = () => firestore();
+export { getFirestore };
 
 /**
  * Enable Firestore logging (for development)
  */
 export const enableFirestoreLogging = (enable: boolean = true): void => {
   if (__DEV__) {
-    firestore().settings({
-      ignoreUndefinedProperties: true,
-    });
+    // Note: ignoreUndefinedProperties is handled automatically in modular API
+    // No equivalent setting needed
   }
 };

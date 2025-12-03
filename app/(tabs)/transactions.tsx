@@ -16,7 +16,7 @@ import {
   View,
 } from "react-native";
 // import { useDb } from "@/src/db/hooks"; // REMOVED
-import { transactionsService } from "@/src/services/firestore/transactions.service";
+import { createTransactionsService } from "@/src/services/firestore/transactions.service";
 import { useAuth } from "@/src/state/AuthProvider"; // Added useAuth
 import { useCategories } from "@/src/state/CategoriesProvider";
 import { useCurrency } from "@/src/state/CurrencyProvider";
@@ -54,7 +54,8 @@ export default function TransactionsScreen() {
   const loadTransactions = useCallback(async () => {
     if (!user) return;
     try {
-      const txns = await transactionsService.getAll([['userId', '==', user.uid]], [['dateISO', 'desc']]);
+      const transactionsService = createTransactionsService(user.uid);
+      const txns = await transactionsService.getAll(undefined, [['dateISO', 'desc']]);
       setTransactions(txns);
     } catch (error) {
       console.error("Error loading transactions:", error);
@@ -171,6 +172,7 @@ export default function TransactionsScreen() {
         : -selectedTransaction.amountBase; // Reverse income: deduct
       
       await adjustWalletBalance(amountDelta, selectedTransaction.currencyCode);
+      const transactionsService = createTransactionsService(user?.uid || '');
       await transactionsService.delete(selectedTransaction.id);
       await loadTransactions();
       setDeleteModalVisible(false);
@@ -371,6 +373,7 @@ export default function TransactionsScreen() {
         contentContainerStyle={{
           paddingVertical: scaleSpacing(20),
         }}
+        contentInsetAdjustmentBehavior="automatic"
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
