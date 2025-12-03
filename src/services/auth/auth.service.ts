@@ -8,18 +8,23 @@ import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
 class AuthService {
   /**
    * Format phone number to E.164 format
-   * Example: 761234567 -> +221761234567
+   * Example: 0749273883 -> +2250749273883 (Ivory Coast)
    */
   formatPhoneNumber(phoneNumber: string, countryCode: string = '+225'): string {
-    // Remove all non-numeric characters
-    const cleaned = phoneNumber.replace(/\D/g, '');
+    // Remove all non-numeric characters except leading +
+    const cleaned = phoneNumber.replace(/[^\d+]/g, '');
 
-    // If it already starts with country code, return as is
+    // If it already starts with +, assume it's properly formatted
+    if (cleaned.startsWith('+')) {
+      return cleaned;
+    }
+
+    // If it already starts with country code (without +), add the +
     if (cleaned.startsWith(countryCode.replace('+', ''))) {
       return `+${cleaned}`;
     }
 
-    // Add country code
+    // Add country code to the number as-is (preserving leading 0 if present)
     return `${countryCode}${cleaned}`;
   }
 

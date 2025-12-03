@@ -1,9 +1,10 @@
 import { OTPInput } from '@/src/components/auth/OTPInput';
 import { useAuth } from '@/src/state/AuthProvider';
+import { useConfirmation } from '@/src/state/ConfirmationProvider';
 import { useTheme } from '@/src/state/ThemeProvider';
 import { useResponsive } from '@/src/utils/responsive';
 import { Ionicons } from '@expo/vector-icons';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -18,10 +19,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function VerifyOtpScreen() {
-  const params = useLocalSearchParams();
-  const phoneNumber = params.phoneNumber as string;
-  const confirmationJson = params.confirmation as string;
-  
+  const { confirmation, phoneNumber, setConfirmation } = useConfirmation();
   const { verifyOtp, signInWithPhone, loading, error } = useAuth();
   const { colorScheme } = useTheme();
   const isDark = colorScheme === 'dark';
@@ -29,17 +27,14 @@ export default function VerifyOtpScreen() {
   
   const [otp, setOtp] = useState('');
   const [countdown, setCountdown] = useState(30);
-  const [confirmation, setConfirmation] = useState<any>(null);
 
+  // Redirect if no confirmation
   useEffect(() => {
-    if (confirmationJson) {
-      try {
-        setConfirmation(JSON.parse(confirmationJson));
-      } catch (e) {
-        console.error('Error parsing confirmation:', e);
-      }
+    if (!confirmation) {
+      console.warn('No confirmation found, redirecting to phone input');
+      router.replace('/(auth)/phone-input');
     }
-  }, [confirmationJson]);
+  }, [confirmation]);
 
   // Countdown timer
   useEffect(() => {
@@ -61,7 +56,7 @@ export default function VerifyOtpScreen() {
   };
 
   const handleResend = async () => {
-    if (countdown > 0 || loading) return;
+    if (countdown > 0 || loading || !phoneNumber) return;
 
     try {
       const result = await signInWithPhone(phoneNumber);
@@ -72,6 +67,10 @@ export default function VerifyOtpScreen() {
       console.error('Resend error:', err);
     }
   };
+
+  if (!confirmation || !phoneNumber) {
+    return null; // Will redirect in useEffect
+  }
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -124,7 +123,7 @@ export default function VerifyOtpScreen() {
                   },
                 ]}
               >
-                Code sent to +221 {phoneNumber}
+                Code sent to {phoneNumber}
               </Text>
             </View>
 

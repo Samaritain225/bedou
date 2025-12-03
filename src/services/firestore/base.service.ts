@@ -50,8 +50,15 @@ export class BaseFirestoreService<T extends { id?: string }> {
    * Get document by ID
    */
   async getById(id: string): Promise<T | null> {
-    const doc = await this.collection.doc(id).get();
-    return doc.exists() ? (doc.data() as T) : null;
+    try {
+      const doc = await this.collection.doc(id).get();
+      const data = doc.data();
+      if (!data) return null;
+      return data as T;
+    } catch (error) {
+      console.error('Error getting document:', error);
+      return null;
+    }
   }
 
   /**
@@ -162,8 +169,8 @@ export class BaseFirestoreService<T extends { id?: string }> {
   ): () => void {
     return this.collection.doc(id).onSnapshot(
       snapshot => {
-        const data = snapshot.exists() ? (snapshot.data() as T) : null;
-        callback(data);
+        const data = snapshot.data();
+        callback(data ? (data as T) : null);
       },
       error => {
         console.error('Document snapshot error:', error);
@@ -181,7 +188,6 @@ export class BaseFirestoreService<T extends { id?: string }> {
     data?: any;
   }>): Promise<void> {
     const batch = firestore().batch();
-    const timestamp = firestore.FieldValue.serverTimestamp();
 
     operations.forEach(op => {
       const docRef = op.id
@@ -193,14 +199,14 @@ export class BaseFirestoreService<T extends { id?: string }> {
           batch.set(docRef, {
             ...op.data,
             id: docRef.id,
-            [FIELDS.CREATED_AT]: timestamp,
-            [FIELDS.UPDATED_AT]: timestamp,
+            [FIELDS.CREATED_AT]: firestore.FieldValue.serverTimestamp(),
+            [FIELDS.UPDATED_AT]: firestore.FieldValue.serverTimestamp(),
           });
           break;
         case 'update':
           batch.update(docRef, {
             ...op.data,
-            [FIELDS.UPDATED_AT]: timestamp,
+            [FIELDS.UPDATED_AT]: firestore.FieldValue.serverTimestamp(),
           });
           break;
         case 'delete':

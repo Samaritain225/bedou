@@ -17,7 +17,7 @@ export interface UserDocument extends BaseDocument {
   phoneNumber: string;
   displayName: string;
   email?: string;
-  photoURL?: string;
+  photoURL: string | null;
   baseCurrency: string;
 }
 

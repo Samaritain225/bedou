@@ -52,7 +52,7 @@ export default function ProfileSetupScreen() {
         >
           <View style={[styles.container, { padding: scaleSpacing(24) }]}>
             {/* Header */}
-            <View style={{ marginBottom: scaleSpacing(40) }}>
+            <View style={{ marginBottom: scaleSpacing(40), alignItems: 'center' }}>
               <View
                 style={[
                   styles.iconContainer,
@@ -74,6 +74,7 @@ export default function ProfileSetupScreen() {
                   {
                     color: isDark ? '#FFFFFF' : '#111827',
                     fontSize: scaleFont(28),
+                    textAlign: 'center',
                   },
                 ]}
               >
@@ -85,6 +86,7 @@ export default function ProfileSetupScreen() {
                   {
                     color: isDark ? '#9CA3AF' : '#6B7280',
                     fontSize: scaleFont(16),
+                    textAlign: 'center',
                   },
                 ]}
               >
@@ -93,8 +95,8 @@ export default function ProfileSetupScreen() {
             </View>
 
             {/* Form */}
-            <View style={{ gap: scaleSpacing(24) }}>
-              <View>
+            <View style={{ gap: scaleSpacing(24), alignItems: 'center', width: '100%' }}>
+              <View style={{ width: '100%', maxWidth: 400 }}>
                 <TextInput
                   style={[
                     styles.input,
@@ -128,7 +130,7 @@ export default function ProfileSetupScreen() {
               </View>
 
               {error && (
-                <View style={styles.apiErrorContainer}>
+                <View style={[styles.apiErrorContainer, { width: '100%', maxWidth: 400 }]}>
                   <Ionicons name="alert-circle" size={scaleSize(20)} color="#EF4444" />
                   <Text style={[styles.apiErrorText, { fontSize: scaleFont(14) }]}>
                     {error}
@@ -144,6 +146,8 @@ export default function ProfileSetupScreen() {
                   {
                     backgroundColor: isDark ? '#3B82F6' : '#2563EB',
                     opacity: pressed || loading ? 0.8 : 1,
+                    width: '100%',
+                    maxWidth: 400,
                   },
                 ]}
               >

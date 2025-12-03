@@ -3,14 +3,14 @@ import { useResponsive } from '@/src/utils/responsive';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-  FlatList,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    FlatList,
+    Modal,
+    Pressable,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 
 interface Country {
@@ -240,30 +240,39 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1.5,
+    borderWidth: 2,
     borderRadius: 16,
-    height: 58,
+    height: 64,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   countryCodeButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 18,
     height: '100%',
-    borderRightWidth: 1,
-    gap: 8,
+    borderRightWidth: 1.5,
+    gap: 10,
     backgroundColor: 'transparent',
   },
   countryCodeText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
+    letterSpacing: 0.2,
   },
   input: {
     flex: 1,
     height: '100%',
-    paddingHorizontal: 16,
+    paddingHorizontal: 18,
     fontSize: 17,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   errorContainer: {
     flexDirection: 'row',

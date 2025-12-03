@@ -111,7 +111,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         phoneNumber: user.phoneNumber || '',
         displayName: name,
         baseCurrency: 'XOF', // Default currency
-        photoURL: user.photoURL || undefined,
+        photoURL: user.photoURL || null,
       };
       
       await usersService.createOrUpdateUser(user.uid, userData);

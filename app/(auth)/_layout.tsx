@@ -1,3 +1,4 @@
+import { ConfirmationProvider } from '@/src/state/ConfirmationProvider';
 import { useTheme } from '@/src/state/ThemeProvider';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -7,7 +8,7 @@ export default function AuthLayout() {
   const isDark = colorScheme === 'dark';
 
   return (
-    <>
+    <ConfirmationProvider>
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <Stack
         screenOptions={{
@@ -22,6 +23,6 @@ export default function AuthLayout() {
         <Stack.Screen name="verify-otp" />
         <Stack.Screen name="profile-setup" />
       </Stack>
-    </>
+    </ConfirmationProvider>
   );
 }
