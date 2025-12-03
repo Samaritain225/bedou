@@ -8,7 +8,6 @@ export const initializeFirestore = async (): Promise<void> => {
   try {
     // Get Firestore instance - persistence is enabled by default in React Native Firebase
     getFirestore();
-    console.log('✅ Firestore initialized with offline persistence');
   } catch (error) {
     console.error('❌ Error initializing Firestore:', error);
     throw error;

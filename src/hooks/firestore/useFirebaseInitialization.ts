@@ -10,7 +10,7 @@ export const useFirebaseInitialization = () => {
     const init = async () => {
       try {
         await initializeFirestore();
-        console.log('✅ Firebase initialized successfully');
+        // console.log('✅ Firebase initialized successfully');
       } catch (error) {
         console.error('❌ Failed to initialize Firebase:', error);
       }

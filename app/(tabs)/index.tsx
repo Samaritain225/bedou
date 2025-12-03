@@ -35,7 +35,7 @@ import {
 } from "react-native";
 
 export default function DashboardScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   // const db = useDb(); // REMOVED
   const { user } = useAuth(); // Get authenticated user
   const { categories, currentMonth, monthlyBudget } = useCategories();
@@ -222,7 +222,15 @@ export default function DashboardScreen() {
   const formatMonthLabel = (monthYYYYMM: string): string => {
     const year = Number.parseInt(monthYYYYMM.substring(0, 4));
     const month = Number.parseInt(monthYYYYMM.substring(4, 6)) - 1;
-    return new Date(year, month, 1).toLocaleDateString("en-US", {
+    const today = new Date();
+    // Use current day if it's the current month, otherwise use the 1st
+    const day = (today.getFullYear() === year && today.getMonth() === month) 
+      ? today.getDate() 
+      : 1;
+    // Use user's language preference for date formatting
+    const locale = i18n.language === "fr" ? "fr-FR" : "en-US";
+    return new Date(year, month, day).toLocaleDateString(locale, {
+      day: "numeric",
       month: "long",
       year: "numeric",
     });

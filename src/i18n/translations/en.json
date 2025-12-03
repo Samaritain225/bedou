@@ -33,7 +33,15 @@
     "devNote3": "Made with ❤️, ☕, and several 'emergency' coffee runs (all properly categorized in expenses)",
     "devNote4": "Created with ❤️, late-night coding sessions, and coffee that cost more than our first paycheck ☕💰",
     "devNote5": "Crafted with ❤️, ☕, and a spreadsheet showing coffee expenses rivaling rent (we're not proud)",
-    "devNote6": "Built with ❤️, coffee subscriptions, and the hope that this app will help us break even ☕📊"
+    "devNote6": "Built with ❤️, coffee subscriptions, and the hope that this app will help us break even ☕📊",
+    "signOut": "Sign Out",
+    "signingOut": "Signing out...",
+    "signOutConfirmTitle": "Sign Out",
+    "signOutConfirmMessage": "Are you sure you want to sign out? You will need to sign in again to access your account.",
+    "signOutError": "Failed to sign out. Please try again.",
+    "cancel": "Cancel",
+    "error": "Error",
+    "ok": "OK"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -56,6 +64,7 @@
     "wishlist": "Wishlist",
     "wishlist.empty": "No planned purchases yet",
     "wishlist.empty.subtitle": "Add items you want to buy",
+    "recurringBills": "Upcoming Bills",
     "charts": {
       "monthlyTrends": "Monthly Spending Trends",
       "categoryBreakdown": "Spending by Category",
@@ -100,7 +109,13 @@
     "new": "New",
     "success": "Success",
     "expenseAdded": "Expense added successfully",
-    "saveError": "Failed to save expense. Please try again."
+    "saveError": "Failed to save expense. Please try again.",
+    "income": "Add Income",
+    "incomeSuccess": "Income added successfully",
+    "saveIncome": "Save Income",
+    "noIncomeCategories": "No income categories available. Please create one first.",
+    "paymentMethod": "Payment Method",
+    "error": "Failed to add income"
   },
   "categories": {
     "title": "Categories",
@@ -137,7 +152,28 @@
     "delete": "Delete",
     "error": "Error",
     "ok": "OK",
-    "optional": "(Optional)"
+    "optional": "(Optional)",
+    "viewAll": "View All",
+    "uncategorized": "Uncategorized"
+  },
+  "recurring": {
+    "overdue": "Overdue",
+    "dueToday": "Due today",
+    "dueTomorrow": "Due tomorrow",
+    "dueInDays": "Due in {{count}} days"
+  },
+  "quickActions": {
+    "addExpense": "Expense",
+    "addIncome": "Income",
+    "addWishlist": "Wishlist"
+  },
+  "budget": {
+    "monthly": "Monthly Budget",
+    "setMonthly": "Set Monthly Budget",
+    "editMonthly": "Edit Monthly Budget",
+    "spent": "Spent",
+    "remaining": "Remaining",
+    "overBudget": "Over Budget"
   },
   "wishlist": {
     "title": "Wishlist",

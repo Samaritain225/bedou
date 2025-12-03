@@ -11,6 +11,7 @@ import { router } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -89,16 +90,40 @@ export default function SettingsScreen() {
   }, [balanceInput, setWalletBalance, baseCurrency]);
 
   const handleSignOut = useCallback(async () => {
-    try {
-      setIsSigningOut(true);
-      await signOut();
-      // Redirect to login page
-      router.replace('/(auth)/phone-input' as any);
-    } catch (error) {
-      console.error("Error signing out:", error);
-      setIsSigningOut(false);
-    }
-  }, [signOut]);
+    // Show confirmation dialog
+    Alert.alert(
+      t("settings.signOutConfirmTitle", "Sign Out"),
+      t("settings.signOutConfirmMessage", "Are you sure you want to sign out? You will need to sign in again to access your account."),
+      [
+        {
+          text: t("settings.cancel", "Cancel"),
+          style: "cancel",
+        },
+        {
+          text: t("settings.signOut", "Sign Out"),
+          style: "destructive",
+          onPress: async () => {
+            try {
+              setIsSigningOut(true);
+              await signOut();
+              // Redirect to login page
+              router.replace('/(auth)/phone-input' as any);
+            } catch (error) {
+              console.error("Error signing out:", error);
+              setIsSigningOut(false);
+              // Show error alert
+              Alert.alert(
+                t("settings.error", "Error"),
+                t("settings.signOutError", "Failed to sign out. Please try again."),
+                [{ text: t("settings.ok", "OK") }]
+              );
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  }, [signOut, t]);
 
 
   return (

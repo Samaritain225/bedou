@@ -33,7 +33,15 @@
     "devNote3": "Fait avec ❤️, ☕, et plusieurs courses de café 'd'urgence' (toutes correctement catégorisées en dépenses)",
     "devNote4": "Créé avec ❤️, des sessions de code tardives, et du café qui coûte plus que notre premier salaire ☕💰",
     "devNote5": "Créé avec ❤️, ☕, et un tableau montrant des dépenses de café rivalisant avec le loyer (on n'est pas fiers)",
-    "devNote6": "Construit avec ❤️, des abonnements café, et l'espoir que cette app nous aidera à équilibrer ☕📊"
+    "devNote6": "Construit avec ❤️, des abonnements café, et l'espoir que cette app nous aidera à équilibrer ☕📊",
+    "signOut": "Se déconnecter",
+    "signingOut": "Déconnexion en cours...",
+    "signOutConfirmTitle": "Se déconnecter",
+    "signOutConfirmMessage": "Êtes-vous sûr de vouloir vous déconnecter ? Vous devrez vous reconnecter pour accéder à votre compte.",
+    "signOutError": "Échec de la déconnexion. Veuillez réessayer.",
+    "cancel": "Annuler",
+    "error": "Erreur",
+    "ok": "OK"
   },
   "dashboard": {
     "title": "Tableau de bord",
@@ -53,9 +61,10 @@
     "avgDaily": "Moy. Quotidien",
     "perDay": "par jour",
     "activity": "Activité",
-    "wishlist": "Liste de Souhaits",
+    "wishlist": "Souhaits",
     "wishlist.empty": "Aucun achat planifié pour le moment",
     "wishlist.empty.subtitle": "Ajoutez des articles que vous souhaitez acheter",
+    "recurringBills": "Factures à venir",
     "charts": {
       "monthlyTrends": "Tendances mensuelles des dépenses",
       "categoryBreakdown": "Dépenses par catégorie",
@@ -100,7 +109,13 @@
     "new": "Nouveau",
     "success": "Succès",
     "expenseAdded": "Dépense ajoutée avec succès",
-    "saveError": "Échec de l'enregistrement de la dépense. Veuillez réessayer."
+    "saveError": "Échec de l'enregistrement de la dépense. Veuillez réessayer.",
+    "income": "Ajouter un Revenu",
+    "incomeSuccess": "Revenu ajouté avec succès",
+    "saveIncome": "Enregistrer le Revenu",
+    "noIncomeCategories": "Aucune catégorie de revenu disponible. Veuillez en créer une d'abord.",
+    "paymentMethod": "Méthode de Paiement",
+    "error": "Échec de l'ajout du revenu"
   },
   "categories": {
     "title": "Catégories",
@@ -137,10 +152,31 @@
     "delete": "Supprimer",
     "error": "Erreur",
     "ok": "OK",
-    "optional": "(Optionnel)"
+    "optional": "(Optionnel)",
+    "viewAll": "Voir tout",
+    "uncategorized": "Sans catégorie"
+  },
+  "recurring": {
+    "overdue": "En retard",
+    "dueToday": "Échéance aujourd'hui",
+    "dueTomorrow": "Échéance demain",
+    "dueInDays": "Échéance dans {{count}} jours"
+  },
+  "quickActions": {
+    "addExpense": "Dépense",
+    "addIncome": "Revenu",
+    "addWishlist": "Souhaits"
+  },
+  "budget": {
+    "monthly": "Budget Mensuel",
+    "setMonthly": "Définir le Budget Mensuel",
+    "editMonthly": "Modifier le Budget Mensuel",
+    "spent": "Dépensé",
+    "remaining": "Restant",
+    "overBudget": "Dépassement"
   },
   "wishlist": {
-    "title": "Liste de Souhaits",
+    "title": "Souhaits",
     "name": "Nom de l'Article",
     "namePlaceholder": "Que voulez-vous acheter ?",
     "amount": "Montant",
