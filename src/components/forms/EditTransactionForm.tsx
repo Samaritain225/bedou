@@ -3,7 +3,8 @@ import { TextInputField } from "@/src/components/ui/TextInputField";
 // import { useDb } from "@/src/db/hooks"; // REMOVED
 import { DatePicker } from "@/src/components/ui/DatePicker";
 import { Category } from "@/src/features/categories/types";
-import { transactionsService } from "@/src/services/firestore/transactions.service";
+import { createTransactionsService } from "@/src/services/firestore/transactions.service";
+import { useAuth } from "@/src/state/AuthProvider";
 import { useCategories } from "@/src/state/CategoriesProvider";
 import { useCurrency } from "@/src/state/CurrencyProvider";
 import { useTheme } from "@/src/state/ThemeProvider";
@@ -47,6 +48,7 @@ export function EditTransactionForm({
 }: EditTransactionFormProps) {
   const { t } = useTranslation();
   // const db = useDb(); // REMOVED
+  const { user } = useAuth();
   const { categories } = useCategories();
   const { baseCurrency } = useCurrency();
   const { adjustWalletBalance } = useWallet();
@@ -181,8 +183,8 @@ export function EditTransactionForm({
 
   const handleSubmit = async () => {
     try {
-      const numericAmount = parseFloat(amount);
-      if (isNaN(numericAmount) || numericAmount <= 0) {
+      const numericAmount = Number.parseFloat(amount);
+      if (Number.isNaN(numericAmount) || numericAmount <= 0) {
         setErrors({ amount: t("add.amountRequired") || "Please enter a valid amount" });
         return;
       }
@@ -208,6 +210,11 @@ export function EditTransactionForm({
         balanceAdjustment = newAmountBase - oldAmountBase;
       }
 
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
+      const transactionsService = createTransactionsService(user.uid);
       await transactionsService.update(initialTransaction.id, {
         amountBase: newAmountBase,
         categoryId: selectedCategory.id,
@@ -238,21 +245,25 @@ export function EditTransactionForm({
     }
   };
 
-  const canSubmit = amount && parseFloat(amount) > 0 && selectedCategory;
+  const canSubmit = amount && Number.parseFloat(amount) > 0 && selectedCategory;
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       className="flex-1"
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+      enabled={Platform.OS === "ios"}
     >
       <ScrollView
         className="flex-1"
         contentContainerStyle={{
           flexGrow: 1,
           padding: scaleSpacing(24),
+          paddingBottom: Math.max(insets.bottom, scaleSpacing(24)),
         }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
       >
         <View className="max-w-md w-full self-center">
           {/* Header */}

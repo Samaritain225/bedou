@@ -1,7 +1,9 @@
 import { authService } from '@/src/services/auth/auth.service';
+import { createCategoriesService } from '@/src/services/firestore/categories.service';
 import { usersService } from '@/src/services/firestore/users.service';
 import { AuthState } from '@/src/types/auth';
 import { UserDocument } from '@/src/types/firestore';
+import { getDefaultCategories } from '@/src/utils/defaultCategories';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 interface AuthContextType extends AuthState {
@@ -9,6 +11,7 @@ interface AuthContextType extends AuthState {
   verifyOtp: (confirmation: any, code: string) => Promise<void>;
   signOut: () => Promise<void>;
   createUserProfile: (name: string) => Promise<void>;
+  updateUserProfile: (data: Partial<UserDocument>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -115,6 +118,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       await usersService.createOrUpdateUser(user.uid, userData);
       
+      // Create default categories for new user
+      try {
+        const categoriesService = createCategoriesService(user.uid);
+        const defaultCategories = getDefaultCategories();
+        const now = new Date().toISOString();
+        
+        // Create all default categories
+        await Promise.all(
+          defaultCategories.map((category) =>
+            categoriesService.create({
+              ...category,
+              createdAt: now,
+              updatedAt: now,
+            })
+          )
+        );
+        
+        console.log(`✅ Created ${defaultCategories.length} default categories for new user`);
+      } catch (categoryError) {
+        // Don't fail profile creation if categories fail, just log it
+        console.error('Failed to create default categories:', categoryError);
+      }
+      
       // Fetch the new document to update state
       const userDoc = await usersService.getUser(user.uid);
       
@@ -130,6 +156,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const updateUserProfile = async (data: Partial<UserDocument>) => {
+    const { user, userDocument } = state;
+    if (!user) throw new Error('No authenticated user');
+
+    try {
+      setState(prev => ({ ...prev, loading: true, error: null }));
+
+      // If name is changing, update Auth profile too
+      if (data.displayName) {
+        await authService.updateProfile({ displayName: data.displayName });
+      }
+
+      // Update Firestore
+      await usersService.createOrUpdateUser(user.uid, data);
+
+      // Update local state directly to reflect changes immediately
+      const updatedDoc = { ...userDocument, ...data } as UserDocument;
+      
+      setState(prev => ({
+        ...prev,
+        userDocument: updatedDoc,
+        loading: false,
+      }));
+
+    } catch (error: any) {
+        console.error("Error updating profile:", error);
+        setState(prev => ({ ...prev, loading: false, error: error.message }));
+        throw error;
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -138,6 +195,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         verifyOtp,
         signOut,
         createUserProfile,
+        updateUserProfile,
       }}
     >
       {children}

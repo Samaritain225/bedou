@@ -1,3 +1,4 @@
+import { ThemeColors } from "@/src/constants/themeColors";
 import { useFirebaseInitialization } from "@/src/hooks/firestore/useFirebaseInitialization";
 import "@/src/i18n/setup";
 import { AuthProvider } from "@/src/state/AuthProvider";
@@ -9,7 +10,7 @@ import { WalletProvider } from "@/src/state/WalletProvider";
 import {
   DarkTheme,
   DefaultTheme,
-  ThemeProvider as NavigationThemeProvider,
+  ThemeProvider as NavigationThemeProvider
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
@@ -43,8 +44,8 @@ function AppContent() {
 
   if (!fontsLoaded) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colorScheme === 'dark' ? '#111827' : '#FFFFFF' }}>
-        <ActivityIndicator size="large" color="#3B82F6" />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colorScheme === 'dark' ? ThemeColors.dark.background : ThemeColors.light.background }}>
+        <ActivityIndicator size="large" color={ThemeColors.light.primary} />
       </View>
     );
   }
@@ -52,7 +53,33 @@ function AppContent() {
   return (
     <SafeAreaProvider>
       <NavigationThemeProvider
-        value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+        value={
+          colorScheme === "dark"
+            ? {
+                ...DarkTheme,
+                colors: {
+                  ...DarkTheme.colors,
+                  primary: ThemeColors.dark.primary,
+                  background: ThemeColors.dark.background,
+                  card: ThemeColors.dark.surface,
+                  text: ThemeColors.dark.text,
+                  border: ThemeColors.dark.border,
+                  notification: ThemeColors.dark.error,
+                },
+              }
+            : {
+                ...DefaultTheme,
+                colors: {
+                  ...DefaultTheme.colors,
+                  primary: ThemeColors.light.primary,
+                  background: ThemeColors.light.background,
+                  card: ThemeColors.light.surface,
+                  text: ThemeColors.light.text,
+                  border: ThemeColors.light.border,
+                  notification: ThemeColors.light.error,
+                },
+              }
+        }
       >
         <OnboardingProvider>
           <CurrencyProvider>

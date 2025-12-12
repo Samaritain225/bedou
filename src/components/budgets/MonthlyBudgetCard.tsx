@@ -1,3 +1,4 @@
+import { ThemeColors } from "@/src/constants/themeColors";
 import { MonthlyBudget } from "@/src/features/budgets/types";
 import { createTransactionsService } from "@/src/services/firestore/transactions.service";
 import { useAuth } from "@/src/state/AuthProvider";
@@ -80,9 +81,9 @@ export function MonthlyBudgetCard({ budget, onEdit }: MonthlyBudgetCardProps) {
           style={{
             borderRadius: scaleSpacing(16),
             padding: scaleSpacing(20),
-            backgroundColor: isDark ? "#374151" : "#FFFFFF",
+            backgroundColor: isDark ? ThemeColors.dark.surface : ThemeColors.light.surface,
             borderWidth: 1.5,
-            borderColor: isDark ? "#4B5563" : "#E5E7EB",
+            borderColor: isDark ? ThemeColors.dark.border : ThemeColors.light.border,
             borderStyle: "dashed",
           }}
         >
@@ -97,11 +98,11 @@ export function MonthlyBudgetCard({ budget, onEdit }: MonthlyBudgetCardProps) {
             <Ionicons
               name="add-circle-outline"
               size={scaleSize(24)}
-              color={isDark ? "#9CA3AF" : "#6B7280"}
+              color={isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary}
             />
             <Text
               style={{
-                color: isDark ? "#9CA3AF" : "#6B7280",
+                color: isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary,
                 fontSize: scaleFont(16),
                 fontWeight: "600",
               }}
@@ -130,10 +131,10 @@ export function MonthlyBudgetCard({ budget, onEdit }: MonthlyBudgetCardProps) {
         <LinearGradient
           colors={
             isOverBudget
-              ? ["#EF4444", "#DC2626"]
+              ? (isDark ? ThemeColors.dark.gradients.error : ThemeColors.light.gradients.error)
               : isWarning
-                ? ["#F59E0B", "#D97706"]
-                : ["#10B981", "#059669"]
+                ? (isDark ? ThemeColors.dark.gradients.warning : ThemeColors.light.gradients.warning)
+                : (isDark ? ThemeColors.dark.gradients.success : ThemeColors.light.gradients.success)
           }
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}

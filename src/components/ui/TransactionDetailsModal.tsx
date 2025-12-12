@@ -1,3 +1,4 @@
+import { ThemeColors } from "@/src/constants/themeColors";
 import { Category } from "@/src/features/categories/types";
 import { TransactionDocument } from "@/src/types/firestore";
 import { Ionicons } from "@expo/vector-icons";
@@ -218,13 +219,13 @@ export function TransactionDetailsModal({
                   style={{
                     borderRadius: scaleSpacing(16),
                     padding: scaleSpacing(16),
-                    backgroundColor: isDark ? "#4B5563" : "#F3F4F6",
+                    backgroundColor: isDark ? ThemeColors.dark.border : ThemeColors.light.border,
                   }}
                 >
                   <Ionicons
                     name="ellipse-outline"
                     size={scaleSize(40)}
-                    color={isDark ? "#9CA3AF" : "#6B7280"}
+                    color={isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary}
                   />
                 </View>
               )}
@@ -242,7 +243,7 @@ export function TransactionDetailsModal({
                 <Ionicons
                   name="close"
                   size={scaleSize(24)}
-                  color={isDark ? "#FFFFFF" : "#111827"}
+                  color={isDark ? ThemeColors.dark.text : ThemeColors.light.text}
                 />
               </Pressable>
             </View>
@@ -258,7 +259,7 @@ export function TransactionDetailsModal({
               {/* Amount */}
               <Text
                 style={{
-                  color: isExpense ? "#EF4444" : "#10B981",
+                  color: isExpense ? ThemeColors.light.error : ThemeColors.light.success,
                   fontSize: scaleFont(32),
                   fontWeight: "700",
                   marginBottom: scaleSpacing(8),
@@ -271,7 +272,7 @@ export function TransactionDetailsModal({
               {/* Category Name */}
               <Text
                 style={{
-                  color: isDark ? "#FFFFFF" : "#111827",
+                  color: isDark ? ThemeColors.dark.text : ThemeColors.light.text,
                   fontSize: scaleFont(20),
                   fontWeight: "600",
                   marginBottom: scaleSpacing(4),
@@ -292,7 +293,7 @@ export function TransactionDetailsModal({
               <View>
                 <Text
                   style={{
-                    color: isDark ? "#9CA3AF" : "#6B7280",
+                    color: isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary,
                     fontSize: scaleFont(14),
                     fontWeight: "600",
                     marginBottom: scaleSpacing(6),
@@ -302,7 +303,7 @@ export function TransactionDetailsModal({
                 </Text>
                 <Text
                   style={{
-                    color: isDark ? "#FFFFFF" : "#111827",
+                    color: isDark ? ThemeColors.dark.text : ThemeColors.light.text,
                     fontSize: scaleFont(16),
                   }}
                 >
@@ -314,7 +315,7 @@ export function TransactionDetailsModal({
               <View>
                 <Text
                   style={{
-                    color: isDark ? "#9CA3AF" : "#6B7280",
+                    color: isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary,
                     fontSize: scaleFont(14),
                     fontWeight: "600",
                     marginBottom: scaleSpacing(6),
@@ -324,7 +325,7 @@ export function TransactionDetailsModal({
                 </Text>
                 <Text
                   style={{
-                    color: isDark ? "#FFFFFF" : "#111827",
+                    color: isDark ? ThemeColors.dark.text : ThemeColors.light.text,
                     fontSize: scaleFont(16),
                   }}
                 >
@@ -339,7 +340,7 @@ export function TransactionDetailsModal({
                 <View>
                   <Text
                     style={{
-                      color: isDark ? "#9CA3AF" : "#6B7280",
+                      color: isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary,
                       fontSize: scaleFont(14),
                       fontWeight: "600",
                       marginBottom: scaleSpacing(6),
@@ -349,7 +350,7 @@ export function TransactionDetailsModal({
                   </Text>
                   <Text
                     style={{
-                      color: isDark ? "#FFFFFF" : "#111827",
+                      color: isDark ? ThemeColors.dark.text : ThemeColors.light.text,
                       fontSize: scaleFont(16),
                       lineHeight: scaleFont(24),
                       flexWrap: "wrap",
@@ -375,9 +376,9 @@ export function TransactionDetailsModal({
                   flex: 1,
                   borderRadius: scaleSpacing(12),
                   paddingVertical: scaleSpacing(16),
-                  backgroundColor: isDark ? "#374151" : "#F3F4F6",
+                  backgroundColor: isDark ? ThemeColors.dark.surfaceSecondary : ThemeColors.light.surfaceSecondary,
                   borderWidth: 1.5,
-                  borderColor: isDark ? "#4B5563" : "#E5E7EB",
+                  borderColor: isDark ? ThemeColors.dark.border : ThemeColors.light.border,
                   alignItems: "center",
                   justifyContent: "center",
                   flexDirection: "row",
@@ -387,11 +388,11 @@ export function TransactionDetailsModal({
                 <Ionicons
                   name="create-outline"
                   size={scaleSize(20)}
-                  color={isDark ? "#FFFFFF" : "#111827"}
+                  color={isDark ? ThemeColors.dark.text : ThemeColors.light.text}
                 />
                 <Text
                   style={{
-                    color: isDark ? "#FFFFFF" : "#111827",
+                    color: isDark ? ThemeColors.dark.text : ThemeColors.light.text,
                     fontSize: scaleFont(16),
                     fontWeight: "600",
                   }}
@@ -407,7 +408,7 @@ export function TransactionDetailsModal({
                   flex: 1,
                   borderRadius: scaleSpacing(12),
                   paddingVertical: scaleSpacing(16),
-                  backgroundColor: "#EF4444",
+                  backgroundColor: ThemeColors.light.error,
                   alignItems: "center",
                   justifyContent: "center",
                   flexDirection: "row",
@@ -444,7 +445,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   sheet: {
-    backgroundColor: "#ffffff",
+    backgroundColor: ThemeColors.light.surface,
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     width: "100%",
@@ -458,18 +459,18 @@ const styles = StyleSheet.create({
     elevation: 12,
   },
   sheetDark: {
-    backgroundColor: "#1F2937",
+    backgroundColor: ThemeColors.dark.surface,
     shadowColor: "#000",
   },
   dragHandle: {
     width: 56,
     height: 4,
-    backgroundColor: "#D1D5DB",
+    backgroundColor: ThemeColors.light.border,
     borderRadius: 2,
     alignSelf: "center",
   },
   dragHandleDark: {
-    backgroundColor: "#4B5563",
+    backgroundColor: ThemeColors.dark.border,
   },
 });
 

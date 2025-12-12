@@ -2,6 +2,7 @@ import { DatePicker } from "@/src/components/ui/DatePicker";
 import { FormField } from "@/src/components/ui/FormField";
 import { PaymentMethod, PaymentMethodPicker } from "@/src/components/ui/PaymentMethodPicker";
 import { TextInputField } from "@/src/components/ui/TextInputField";
+import { ThemeColors } from "@/src/constants/themeColors";
 import { Category } from "@/src/features/categories/types";
 import { transactionsService } from "@/src/services/firestore/transactions.service";
 import { useAuth } from "@/src/state/AuthProvider";
@@ -17,14 +18,14 @@ import { LinearGradient } from "expo-linear-gradient";
 import React, { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-    Animated,
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    ScrollView,
-    Text,
-    TextInput,
-    View,
+  Animated,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { z } from "zod";
@@ -203,7 +204,7 @@ export function AddIncomeForm({ onSuccess, onCancel }: AddIncomeFormProps) {
               style={{
                 fontSize: scaleFont(24),
                 fontWeight: "700",
-                color: isDark ? "#FFFFFF" : "#111827",
+                color: isDark ? ThemeColors.dark.text : ThemeColors.light.text,
               }}
             >
               {t("add.income", "Add Income")}
@@ -212,7 +213,7 @@ export function AddIncomeForm({ onSuccess, onCancel }: AddIncomeFormProps) {
               <Ionicons
                 name="close"
                 size={scaleSize(24)}
-                color={isDark ? "#FFFFFF" : "#111827"}
+                color={isDark ? ThemeColors.dark.text : ThemeColors.light.text}
               />
             </Pressable>
           </View>
@@ -225,7 +226,7 @@ export function AddIncomeForm({ onSuccess, onCancel }: AddIncomeFormProps) {
               marginBottom: scaleSpacing(16),
               paddingVertical: scaleSpacing(12),
               paddingHorizontal: scaleSpacing(16),
-              backgroundColor: "#10B981",
+              backgroundColor: ThemeColors.light.success,
               borderRadius: scaleSpacing(12),
               flexDirection: "row",
               alignItems: "center",
@@ -257,7 +258,7 @@ export function AddIncomeForm({ onSuccess, onCancel }: AddIncomeFormProps) {
               marginBottom: scaleSpacing(16),
               paddingVertical: scaleSpacing(12),
               paddingHorizontal: scaleSpacing(16),
-              backgroundColor: "#EF4444",
+              backgroundColor: ThemeColors.light.error,
               borderRadius: scaleSpacing(12),
               flexDirection: "row",
               alignItems: "center",
@@ -289,12 +290,13 @@ export function AddIncomeForm({ onSuccess, onCancel }: AddIncomeFormProps) {
               borderRadius: scaleSpacing(12),
               paddingHorizontal: scaleSpacing(16),
               paddingVertical: scaleSpacing(14),
-              backgroundColor: isDark ? "#374151" : "#FFFFFF",
+
+              backgroundColor: isDark ? ThemeColors.dark.surface : ThemeColors.light.surface,
               borderColor: errors.amount
-                ? "#EF4444"
+                ? ThemeColors.light.error
                 : isDark
-                  ? "#4B5563"
-                  : "#E5E7EB",
+                  ? ThemeColors.dark.border
+                  : ThemeColors.light.border,
               borderWidth: 1.5,
               flexDirection: "row",
               alignItems: "center",
@@ -303,7 +305,7 @@ export function AddIncomeForm({ onSuccess, onCancel }: AddIncomeFormProps) {
           >
             <Text
               style={{
-                color: isDark ? "#FFFFFF" : "#111827",
+                color: isDark ? ThemeColors.dark.text : ThemeColors.light.text,
                 fontSize: scaleFont(isTablet ? 18 : 16),
                 fontWeight: "600",
                 minWidth: scaleSize(isTablet ? 60 : 50),
@@ -315,14 +317,14 @@ export function AddIncomeForm({ onSuccess, onCancel }: AddIncomeFormProps) {
               ref={amountInputRef}
               style={{
                 flex: 1,
-                color: isDark ? "#FFFFFF" : "#111827",
+                color: isDark ? ThemeColors.dark.text : ThemeColors.light.text,
                 fontSize: scaleFont(isTablet ? 18 : 16),
                 fontWeight: "500",
               }}
               value={amount}
               onChangeText={onAmountChange}
               placeholder="0"
-              placeholderTextColor={isDark ? "#9CA3AF" : "#9CA3AF"}
+              placeholderTextColor={isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary}
               keyboardType="decimal-pad"
               returnKeyType="next"
             />
@@ -358,12 +360,12 @@ export function AddIncomeForm({ onSuccess, onCancel }: AddIncomeFormProps) {
                     borderRadius: scaleSpacing(12),
                     paddingHorizontal: scaleSpacing(16),
                     paddingVertical: scaleSpacing(14),
-                    backgroundColor: isDark ? "#374151" : "#FFFFFF",
+                    backgroundColor: isDark ? ThemeColors.dark.surface : ThemeColors.light.surface,
                     borderColor: selectedCategory
                       ? selectedCategory.color
                       : isDark
-                        ? "#4B5563"
-                        : "#E5E7EB",
+                        ? ThemeColors.dark.border
+                        : ThemeColors.light.border,
                     borderWidth: selectedCategory ? 2 : 1.5,
                     flexDirection: "row",
                     alignItems: "center",
@@ -389,7 +391,7 @@ export function AddIncomeForm({ onSuccess, onCancel }: AddIncomeFormProps) {
                       <Text
                         style={{
                           flex: 1,
-                          color: isDark ? "#FFFFFF" : "#111827",
+                          color: isDark ? ThemeColors.dark.text : ThemeColors.light.text,
                           fontSize: scaleFont(isTablet ? 18 : 16),
                           fontWeight: "600",
                         }}
@@ -404,7 +406,7 @@ export function AddIncomeForm({ onSuccess, onCancel }: AddIncomeFormProps) {
                   <Ionicons
                     name="chevron-forward"
                     size={scaleSize(20)}
-                    color={isDark ? "#9CA3AF" : "#6B7280"}
+                    color={isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary}
                   />
                 </View>
               )}
@@ -416,15 +418,15 @@ export function AddIncomeForm({ onSuccess, onCancel }: AddIncomeFormProps) {
               style={{
                 borderRadius: scaleSpacing(12),
                 padding: scaleSpacing(16),
-                backgroundColor: isDark ? "#374151" : "#FFFFFF",
+                backgroundColor: isDark ? ThemeColors.dark.surface : ThemeColors.light.surface,
                 borderWidth: 1.5,
-                borderColor: "#EF4444",
+                borderColor: ThemeColors.light.error,
                 alignItems: "center",
               }}
             >
               <Text
                 style={{
-                  color: "#EF4444",
+                  color: ThemeColors.light.error,
                   fontSize: scaleFont(14),
                   fontWeight: "600",
                 }}
@@ -461,7 +463,7 @@ export function AddIncomeForm({ onSuccess, onCancel }: AddIncomeFormProps) {
           />
           <Text
             style={{
-              color: isDark ? "#6B7280" : "#9CA3AF",
+              color: isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary,
               fontSize: scaleFont(isTablet ? 13 : 12),
               marginTop: scaleSpacing(isTablet ? 6 : 4),
               textAlign: "right",
@@ -483,7 +485,7 @@ export function AddIncomeForm({ onSuccess, onCancel }: AddIncomeFormProps) {
         >
           {({ pressed }) => (
             <LinearGradient
-              colors={canSubmit ? ["#10B981", "#059669"] : isDark ? ["#4B5563", "#374151"] : ["#D1D5DB", "#9CA3AF"]}
+              colors={canSubmit ? ThemeColors.light.gradients.success : isDark ? [ThemeColors.dark.border, ThemeColors.dark.surfaceSecondary] : [ThemeColors.light.border, ThemeColors.light.textTertiary]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={{
@@ -494,7 +496,7 @@ export function AddIncomeForm({ onSuccess, onCancel }: AddIncomeFormProps) {
                 justifyContent: "center",
                 opacity: pressed ? 0.9 : 1,
                 transform: [{ scale: pressed ? 0.98 : 1 }],
-                shadowColor: canSubmit ? "#10B981" : "transparent",
+                shadowColor: canSubmit ? ThemeColors.light.success : "transparent",
                 shadowOffset: { width: 0, height: 4 },
                 shadowOpacity: 0.2,
                 shadowRadius: 8,

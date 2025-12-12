@@ -134,7 +134,8 @@ export function SimpleBottomSheet({
             <KeyboardAvoidingView
               style={styles.keyboardAvoid}
               behavior={Platform.OS === "ios" ? "padding" : "height"}
-              keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+              keyboardVerticalOffset={Platform.OS === "ios" ? insets.top + 10 : 20}
+              enabled={Platform.OS === "ios"}
             >
               <View style={styles.content} collapsable={false}>
                 {children}

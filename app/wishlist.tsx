@@ -2,7 +2,8 @@ import { PlannedPurchaseForm } from "@/src/components/forms/PlannedPurchaseForm"
 import { DeleteModal } from "@/src/components/ui/DeleteModal";
 import { SimpleBottomSheet } from "@/src/components/ui/SimpleBottomSheet";
 import { PRIORITY_COLORS } from "@/src/constants/priorityColors";
-import { plannedPurchasesService } from "@/src/services/firestore/planned-purchases.service";
+import { ThemeColors } from "@/src/constants/themeColors";
+import { createPlannedPurchasesService } from "@/src/services/firestore/planned-purchases.service";
 import { useAuth } from "@/src/state/AuthProvider";
 import { useCategories } from "@/src/state/CategoriesProvider";
 import { useCurrency } from "@/src/state/CurrencyProvider";
@@ -15,13 +16,13 @@ import { useFocusEffect } from "expo-router";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  ActivityIndicator,
-  FlatList,
-  Pressable,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  View,
+    ActivityIndicator,
+    FlatList,
+    Pressable,
+    RefreshControl,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 
 type Priority = PlannedPurchaseDocument["priority"];
@@ -49,7 +50,7 @@ export default function WishlistScreen() {
   const loadPlannedPurchases = useCallback(async () => {
     if (!user) return;
     try {
-      const purchases = await plannedPurchasesService.getUserPlannedPurchases(user.uid);
+      const purchases = await createPlannedPurchasesService(user.uid).getPlannedPurchases();
       setPlannedPurchases(purchases);
     } catch (error) {
       console.error("Error loading planned purchases:", error);
@@ -73,7 +74,7 @@ export default function WishlistScreen() {
 
   const handleMarkAsPurchased = useCallback(async (id: string) => {
     try {
-      await plannedPurchasesService.markAsPurchased(id);
+      await createPlannedPurchasesService(user!.uid).markAsPurchased(id);
       await loadPlannedPurchases();
     } catch (error) {
       console.error("Error marking as purchased:", error);
@@ -83,7 +84,7 @@ export default function WishlistScreen() {
   const handleUnmarkAsPurchased = useCallback(async (id: string) => {
     try {
       // Assuming unmark is just updating isPurchased to false
-      await plannedPurchasesService.update(id, { isPurchased: false, purchasedAt: undefined });
+      await createPlannedPurchasesService(user!.uid).update(id, { isPurchased: false, purchasedAt: undefined });
       await loadPlannedPurchases();
     } catch (error) {
       console.error("Error unmarking as purchased:", error);
@@ -112,7 +113,7 @@ export default function WishlistScreen() {
 
     setIsDeleting(true);
     try {
-      await plannedPurchasesService.delete(selectedPurchase.id);
+      await createPlannedPurchasesService(user!.uid).delete(selectedPurchase.id);
       await loadPlannedPurchases();
       setDeleteModalVisible(false);
       setSelectedPurchase(null);
@@ -170,14 +171,14 @@ export default function WishlistScreen() {
       <View
         style={[
           styles.container,
-          {
-            backgroundColor: isDark ? "#111827" : "#FFFFFF",
+           {
+            backgroundColor: isDark ? ThemeColors.dark.background : ThemeColors.light.background,
           },
         ]}
       >
         <ActivityIndicator
           size="large"
-          color={isDark ? "#3B82F6" : "#2563EB"}
+          color={isDark ? ThemeColors.dark.primary : ThemeColors.light.primary}
           style={{ marginTop: scaleSpacing(40) }}
         />
       </View>
@@ -189,7 +190,7 @@ export default function WishlistScreen() {
       style={[
         styles.container,
         {
-          backgroundColor: isDark ? "#111827" : "#FFFFFF",
+          backgroundColor: isDark ? ThemeColors.dark.background : ThemeColors.light.background,
         },
       ]}
     >
@@ -206,7 +207,7 @@ export default function WishlistScreen() {
       >
         <Text
           style={{
-            color: isDark ? "#FFFFFF" : "#111827",
+            color: isDark ? ThemeColors.dark.text : ThemeColors.light.text,
             fontSize: scaleFont(24),
             fontWeight: "700",
           }}
@@ -219,7 +220,7 @@ export default function WishlistScreen() {
             paddingHorizontal: scaleSpacing(16),
             paddingVertical: scaleSpacing(10),
             borderRadius: scaleSpacing(8),
-            backgroundColor: isDark ? "#3B82F6" : "#2563EB",
+            backgroundColor: isDark ? ThemeColors.dark.primary : ThemeColors.light.primary,
           }}
         >
           <Ionicons name="add" size={scaleSize(24)} color="#FFFFFF" />
@@ -247,11 +248,11 @@ export default function WishlistScreen() {
               backgroundColor:
                 filter === f
                   ? isDark
-                    ? "#3B82F6"
-                    : "#2563EB"
+                    ? ThemeColors.dark.primary
+                    : ThemeColors.light.primary
                   : isDark
-                    ? "#374151"
-                    : "#F3F4F6",
+                    ? ThemeColors.dark.surfaceSecondary
+                    : ThemeColors.light.surfaceSecondary,
               alignItems: "center",
             }}
           >
@@ -259,10 +260,10 @@ export default function WishlistScreen() {
               style={{
                 color:
                   filter === f
-                    ? "#FFFFFF"
+                    ? ThemeColors.light.text
                     : isDark
-                      ? "#FFFFFF"
-                      : "#111827",
+                      ? ThemeColors.dark.text
+                      : ThemeColors.light.text,
                 fontSize: scaleFont(14),
                 fontWeight: "600",
               }}
@@ -291,11 +292,11 @@ export default function WishlistScreen() {
           <Ionicons
             name="heart-outline"
             size={scaleSize(64)}
-            color={isDark ? "#6B7280" : "#9CA3AF"}
+            color={isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textTertiary}
           />
           <Text
             style={{
-              color: isDark ? "#9CA3AF" : "#6B7280",
+              color: isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary,
               fontSize: scaleFont(18),
               fontWeight: "600",
               marginTop: scaleSpacing(16),
@@ -310,7 +311,7 @@ export default function WishlistScreen() {
           </Text>
           <Text
             style={{
-              color: isDark ? "#6B7280" : "#9CA3AF",
+              color: isDark ? ThemeColors.dark.textTertiary : ThemeColors.light.textTertiary,
               fontSize: scaleFont(14),
               marginTop: scaleSpacing(8),
               textAlign: "center",
@@ -339,12 +340,12 @@ export default function WishlistScreen() {
                   marginBottom: scaleSpacing(12),
                   borderRadius: scaleSpacing(12),
                   padding: scaleSpacing(16),
-                  backgroundColor: isDark ? "#374151" : "#FFFFFF",
+                  backgroundColor: isDark ? ThemeColors.dark.surface : ThemeColors.light.surface,
                   borderWidth: 1.5,
                   borderColor: isPurchased
                     ? isDark
-                      ? "#4B5563"
-                      : "#E5E7EB"
+                      ? ThemeColors.dark.border
+                      : ThemeColors.light.border
                     : priorityColor,
                   opacity: isPurchased ? 0.7 : 1,
                 }}
@@ -374,7 +375,7 @@ export default function WishlistScreen() {
                       )}
                       <Text
                         style={{
-                          color: isDark ? "#FFFFFF" : "#111827",
+                          color: isDark ? ThemeColors.dark.text : ThemeColors.light.text,
                           fontSize: scaleFont(16),
                           fontWeight: "600",
                           flex: 1,
@@ -408,7 +409,7 @@ export default function WishlistScreen() {
                     </View>
                     <Text
                       style={{
-                        color: isDark ? "#9CA3AF" : "#6B7280",
+                        color: isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary,
                         fontSize: scaleFont(14),
                         fontWeight: "600",
                       }}
@@ -418,7 +419,7 @@ export default function WishlistScreen() {
                     {item.note && (
                       <Text
                         style={{
-                          color: isDark ? "#6B7280" : "#9CA3AF",
+                          color: isDark ? ThemeColors.dark.textTertiary : ThemeColors.light.textTertiary,
                           fontSize: scaleFont(12),
                           marginTop: scaleSpacing(4),
                         }}
@@ -430,7 +431,7 @@ export default function WishlistScreen() {
                     {isPurchased && item.purchasedAt && (
                       <Text
                         style={{
-                          color: isDark ? "#6B7280" : "#9CA3AF",
+                          color: isDark ? ThemeColors.dark.textTertiary : ThemeColors.light.textTertiary,
                           fontSize: scaleFont(11),
                           marginTop: scaleSpacing(4),
                           fontStyle: "italic",
@@ -504,7 +505,7 @@ export default function WishlistScreen() {
                           <Ionicons
                             name="refresh-outline"
                             size={scaleSize(24)}
-                            color={isDark ? "#9CA3AF" : "#6B7280"}
+                            color={isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary}
                           />
                         </Pressable>
                         <View
@@ -515,7 +516,7 @@ export default function WishlistScreen() {
                           <Ionicons
                             name="checkmark-circle"
                             size={scaleSize(28)}
-                            color="#10B981"
+                            color={ThemeColors.light.success}
                           />
                         </View>
                       </>
@@ -529,7 +530,7 @@ export default function WishlistScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={handleRefresh}
-              tintColor={isDark ? "#3B82F6" : "#2563EB"}
+              tintColor={isDark ? ThemeColors.dark.primary : ThemeColors.light.primary}
             />
           }
           contentContainerStyle={{

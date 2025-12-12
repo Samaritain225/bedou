@@ -2,15 +2,18 @@ import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  Alert,
-  FlatList,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-  type TextInput as RNTextInput,
+    Alert,
+    FlatList,
+    KeyboardAvoidingView,
+    Platform,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
+    type TextInput as RNTextInput,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { z } from "zod";
 import { AVAILABLE_CATEGORY_COLORS } from "../../constants/categoryColors";
 import { AVAILABLE_CATEGORY_ICONS } from "../../constants/categoryIcons";
@@ -50,6 +53,7 @@ export function CategoryForm({
   const { addCategory, updateCategory } = useCategories();
   const { scaleSpacing, scaleSize, scaleFont } = useResponsive();
   const { colorScheme } = useTheme();
+  const insets = useSafeAreaInsets();
   const isDark = colorScheme === "dark";
   const nameInputRef = useRef<RNTextInput>(null);
   const isEditing = !!initialCategory;
@@ -140,10 +144,12 @@ export function CategoryForm({
       onSuccess?.();
       onClose();
     } catch (error) {
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : t("categories.form.saveError") || "Failed to save category. Please try again.";
       Alert.alert(
         t("common.error") || "Error",
-        t("categories.form.saveError") ||
-          "Failed to save category. Please try again."
+        errorMessage
       );
     }
   };
@@ -216,17 +222,24 @@ export function CategoryForm({
         </Pressable>
       </View>
 
-      <ScrollView
-        style={styles.content}
-        contentContainerStyle={[
-          styles.contentContainer,
-          {
-            padding: scaleSpacing(20),
-            paddingBottom: scaleSpacing(20),
-          },
-        ]}
-        showsVerticalScrollIndicator={false}
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoid}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
+        <ScrollView
+          style={styles.content}
+          contentContainerStyle={[
+            styles.contentContainer,
+            {
+              padding: scaleSpacing(20),
+              paddingBottom: Math.max(insets.bottom, scaleSpacing(20)),
+            },
+          ]}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
+        >
         {/* Name Field */}
         <FormField
           label={t("categories.form.name", "Name")}
@@ -495,6 +508,7 @@ export function CategoryForm({
           </View>
         </View>
       </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 }
@@ -545,6 +559,9 @@ const styles = StyleSheet.create({
   },
   saveButtonTextDisabled: {
     color: "#9ca3af",
+  },
+  keyboardAvoid: {
+    flex: 1,
   },
   content: {
     flex: 1,

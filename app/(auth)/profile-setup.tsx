@@ -1,18 +1,19 @@
+import { ThemeColors } from '@/src/constants/themeColors';
 import { useAuth } from '@/src/state/AuthProvider';
 import { useTheme } from '@/src/state/ThemeProvider';
 import { useResponsive } from '@/src/utils/responsive';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -57,7 +58,7 @@ export default function ProfileSetupScreen() {
                 style={[
                   styles.iconContainer,
                   {
-                    backgroundColor: isDark ? '#374151' : '#ECFDF5',
+                    backgroundColor: isDark ? ThemeColors.dark.surfaceSecondary : ThemeColors.light.successLight + '20',
                     marginBottom: scaleSpacing(24),
                   },
                 ]}
@@ -65,14 +66,14 @@ export default function ProfileSetupScreen() {
                 <Ionicons
                   name="person"
                   size={scaleSize(32)}
-                  color={isDark ? '#34D399' : '#10B981'}
+                  color={isDark ? ThemeColors.dark.success : ThemeColors.light.success}
                 />
               </View>
               <Text
                 style={[
                   styles.title,
                   {
-                    color: isDark ? '#FFFFFF' : '#111827',
+                    color: isDark ? ThemeColors.dark.text : ThemeColors.light.text,
                     fontSize: scaleFont(28),
                     textAlign: 'center',
                   },
@@ -84,7 +85,7 @@ export default function ProfileSetupScreen() {
                 style={[
                   styles.subtitle,
                   {
-                    color: isDark ? '#9CA3AF' : '#6B7280',
+                    color: isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary,
                     fontSize: scaleFont(16),
                     textAlign: 'center',
                   },
@@ -101,11 +102,11 @@ export default function ProfileSetupScreen() {
                   style={[
                     styles.input,
                     {
-                      backgroundColor: isDark ? '#374151' : '#F9FAFB',
+                      backgroundColor: isDark ? ThemeColors.dark.surface : ThemeColors.light.surfaceSecondary,
                       borderColor: validationError
-                        ? '#EF4444'
-                        : isDark ? '#4B5563' : '#E5E7EB',
-                      color: isDark ? '#FFFFFF' : '#111827',
+                        ? ThemeColors.light.error
+                        : isDark ? ThemeColors.dark.border : ThemeColors.light.border,
+                      color: isDark ? ThemeColors.dark.text : ThemeColors.light.text,
                     },
                   ]}
                   value={name}
@@ -114,7 +115,7 @@ export default function ProfileSetupScreen() {
                     setValidationError(null);
                   }}
                   placeholder="Your Name"
-                  placeholderTextColor={isDark ? '#9CA3AF' : '#9CA3AF'}
+                  placeholderTextColor={isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary}
                   autoCapitalize="words"
                   autoCorrect={false}
                   editable={!loading}
@@ -144,7 +145,7 @@ export default function ProfileSetupScreen() {
                 style={({ pressed }) => [
                   styles.button,
                   {
-                    backgroundColor: isDark ? '#3B82F6' : '#2563EB',
+                    backgroundColor: isDark ? ThemeColors.dark.primary : ThemeColors.light.primary,
                     opacity: pressed || loading ? 0.8 : 1,
                     width: '100%',
                     maxWidth: 400,

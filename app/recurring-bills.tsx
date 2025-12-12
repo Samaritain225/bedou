@@ -1,8 +1,8 @@
 import { RecurringBillForm } from "@/src/components/forms/RecurringBillForm";
 import { DeleteModal } from "@/src/components/ui/DeleteModal";
 import { SimpleBottomSheet } from "@/src/components/ui/SimpleBottomSheet";
-// import { useDb } from "@/src/db/hooks"; // REMOVED
-import { recurringBillsService } from "@/src/services/firestore/recurring-bills.service";
+import { ThemeColors } from "@/src/constants/themeColors";
+import { createRecurringBillsService } from "@/src/services/firestore";
 import { useAuth } from "@/src/state/AuthProvider"; // Added useAuth
 import { useCategories } from "@/src/state/CategoriesProvider";
 import { useCurrency } from "@/src/state/CurrencyProvider";
@@ -52,7 +52,7 @@ export default function RecurringBillsScreen() {
   const loadRecurringBills = useCallback(async () => {
     if (!user) return;
     try {
-      const bills = await recurringBillsService.getUserRecurringBills(user.uid);
+      const bills = await createRecurringBillsService(user.uid).getRecurringBills();
       setRecurringBills(bills);
     } catch (error) {
       console.error("Error loading recurring bills:", error);
@@ -77,7 +77,7 @@ export default function RecurringBillsScreen() {
   const handleToggleActive = useCallback(async (bill: RecurringBillDocument) => {
     if (!bill.id) return;
     try {
-      await recurringBillsService.toggleActive(bill.id, !bill.isActive);
+      await createRecurringBillsService(user!.uid).toggleActive(bill.id, !bill.isActive);
       await loadRecurringBills();
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     } catch (error) {
@@ -102,7 +102,7 @@ export default function RecurringBillsScreen() {
 
     setIsDeleting(true);
     try {
-      await recurringBillsService.delete(selectedBill.id);
+      await createRecurringBillsService(user!.uid).delete(selectedBill.id);
       await loadRecurringBills();
       setDeleteModalVisible(false);
       setSelectedBill(null);
@@ -180,9 +180,9 @@ export default function RecurringBillsScreen() {
         style={({ pressed }) => [
           styles.billItem,
           {
-            backgroundColor: isDark ? "#1F2937" : "#FFFFFF",
+            backgroundColor: isDark ? ThemeColors.dark.surface : ThemeColors.light.surface,
             opacity: pressed ? 0.8 : 1,
-            borderLeftColor: category?.color || "#6B7280",
+            borderLeftColor: category?.color || ThemeColors.light.textSecondary,
             borderLeftWidth: 4,
           },
         ]}
@@ -200,7 +200,7 @@ export default function RecurringBillsScreen() {
               style={[
                 styles.billName,
                 {
-                  color: isDark ? "#FFFFFF" : "#111827",
+                  color: isDark ? ThemeColors.dark.text : ThemeColors.light.text,
                   fontSize: scaleFont(16),
                   fontWeight: "600",
                   flex: 1,
@@ -223,7 +223,7 @@ export default function RecurringBillsScreen() {
               <Ionicons
                 name={bill.isActive ? "toggle" : "toggle-outline"}
                 size={scaleSize(20)}
-                color={bill.isActive ? "#10B981" : "#9CA3AF"}
+                color={bill.isActive ? ThemeColors.light.success : ThemeColors.light.textTertiary}
               />
             </Pressable>
           </View>
@@ -251,7 +251,7 @@ export default function RecurringBillsScreen() {
                 />
                 <Text
                   style={{
-                    color: isDark ? "#9CA3AF" : "#6B7280",
+                    color: isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary,
                     fontSize: scaleFont(12),
                   }}
                 >
@@ -261,7 +261,7 @@ export default function RecurringBillsScreen() {
             )}
             <Text
               style={{
-                color: isDark ? "#9CA3AF" : "#6B7280",
+                color: isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary,
                 fontSize: scaleFont(12),
               }}
             >
@@ -278,7 +278,7 @@ export default function RecurringBillsScreen() {
           >
             <Text
               style={{
-                color: isOverdue ? "#EF4444" : isDark ? "#9CA3AF" : "#6B7280",
+                color: isOverdue ? ThemeColors.light.error : isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary,
                 fontSize: scaleFont(14),
                 fontWeight: "500",
               }}
@@ -287,7 +287,7 @@ export default function RecurringBillsScreen() {
             </Text>
             <Text
               style={{
-                color: isDark ? "#FFFFFF" : "#111827",
+                color: isDark ? ThemeColors.dark.text : ThemeColors.light.text,
                 fontSize: scaleFont(16),
                 fontWeight: "600",
               }}
@@ -303,14 +303,14 @@ export default function RecurringBillsScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.container, { backgroundColor: isDark ? "#111827" : "#F9FAFB" }]}>
-        <ActivityIndicator size="large" color={isDark ? "#3B82F6" : "#2563EB"} />
+      <View style={[styles.container, { backgroundColor: isDark ? ThemeColors.dark.background : ThemeColors.light.background }]}>
+        <ActivityIndicator size="large" color={isDark ? ThemeColors.dark.primary : ThemeColors.light.primary} />
       </View>
     );
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: isDark ? "#111827" : "#F9FAFB" }]}>
+    <View style={[styles.container, { backgroundColor: isDark ? ThemeColors.dark.background : ThemeColors.light.background }]}>
       {/* Header */}
       <View
         style={{
@@ -320,7 +320,7 @@ export default function RecurringBillsScreen() {
           flexDirection: "row",
           alignItems: "center",
           gap: scaleSpacing(16),
-          backgroundColor: isDark ? "#111827" : "#F9FAFB",
+          backgroundColor: isDark ? ThemeColors.dark.background : ThemeColors.light.background,
         }}
       >
         <Pressable
@@ -332,12 +332,12 @@ export default function RecurringBillsScreen() {
           <Ionicons
             name="arrow-back"
             size={scaleSize(24)}
-            color={isDark ? "#FFFFFF" : "#111827"}
+            color={isDark ? ThemeColors.dark.text : ThemeColors.light.text}
           />
         </Pressable>
         <Text
           style={{
-            color: isDark ? "#FFFFFF" : "#111827",
+            color: isDark ? ThemeColors.dark.text : ThemeColors.light.text,
             fontSize: scaleFont(24),
             fontWeight: "700",
             flex: 1,
@@ -367,11 +367,11 @@ export default function RecurringBillsScreen() {
               backgroundColor:
                 filter === f
                   ? isDark
-                    ? "#3B82F6"
-                    : "#2563EB"
+                    ? ThemeColors.dark.primary
+                    : ThemeColors.light.primary
                   : isDark
-                    ? "#374151"
-                    : "#E5E7EB",
+                    ? ThemeColors.dark.surfaceSecondary
+                    : ThemeColors.light.surfaceSecondary,
             }}
           >
             <Text
@@ -380,8 +380,8 @@ export default function RecurringBillsScreen() {
                   filter === f
                     ? "#FFFFFF"
                     : isDark
-                      ? "#9CA3AF"
-                      : "#6B7280",
+                      ? ThemeColors.dark.text
+                      : ThemeColors.light.text,
                 fontSize: scaleFont(14),
                 fontWeight: "600",
               }}
@@ -410,12 +410,12 @@ export default function RecurringBillsScreen() {
             <Ionicons
               name="receipt-outline"
               size={scaleSize(48)}
-              color={isDark ? "#4B5563" : "#9CA3AF"}
+              color={isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textTertiary}
             />
             <Text
               style={{
                 marginTop: scaleSpacing(16),
-                color: isDark ? "#9CA3AF" : "#6B7280",
+                color: isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary,
                 fontSize: scaleFont(16),
                 textAlign: "center",
               }}
@@ -439,7 +439,7 @@ export default function RecurringBillsScreen() {
         style={[
           styles.addButton,
           {
-            backgroundColor: isDark ? "#3B82F6" : "#2563EB",
+            backgroundColor: isDark ? ThemeColors.dark.primary : ThemeColors.light.primary,
           },
         ]}
       >

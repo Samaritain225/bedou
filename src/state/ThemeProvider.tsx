@@ -1,3 +1,4 @@
+import { ThemeColors } from "@/src/constants/themeColors";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   createContext,
@@ -13,6 +14,7 @@ type ColorScheme = "light" | "dark";
 
 type ThemeContextValue = {
   colorScheme: ColorScheme;
+  colors: ThemeColors;
   setColorScheme: (scheme: ColorScheme) => Promise<void>;
   toggleColorScheme: () => Promise<void>;
 };
@@ -58,19 +60,24 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     await setColorScheme(newScheme);
   }, [colorScheme, setColorScheme]);
 
+  const colors = useMemo(() => ThemeColors[colorScheme], [colorScheme]);
+
   const value: ThemeContextValue = useMemo(
     () => ({
       colorScheme,
+      colors,
       setColorScheme,
       toggleColorScheme,
     }),
-    [colorScheme, setColorScheme, toggleColorScheme]
+    [colorScheme, colors, setColorScheme, toggleColorScheme]
   );
 
   // Render with default theme during loading to avoid blocking navigation
+  const defaultScheme = (systemColorScheme ?? "light") as ColorScheme;
   const loadingValue: ThemeContextValue = useMemo(
     () => ({
-      colorScheme: (systemColorScheme ?? "light") as ColorScheme,
+      colorScheme: defaultScheme,
+      colors: ThemeColors[defaultScheme],
       setColorScheme: async () => {
         // No-op during loading
       },
@@ -78,7 +85,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         // No-op during loading
       },
     }),
-    [systemColorScheme]
+    [defaultScheme]
   );
 
   const contextValue = isLoading ? loadingValue : value;

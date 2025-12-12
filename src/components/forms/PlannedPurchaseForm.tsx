@@ -4,10 +4,9 @@ import { PrioritySelector } from "@/src/components/ui/PrioritySelector";
 import { SimpleBottomSheet } from "@/src/components/ui/SimpleBottomSheet";
 import { TextInputField } from "@/src/components/ui/TextInputField";
 import { Category } from "@/src/features/categories/types";
-import { plannedPurchasesService } from "@/src/services/firestore/planned-purchases.service";
+import { createPlannedPurchasesService } from "@/src/services/firestore/planned-purchases.service";
 import { useAuth } from "@/src/state/AuthProvider";
 import { useCategories } from "@/src/state/CategoriesProvider";
-import { useCurrency } from "@/src/state/CurrencyProvider";
 import { useTheme } from "@/src/state/ThemeProvider";
 import { PlannedPurchaseDocument } from "@/src/types/firestore";
 import { handleAmountChange } from "@/src/utils/formHelpers";
@@ -17,14 +16,15 @@ import * as Haptics from "expo-haptics";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  FlatList,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
+    FlatList,
+    KeyboardAvoidingView,
+    Platform,
+    Pressable,
+    ScrollView,
+    Text,
+    View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type Priority = PlannedPurchaseDocument["priority"];
 
@@ -77,12 +77,12 @@ export function PlannedPurchaseForm({
     if (!user) return;
 
     try {
-      const numericAmount = parseFloat(amount);
+      const numericAmount = Number.parseFloat(amount);
       if (!name.trim()) {
         setErrors({ name: t("wishlist.nameRequired", "Name is required") });
         return;
       }
-      if (isNaN(numericAmount) || numericAmount <= 0) {
+      if (Number.isNaN(numericAmount) || numericAmount <= 0) {
         setErrors({ amount: t("wishlist.amountRequired", "Please enter a valid amount") });
         return;
       }
@@ -91,6 +91,8 @@ export function PlannedPurchaseForm({
       setIsSubmitting(true);
 
       const amountBase = Math.round(numericAmount * 100);
+
+      const plannedPurchasesService = createPlannedPurchasesService(user.uid);
 
       if (isEditing && initialPurchase?.id) {
         // Update existing purchase
@@ -104,7 +106,6 @@ export function PlannedPurchaseForm({
       } else {
         // Add new purchase
         await plannedPurchasesService.create({
-            userId: user.uid,
             name: name.trim(),
             amountBase,
             priority,
@@ -145,19 +146,25 @@ export function PlannedPurchaseForm({
     });
   };
 
+  const insets = useSafeAreaInsets();
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       className="flex-1"
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+      enabled={Platform.OS === "ios"}
     >
       <ScrollView
         className="flex-1"
         contentContainerStyle={{
           flexGrow: 1,
           padding: scaleSpacing(24),
+          paddingBottom: Math.max(insets.bottom, scaleSpacing(24)),
         }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
       >
         <View
           style={{

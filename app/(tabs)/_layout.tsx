@@ -102,56 +102,6 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="add"
-        options={{
-          title: t("tabs.add") || "Ajouter",
-          tabBarLabel: ({ focused }) => (
-            <Text
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              minimumFontScale={0.75}
-              style={{
-                fontSize: fontSize,
-                fontWeight: "600",
-                color: focused ? "#2563eb" : "#6B7280",
-                textAlign: "center",
-                marginTop: 2,
-              }}
-            >
-              {t("tabs.add") || "Add"}
-            </Text>
-          ),
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="add-outline" color={color} size={iconSize} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="categories"
-        options={{
-          title: t("tabs.categories") || "Catégories",
-          tabBarLabel: ({ focused }) => (
-            <Text
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              minimumFontScale={0.75}
-              style={{
-                fontSize: fontSize,
-                fontWeight: "600",
-                color: focused ? "#2563eb" : "#6B7280",
-                textAlign: "center",
-                marginTop: 2,
-              }}
-            >
-              {t("tabs.categories") || "Categories"}
-            </Text>
-          ),
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="pricetags-outline" color={color} size={iconSize} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="transactions"
         options={{
           title: t("tabs.transactions") || "Transactions",
@@ -177,9 +127,9 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="wishlist"
+        name="add"
         options={{
-          title: t("tabs.wishlist", "Wishlist"),
+          title: t("tabs.add") || "Ajouter",
           tabBarLabel: ({ focused }) => (
             <Text
               numberOfLines={1}
@@ -193,11 +143,36 @@ export default function TabsLayout() {
                 marginTop: 2,
               }}
             >
-              {t("tabs.wishlist", "Wishlist")}
+              {t("tabs.add") || "Add"}
             </Text>
           ),
           tabBarIcon: ({ color }) => (
-            <Ionicons name="heart-outline" color={color} size={iconSize} />
+            <Ionicons name="add-outline" color={color} size={iconSize} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="currency-converter"
+        options={{
+          title: t("tabs.currency", "Converter"),
+          tabBarLabel: ({ focused }) => (
+            <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.75}
+              style={{
+                fontSize: fontSize,
+                fontWeight: "600",
+                color: focused ? "#2563eb" : "#6B7280",
+                textAlign: "center",
+                marginTop: 2,
+              }}
+            >
+              {t("tabs.currency", "Converter")}
+            </Text>
+          ),
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="cash-outline" color={color} size={iconSize} />
           ),
         }}
       />

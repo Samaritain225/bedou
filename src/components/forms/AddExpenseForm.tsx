@@ -1,8 +1,9 @@
 import { FormField } from "@/src/components/ui/FormField";
 import { PaymentMethod, PaymentMethodPicker } from "@/src/components/ui/PaymentMethodPicker";
 import { TextInputField } from "@/src/components/ui/TextInputField";
+import { ThemeColors } from "@/src/constants/themeColors";
 import { Category } from "@/src/features/categories/types";
-import { transactionsService } from "@/src/services/firestore/transactions.service";
+import { createTransactionsService } from "@/src/services/firestore/transactions.service";
 import { useAuth } from "@/src/state/AuthProvider";
 import { useCategories } from "@/src/state/CategoriesProvider";
 import { useCurrency } from "@/src/state/CurrencyProvider";
@@ -181,8 +182,8 @@ export function AddExpenseForm() {
 
   const handleSubmit = async () => {
     try {
-      const numericAmount = parseFloat(amount);
-      if (isNaN(numericAmount) || numericAmount <= 0) {
+      const numericAmount = Number.parseFloat(amount);
+      if (Number.isNaN(numericAmount) || numericAmount <= 0) {
         setErrors({ amount: t("add.amountRequired") || "Please enter a valid amount" });
         return;
       }
@@ -220,8 +221,8 @@ export function AddExpenseForm() {
         throw new Error("User not authenticated");
       }
 
+      const transactionsService = createTransactionsService(user.uid);
       await transactionsService.create({
-        userId: user.uid,
         dateISO: selectedDate.toISOString(),
         amountOriginal: amountBase,
         currencyCode: baseCurrency?.code || "XOF",
@@ -263,14 +264,14 @@ export function AddExpenseForm() {
     }
   };
 
-  const canSubmit = amount && parseFloat(amount) > 0 && selectedCategory;
+  const canSubmit = amount && Number.parseFloat(amount) > 0 && selectedCategory;
 
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       className="flex-1"
-      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       enabled={Platform.OS === "ios"}
     >
       <ScrollView
@@ -279,11 +280,11 @@ export function AddExpenseForm() {
           flexGrow: 1,
           justifyContent: "center",
           padding: scaleSpacing(isTablet ? 32 : 24),
-          paddingBottom: scaleSpacing(isTablet ? 40 : 32),
+          paddingBottom: Math.max(insets.bottom, scaleSpacing(isTablet ? 40 : 32)),
         }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="none"
+        keyboardDismissMode="interactive"
         nestedScrollEnabled={true}
       >
         <View
@@ -364,15 +365,14 @@ export function AddExpenseForm() {
           <FormField label={t("add.amount", "Amount")} error={errors.amount}>
             <View
               style={{
-                borderRadius: scaleSpacing(12),
                 paddingHorizontal: scaleSpacing(16),
                 paddingVertical: scaleSpacing(14),
-                backgroundColor: isDark ? "#374151" : "#FFFFFF",
+                backgroundColor: isDark ? ThemeColors.dark.surface : ThemeColors.light.surface,
                 borderColor: errors.amount
-                  ? "#EF4444"
+                  ? ThemeColors.light.error
                   : isDark
-                    ? "#4B5563"
-                    : "#E5E7EB",
+                    ? ThemeColors.dark.border
+                    : ThemeColors.light.border,
                 borderWidth: 1.5,
                 flexDirection: "row",
                 alignItems: "center",
@@ -381,7 +381,7 @@ export function AddExpenseForm() {
             >
               <Text
                 style={{
-                  color: isDark ? "#FFFFFF" : "#111827",
+                  color: isDark ? ThemeColors.dark.text : ThemeColors.light.text,
                   fontSize: scaleFont(isTablet ? 18 : 16),
                   fontWeight: "600",
                   minWidth: scaleSize(isTablet ? 60 : 50),
@@ -393,14 +393,14 @@ export function AddExpenseForm() {
                 ref={amountInputRef}
                 style={{
                   flex: 1,
-                  color: isDark ? "#FFFFFF" : "#111827",
+                  color: isDark ? ThemeColors.dark.text : ThemeColors.light.text,
                   fontSize: scaleFont(isTablet ? 18 : 16),
                   fontWeight: "500",
                 }}
                 value={amount}
                 onChangeText={onAmountChange}
                 placeholder="0"
-                placeholderTextColor={isDark ? "#9CA3AF" : "#9CA3AF"}
+                placeholderTextColor={isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary}
                 keyboardType="decimal-pad"
                 returnKeyType="next"
               />
@@ -426,15 +426,14 @@ export function AddExpenseForm() {
               {({ pressed }) => (
                 <View
                   style={{
-                    borderRadius: scaleSpacing(12),
                     paddingHorizontal: scaleSpacing(16),
                     paddingVertical: scaleSpacing(14),
-                    backgroundColor: isDark ? "#374151" : "#FFFFFF",
+                    backgroundColor: isDark ? ThemeColors.dark.surface : ThemeColors.light.surface,
                     borderColor: selectedCategory
                       ? selectedCategory.color
                       : isDark
-                        ? "#4B5563"
-                        : "#E5E7EB",
+                        ? ThemeColors.dark.border
+                        : ThemeColors.light.border,
                     borderWidth: selectedCategory ? 2 : 1.5,
                     flexDirection: "row",
                     alignItems: "center",
@@ -475,7 +474,7 @@ export function AddExpenseForm() {
                     <Text
                       style={{
                         flex: 1,
-                        color: isDark ? "#9CA3AF" : "#9CA3AF",
+                        color: isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary,
                         fontSize: scaleFont(isTablet ? 17 : 16),
                       }}
                     >
@@ -485,7 +484,7 @@ export function AddExpenseForm() {
                   <Ionicons
                     name="chevron-down"
                     size={scaleSize(20)}
-                    color={isDark ? "#9CA3AF" : "#9CA3AF"}
+                    color={isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary}
                   />
                 </View>
               )}
@@ -515,7 +514,7 @@ export function AddExpenseForm() {
                     style={{
                       borderTopLeftRadius: scaleSpacing(28),
                       borderTopRightRadius: scaleSpacing(28),
-                      backgroundColor: isDark ? "#1F2937" : "#FFFFFF",
+                      backgroundColor: isDark ? ThemeColors.dark.surface : ThemeColors.light.surface,
                       width: "100%",
                       maxHeight: modalSheetHeight,
                       height: modalSheetHeight,
@@ -537,7 +536,7 @@ export function AddExpenseForm() {
                     style={{
                       width: scaleSize(56),
                       height: scaleSize(4),
-                      backgroundColor: isDark ? "#4B5563" : "#D1D5DB",
+                      backgroundColor: isDark ? ThemeColors.dark.border : ThemeColors.light.border,
                       borderRadius: scaleSize(2),
                       alignSelf: "center",
                       marginTop: scaleSpacing(10),
@@ -556,7 +555,7 @@ export function AddExpenseForm() {
                   >
                     <Text
                       style={{
-                        color: isDark ? "#FFFFFF" : "#111827",
+                        color: isDark ? ThemeColors.dark.text : ThemeColors.light.text,
                         fontSize: scaleFont(20),
                         fontWeight: "700",
                         letterSpacing: 0.3,
@@ -580,7 +579,7 @@ export function AddExpenseForm() {
                       <Ionicons
                         name="close"
                         size={scaleSize(24)}
-                        color={isDark ? "#FFFFFF" : "#111827"}
+                        color={isDark ? ThemeColors.dark.text : ThemeColors.light.text}
                       />
                     </Pressable>
                   </View>
@@ -599,8 +598,8 @@ export function AddExpenseForm() {
                         borderRadius: scaleSpacing(12),
                         paddingHorizontal: scaleSpacing(16),
                         paddingVertical: scaleSpacing(10),
-                        backgroundColor: isDark ? "#374151" : "#FFFFFF",
-                        borderColor: isDark ? "#4B5563" : "#E5E7EB",
+                        backgroundColor: isDark ? ThemeColors.dark.surfaceSecondary : ThemeColors.light.surfaceSecondary,
+                        borderColor: isDark ? ThemeColors.dark.border : ThemeColors.light.border,
                         borderWidth: 1.5,
                         gap: scaleSpacing(12),
                       }}
@@ -608,18 +607,18 @@ export function AddExpenseForm() {
                       <Ionicons
                         name="search"
                         size={scaleSize(20)}
-                        color={isDark ? "#9CA3AF" : "#9CA3AF"}
+                        color={isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary}
                       />
                       <TextInput
                         style={{
                           flex: 1,
-                          color: isDark ? "#FFFFFF" : "#111827",
+                          color: isDark ? ThemeColors.dark.text : ThemeColors.light.text,
                           fontSize: scaleFont(16),
                         }}
                         value={categorySearchQuery}
                         onChangeText={setCategorySearchQuery}
                         placeholder={t("add.searchCategory", "Search categories...") || "Search categories..."}
-                        placeholderTextColor={isDark ? "#9CA3AF" : "#9CA3AF"}
+                        placeholderTextColor={isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary}
                         returnKeyType="search"
                         autoCapitalize="none"
                         autoCorrect={false}
@@ -634,7 +633,7 @@ export function AddExpenseForm() {
                           <Ionicons
                             name="close-circle"
                             size={scaleSize(20)}
-                            color={isDark ? "#9CA3AF" : "#9CA3AF"}
+                            color={isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary}
                           />
                         </Pressable>
                       )}
@@ -662,8 +661,8 @@ export function AddExpenseForm() {
                             paddingVertical: scaleSpacing(14),
                             paddingHorizontal: scaleSpacing(16),
                             borderRadius: scaleSpacing(12),
-                            backgroundColor: isDark ? "#374151" : "#F9FAFB",
-                            borderColor: isDark ? "#4B5563" : "#E5E7EB",
+                            backgroundColor: isDark ? ThemeColors.dark.surface : ThemeColors.light.surfaceSecondary,
+                            borderColor: isDark ? ThemeColors.dark.border : ThemeColors.light.border,
                             borderWidth: 1.5,
                             borderStyle: "dashed",
                             flexDirection: "row",
@@ -675,11 +674,11 @@ export function AddExpenseForm() {
                           <Ionicons
                             name="add-circle-outline"
                             size={scaleSize(20)}
-                            color={isDark ? "#9CA3AF" : "#6B7280"}
+                            color={isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary}
                           />
                           <Text
                             style={{
-                              color: isDark ? "#9CA3AF" : "#6B7280",
+                              color: isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary,
                               fontSize: scaleFont(16),
                               fontWeight: "600",
                             }}

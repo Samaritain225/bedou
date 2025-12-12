@@ -54,6 +54,8 @@
     "recent": "Recent Transactions",
     "empty": "No transactions this month",
     "empty.subtitle": "Add your first expense to get started",
+    "empty.createCategory": "Create Your First Category",
+    "empty.addFirst": "Add Your First Expense",
     "statistics": "Statistics",
     "thisWeek": "This Week",
     "thisMonth": "This Month",
@@ -121,7 +123,8 @@
     "title": "Categories",
     "subtitle": "Manage your categories and budgets per month",
     "empty": "No categories yet",
-    "empty.subtitle": "Tap the + button to add your first category",
+    "empty.subtitle": "Categories help you organize your expenses. Create your first category to get started!",
+    "empty.createButton": "Create Your First Category",
     "form": {
       "title": "New Category",
       "editTitle": "Edit Category",

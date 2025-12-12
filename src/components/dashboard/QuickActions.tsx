@@ -1,6 +1,7 @@
 import { AddIncomeForm } from "@/src/components/forms/AddIncomeForm";
 import { PlannedPurchaseForm } from "@/src/components/forms/PlannedPurchaseForm";
 import { SimpleBottomSheet } from "@/src/components/ui/SimpleBottomSheet";
+import { ThemeColors } from "@/src/constants/themeColors";
 import { useTheme } from "@/src/state/ThemeProvider";
 import { useResponsive } from "@/src/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
@@ -43,9 +44,9 @@ export function QuickActions({ onRefresh }: QuickActionsProps) {
             borderRadius: scaleSpacing(12),
             paddingVertical: scaleSpacing(14),
             paddingHorizontal: scaleSpacing(16),
-            backgroundColor: isDark ? "#374151" : "#FFFFFF",
+            backgroundColor: isDark ? ThemeColors.dark.surface : ThemeColors.light.surface,
             borderWidth: 1.5,
-            borderColor: isDark ? "#4B5563" : "#E5E7EB",
+            borderColor: isDark ? ThemeColors.dark.border : ThemeColors.light.border,
             alignItems: "center",
             justifyContent: "center",
             gap: scaleSpacing(8),
@@ -83,9 +84,9 @@ export function QuickActions({ onRefresh }: QuickActionsProps) {
             borderRadius: scaleSpacing(12),
             paddingVertical: scaleSpacing(14),
             paddingHorizontal: scaleSpacing(16),
-            backgroundColor: isDark ? "#374151" : "#FFFFFF",
+            backgroundColor: isDark ? ThemeColors.dark.surface : ThemeColors.light.surface,
             borderWidth: 1.5,
-            borderColor: isDark ? "#4B5563" : "#E5E7EB",
+            borderColor: isDark ? ThemeColors.dark.border : ThemeColors.light.border,
             alignItems: "center",
             justifyContent: "center",
             gap: scaleSpacing(8),
@@ -123,9 +124,9 @@ export function QuickActions({ onRefresh }: QuickActionsProps) {
             borderRadius: scaleSpacing(12),
             paddingVertical: scaleSpacing(14),
             paddingHorizontal: scaleSpacing(16),
-            backgroundColor: isDark ? "#374151" : "#FFFFFF",
+            backgroundColor: isDark ? ThemeColors.dark.surface : ThemeColors.light.surface,
             borderWidth: 1.5,
-            borderColor: isDark ? "#4B5563" : "#E5E7EB",
+            borderColor: isDark ? ThemeColors.dark.border : ThemeColors.light.border,
             alignItems: "center",
             justifyContent: "center",
             gap: scaleSpacing(8),

@@ -1,3 +1,13 @@
+import { CategoryForm } from "@/src/components/forms/CategoryForm";
+import { Card } from "@/src/components/ui/Card";
+import { DeleteModal } from "@/src/components/ui/DeleteModal";
+import { SimpleBottomSheet } from "@/src/components/ui/SimpleBottomSheet";
+import { ThemeColors } from "@/src/constants/themeColors";
+import { Category } from "@/src/features/categories/types";
+import { useThemeColors } from "@/src/hooks/useThemeColors";
+import { useCategories } from "@/src/state/CategoriesProvider";
+import { useTheme } from "@/src/state/ThemeProvider";
+import { useResponsive } from "@/src/utils/responsive";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useMemo, useState } from "react";
@@ -10,17 +20,13 @@ import {
   Text,
   View,
 } from "react-native";
-import { CategoryForm } from "../../src/components/forms/CategoryForm";
-import { Card } from "../../src/components/ui/Card";
-import { DeleteModal } from "../../src/components/ui/DeleteModal";
-import { SimpleBottomSheet } from "../../src/components/ui/SimpleBottomSheet";
-import { Category } from "../../src/features/categories/types";
-import { useCategories } from "../../src/state/CategoriesProvider";
-import { useResponsive } from "../../src/utils/responsive";
 
 export default function CategoriesScreen() {
   const { t } = useTranslation();
   const { categories, deleteCategory, refresh } = useCategories();
+  const { colorScheme } = useTheme();
+  const colors = useThemeColors();
+  const isDark = colorScheme === "dark";
   const params = useLocalSearchParams<{ openAdd?: string }>();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -159,21 +165,78 @@ export default function CategoriesScreen() {
 
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
-      <Ionicons name="pricetags-outline" size={64} color="#999" />
-      <Text className="text-lg font-semibold text-text-primary dark:text-text-primary-dark mt-4">
+      <View
+        style={{
+          width: scaleSize(80),
+          height: scaleSize(80),
+          borderRadius: scaleSize(40),
+          backgroundColor: colors.surface,
+          alignItems: "center",
+          justifyContent: "center",
+          marginBottom: scaleSpacing(24),
+        }}
+      >
+        <Ionicons
+          name="pricetags-outline"
+          size={scaleSize(48)}
+          color={colors.textTertiary}
+        />
+      </View>
+      <Text
+        style={{
+          color: colors.textPrimary,
+          fontSize: scaleFont(20),
+          fontWeight: "700",
+          marginTop: scaleSpacing(16),
+          textAlign: "center",
+          marginBottom: scaleSpacing(8),
+        }}
+      >
         {t("categories.empty") || "No categories yet"}
       </Text>
-      <Text className="text-sm text-text-secondary dark:text-text-secondary-dark mt-2 text-center px-8">
+      <Text
+        style={{
+          color: colors.textSecondary,
+          fontSize: scaleFont(15),
+          marginTop: scaleSpacing(8),
+          textAlign: "center",
+          lineHeight: scaleFont(22),
+          marginBottom: scaleSpacing(32),
+          paddingHorizontal: scaleSpacing(32),
+        }}
+      >
         {t("categories.empty.subtitle") ||
-          "Tap the + button to add your first category"}
+          "Categories help you organize your expenses. Create your first category to get started!"}
       </Text>
+      <Pressable
+        onPress={handleAdd}
+        style={{
+          backgroundColor: colors.primary,
+          paddingHorizontal: scaleSpacing(24),
+          paddingVertical: scaleSpacing(14),
+          borderRadius: scaleSpacing(12),
+          flexDirection: "row",
+          alignItems: "center",
+          gap: scaleSpacing(8),
+        }}
+      >
+        <Ionicons name="add-circle" size={scaleSize(20)} color={colors.textInverse} />
+        <Text
+          style={{
+            color: colors.textInverse,
+            fontSize: scaleFont(16),
+            fontWeight: "600",
+          }}
+        >
+          {t("categories.empty.createButton", "Create Your First Category")}
+        </Text>
+      </Pressable>
     </View>
   );
 
   return (
     <View
-      style={styles.container}
-      className="bg-background dark:bg-background-dark"
+      style={[styles.container, { backgroundColor: colors.background }]}
     >
       <FlatList
         data={categories}
@@ -200,11 +263,12 @@ export default function CategoriesScreen() {
             borderRadius: scaleSize(28),
             right: scaleSpacing(20),
             bottom: scaleSpacing(20),
+            backgroundColor: colors.primary,
           },
         ]}
         onPress={handleAdd}
       >
-        <Ionicons name="add" size={scaleSize(28)} color="#fff" />
+        <Ionicons name="add" size={scaleSize(28)} color={colors.textInverse} />
       </Pressable>
 
       <SimpleBottomSheet
@@ -281,7 +345,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: ThemeColors.dark.overlay,
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
@@ -295,7 +359,7 @@ const styles = StyleSheet.create({
   fab: {
     position: "absolute",
     // Dynamic sizes applied inline
-    backgroundColor: "#2563eb",
+    // backgroundColor applied inline from theme
     alignItems: "center",
     justifyContent: "center",
     elevation: 4,

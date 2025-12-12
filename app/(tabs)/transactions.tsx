@@ -7,13 +7,13 @@ import { useFocusEffect } from "expo-router";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  ActivityIndicator,
-  FlatList,
-  Pressable,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  View,
+    ActivityIndicator,
+    FlatList,
+    Pressable,
+    RefreshControl,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 // import { useDb } from "@/src/db/hooks"; // REMOVED
 import { createTransactionsService } from "@/src/services/firestore/transactions.service";

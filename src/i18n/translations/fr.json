@@ -54,6 +54,8 @@
     "recent": "Transactions récentes",
     "empty": "Aucune transaction ce mois-ci",
     "empty.subtitle": "Ajoutez votre première dépense pour commencer",
+    "empty.createCategory": "Créer Votre Première Catégorie",
+    "empty.addFirst": "Ajouter Votre Première Dépense",
     "statistics": "Statistiques",
     "thisWeek": "Cette Semaine",
     "thisMonth": "Ce Mois",
@@ -121,7 +123,8 @@
     "title": "Catégories",
     "subtitle": "Gérez vos catégories et budgets par mois",
     "empty": "Aucune catégorie pour le moment",
-    "empty.subtitle": "Appuyez sur le bouton + pour ajouter votre première catégorie",
+    "empty.subtitle": "Les catégories vous aident à organiser vos dépenses. Créez votre première catégorie pour commencer !",
+    "empty.createButton": "Créer Votre Première Catégorie",
     "form": {
       "title": "Nouvelle catégorie",
       "editTitle": "Modifier la catégorie",

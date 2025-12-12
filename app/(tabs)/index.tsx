@@ -7,6 +7,7 @@ import { PlannedPurchaseForm } from "@/src/components/forms/PlannedPurchaseForm"
 import { SimpleBottomSheet } from "@/src/components/ui/SimpleBottomSheet";
 import { PRIORITY_COLORS } from "@/src/constants/priorityColors";
 // import { useDb } from "@/src/db/hooks"; // REMOVED
+import { useThemeColors } from "@/src/hooks/useThemeColors";
 import { createPlannedPurchasesService } from "@/src/services/firestore/planned-purchases.service";
 import { createRecurringBillsService } from "@/src/services/firestore/recurring-bills.service";
 import { createTransactionsService } from "@/src/services/firestore/transactions.service";
@@ -25,13 +26,13 @@ import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  ActivityIndicator,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View
+    ActivityIndicator,
+    Pressable,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View
 } from "react-native";
 
 export default function DashboardScreen() {
@@ -42,6 +43,7 @@ export default function DashboardScreen() {
   const { baseCurrency } = useCurrency();
   const { wallet } = useWallet();
   const { colorScheme } = useTheme();
+  const colors = useThemeColors();
   const isDark = colorScheme === "dark";
   const { scaleSpacing, scaleSize, scaleFont } = useResponsive();
   const { hasCompletedOnboarding, isLoading: onboardingLoading } = useOnboarding();
@@ -253,13 +255,13 @@ export default function DashboardScreen() {
         style={[
           styles.container,
           {
-            backgroundColor: isDark ? "#111827" : "#FFFFFF",
+            backgroundColor: colors.background,
           },
         ]}
       >
         <ActivityIndicator
           size="large"
-          color={isDark ? "#3B82F6" : "#2563EB"}
+          color={colors.primary}
           style={{ marginTop: scaleSpacing(40) }}
         />
       </View>
@@ -271,7 +273,7 @@ export default function DashboardScreen() {
       style={[
         styles.container,
         {
-          backgroundColor: isDark ? "#111827" : "#FFFFFF",
+          backgroundColor: colors.background,
         },
       ]}
     >
@@ -282,7 +284,7 @@ export default function DashboardScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            tintColor={isDark ? "#3B82F6" : "#2563EB"}
+            tintColor={colors.primary}
           />
         }
       >
@@ -299,7 +301,7 @@ export default function DashboardScreen() {
         >
           <Text
             style={{
-              color: isDark ? "#FFFFFF" : "#111827",
+              color: colors.textPrimary,
               fontSize: scaleFont(20),
               fontWeight: "700",
             }}
@@ -331,7 +333,7 @@ export default function DashboardScreen() {
             >
               <Text
                 style={{
-                  color: isDark ? "#FFFFFF" : "#111827",
+                  color: colors.textPrimary,
                   fontSize: scaleFont(18),
                   fontWeight: "700",
                 }}
@@ -344,12 +346,12 @@ export default function DashboardScreen() {
                   paddingHorizontal: scaleSpacing(12),
                   paddingVertical: scaleSpacing(8),
                   borderRadius: scaleSpacing(8),
-                  backgroundColor: isDark ? "#3B82F6" : "#2563EB",
+                  backgroundColor: colors.primary,
                 }}
               >
                 <Text
                   style={{
-                    color: "#FFFFFF",
+                    color: colors.textInverse,
                     fontSize: scaleFont(12),
                     fontWeight: "600",
                   }}
@@ -396,15 +398,13 @@ export default function DashboardScreen() {
                       style={{
                         borderRadius: scaleSpacing(12),
                         padding: scaleSpacing(16),
-                        backgroundColor: isDark ? "#374151" : "#FFFFFF",
+                        backgroundColor: colors.surface,
                         borderWidth: 1.5,
                         borderColor: isOverdue
-                          ? "#EF4444"
-                          : isDark
-                            ? "#4B5563"
-                            : "#E5E7EB",
+                          ? colors.error
+                          : colors.border,
                         borderLeftWidth: 4,
-                        borderLeftColor: category?.color || "#6B7280",
+                        borderLeftColor: category?.color || colors.textTertiary,
                         marginBottom: scaleSpacing(12),
                       }}
                     >
@@ -433,7 +433,7 @@ export default function DashboardScreen() {
                             )}
                             <Text
                               style={{
-                                color: isDark ? "#FFFFFF" : "#111827",
+                                color: colors.textPrimary,
                                 fontSize: scaleFont(16),
                                 fontWeight: "600",
                                 flex: 1,
@@ -453,10 +453,8 @@ export default function DashboardScreen() {
                             <Text
                               style={{
                                 color: isOverdue
-                                  ? "#EF4444"
-                                  : isDark
-                                    ? "#9CA3AF"
-                                    : "#6B7280",
+                                  ? colors.error
+                                  : colors.textSecondary,
                                 fontSize: scaleFont(14),
                                 fontWeight: "500",
                               }}
@@ -475,7 +473,7 @@ export default function DashboardScreen() {
                             </Text>
                             <Text
                               style={{
-                                color: isDark ? "#FFFFFF" : "#111827",
+                                color: colors.textPrimary,
                                 fontSize: scaleFont(16),
                                 fontWeight: "600",
                               }}
@@ -502,7 +500,7 @@ export default function DashboardScreen() {
             }}
           >
             <LinearGradient
-              colors={["#6366F1", "#8B5CF6"]}
+              colors={colors.gradients.wallet}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={{
@@ -520,7 +518,7 @@ export default function DashboardScreen() {
                 <View>
                   <Text
                     style={{
-                      color: "#FFFFFF",
+                      color: colors.textInverse,
                       fontSize: scaleFont(14),
                       fontWeight: "600",
                       marginBottom: scaleSpacing(4),
@@ -531,7 +529,7 @@ export default function DashboardScreen() {
                   </Text>
                   <Text
                     style={{
-                      color: "#FFFFFF",
+                      color: colors.textInverse,
                       fontSize: scaleFont(28),
                       fontWeight: "700",
                     }}
@@ -545,7 +543,7 @@ export default function DashboardScreen() {
                 <Ionicons
                   name="wallet"
                   size={scaleSize(40)}
-                  color="#FFFFFF"
+                  color={colors.textInverse}
                   style={{ opacity: 0.9 }}
                 />
               </View>
@@ -562,7 +560,7 @@ export default function DashboardScreen() {
         >
           <Text
             style={{
-              color: isDark ? "#FFFFFF" : "#111827",
+              color: colors.textPrimary,
               fontSize: scaleFont(18),
               fontWeight: "700",
               marginBottom: scaleSpacing(16),
@@ -585,9 +583,9 @@ export default function DashboardScreen() {
                 flex: 1,
                 borderRadius: scaleSpacing(12),
                 padding: scaleSpacing(16),
-                backgroundColor: isDark ? "#374151" : "#FFFFFF",
+                backgroundColor: colors.surface,
                 borderWidth: 1.5,
-                borderColor: isDark ? "#4B5563" : "#E5E7EB",
+                borderColor: colors.border,
               }}
             >
               <View
@@ -601,11 +599,11 @@ export default function DashboardScreen() {
                 <Ionicons
                   name="calendar-outline"
                   size={scaleSize(20)}
-                  color={isDark ? "#9CA3AF" : "#6B7280"}
+                  color={colors.textSecondary}
                 />
                 <Text
                   style={{
-                    color: isDark ? "#9CA3AF" : "#6B7280",
+                    color: colors.textSecondary,
                     fontSize: scaleFont(12),
                     fontWeight: "600",
                   }}
@@ -615,7 +613,7 @@ export default function DashboardScreen() {
               </View>
               <Text
                 style={{
-                  color: isDark ? "#FFFFFF" : "#111827",
+                  color: colors.textPrimary,
                   fontSize: scaleFont(16),
                   fontWeight: "700",
                   marginBottom: scaleSpacing(4),
@@ -628,7 +626,7 @@ export default function DashboardScreen() {
               </Text>
               <Text
                 style={{
-                  color: isDark ? "#9CA3AF" : "#6B7280",
+                  color: colors.textSecondary,
                   fontSize: scaleFont(12),
                 }}
               >
@@ -642,9 +640,9 @@ export default function DashboardScreen() {
                 flex: 1,
                 borderRadius: scaleSpacing(12),
                 padding: scaleSpacing(16),
-                backgroundColor: isDark ? "#374151" : "#FFFFFF",
+                backgroundColor: colors.surface,
                 borderWidth: 1.5,
-                borderColor: isDark ? "#4B5563" : "#E5E7EB",
+                borderColor: colors.border,
               }}
             >
               <View
@@ -658,11 +656,11 @@ export default function DashboardScreen() {
                 <Ionicons
                   name="calendar"
                   size={scaleSize(20)}
-                  color={isDark ? "#9CA3AF" : "#6B7280"}
+                  color={colors.textSecondary}
                 />
                 <Text
                   style={{
-                    color: isDark ? "#9CA3AF" : "#6B7280",
+                    color: colors.textSecondary,
                     fontSize: scaleFont(12),
                     fontWeight: "600",
                   }}
@@ -672,7 +670,7 @@ export default function DashboardScreen() {
               </View>
               <Text
                 style={{
-                  color: isDark ? "#FFFFFF" : "#111827",
+                  color: colors.textPrimary,
                   fontSize: scaleFont(16),
                   fontWeight: "700",
                   marginBottom: scaleSpacing(4),
@@ -685,7 +683,7 @@ export default function DashboardScreen() {
               </Text>
               <Text
                 style={{
-                  color: isDark ? "#9CA3AF" : "#6B7280",
+                  color: colors.textSecondary,
                   fontSize: scaleFont(12),
                 }}
               >
@@ -707,9 +705,9 @@ export default function DashboardScreen() {
                 flex: 1,
                 borderRadius: scaleSpacing(12),
                 padding: scaleSpacing(16),
-                backgroundColor: isDark ? "#374151" : "#FFFFFF",
+                backgroundColor: colors.surface,
                 borderWidth: 1.5,
-                borderColor: isDark ? "#4B5563" : "#E5E7EB",
+                borderColor: colors.border,
               }}
             >
               <View
@@ -723,11 +721,11 @@ export default function DashboardScreen() {
                 <Ionicons
                   name="trending-down-outline"
                   size={scaleSize(20)}
-                  color={isDark ? "#9CA3AF" : "#6B7280"}
+                  color={colors.textSecondary}
                 />
                 <Text
                   style={{
-                    color: isDark ? "#9CA3AF" : "#6B7280",
+                    color: colors.textSecondary,
                     fontSize: scaleFont(12),
                     fontWeight: "600",
                   }}
@@ -737,7 +735,7 @@ export default function DashboardScreen() {
               </View>
               <Text
                 style={{
-                  color: isDark ? "#FFFFFF" : "#111827",
+                  color: colors.textPrimary,
                   fontSize: scaleFont(16),
                   fontWeight: "700",
                   marginBottom: scaleSpacing(4),
@@ -750,7 +748,7 @@ export default function DashboardScreen() {
               </Text>
               <Text
                 style={{
-                  color: isDark ? "#9CA3AF" : "#6B7280",
+                  color: colors.textSecondary,
                   fontSize: scaleFont(12),
                 }}
               >
@@ -764,9 +762,9 @@ export default function DashboardScreen() {
                 flex: 1,
                 borderRadius: scaleSpacing(12),
                 padding: scaleSpacing(16),
-                backgroundColor: isDark ? "#374151" : "#FFFFFF",
+                backgroundColor: colors.surface,
                 borderWidth: 1.5,
-                borderColor: isDark ? "#4B5563" : "#E5E7EB",
+                borderColor: colors.border,
               }}
             >
               <View
@@ -780,11 +778,11 @@ export default function DashboardScreen() {
                 <Ionicons
                   name="list-outline"
                   size={scaleSize(20)}
-                  color={isDark ? "#9CA3AF" : "#6B7280"}
+                  color={colors.textSecondary}
                 />
                 <Text
                   style={{
-                    color: isDark ? "#9CA3AF" : "#6B7280",
+                    color: colors.textSecondary,
                     fontSize: scaleFont(12),
                     fontWeight: "600",
                   }}
@@ -794,7 +792,7 @@ export default function DashboardScreen() {
               </View>
               <Text
                 style={{
-                  color: "#EF4444",
+                  color: colors.error,
                   fontSize: scaleFont(18),
                   fontWeight: "700",
                   marginBottom: scaleSpacing(4),
@@ -804,7 +802,7 @@ export default function DashboardScreen() {
               </Text>
               <Text
                 style={{
-                  color: isDark ? "#9CA3AF" : "#6B7280",
+                  color: colors.textSecondary,
                   fontSize: scaleFont(12),
                 }}
               >
@@ -824,7 +822,7 @@ export default function DashboardScreen() {
         >
           {/* Income Card */}
           <LinearGradient
-            colors={["#34D399", "#10B981"]}
+            colors={colors.gradients.income}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={{
@@ -842,7 +840,7 @@ export default function DashboardScreen() {
               <View>
                 <Text
                   style={{
-                    color: "#FFFFFF",
+                    color: colors.textInverse,
                     fontSize: scaleFont(14),
                     fontWeight: "600",
                     marginBottom: scaleSpacing(4),
@@ -853,7 +851,7 @@ export default function DashboardScreen() {
                 </Text>
                 <Text
                   style={{
-                    color: "#FFFFFF",
+                    color: colors.textInverse,
                     fontSize: scaleFont(22),
                     fontWeight: "700",
                   }}
@@ -864,13 +862,13 @@ export default function DashboardScreen() {
                   {formatAmountFromBase(monthlyTotals.income)} {baseCurrency?.symbol || baseCurrency?.code || ""}
                 </Text>
               </View>
-              <Ionicons name="arrow-down-circle" size={scaleSize(32)} color="#FFFFFF" style={{ opacity: 0.9 }} />
+              <Ionicons name="arrow-down-circle" size={scaleSize(32)} color={colors.textInverse} style={{ opacity: 0.9 }} />
             </View>
           </LinearGradient>
 
           {/* Expenses Card */}
           <LinearGradient
-            colors={["#F87171", "#EF4444"]}
+            colors={colors.gradients.expense}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={{
@@ -888,7 +886,7 @@ export default function DashboardScreen() {
               <View>
                 <Text
                   style={{
-                    color: "#FFFFFF",
+                    color: colors.textInverse,
                     fontSize: scaleFont(14),
                     fontWeight: "600",
                     marginBottom: scaleSpacing(4),
@@ -899,7 +897,7 @@ export default function DashboardScreen() {
                 </Text>
                 <Text
                   style={{
-                    color: "#FFFFFF",
+                    color: colors.textInverse,
                     fontSize: scaleFont(22),
                     fontWeight: "700",
                   }}
@@ -910,7 +908,7 @@ export default function DashboardScreen() {
                   {formatAmountFromBase(monthlyTotals.expenses)} {baseCurrency?.symbol || baseCurrency?.code || ""}
                 </Text>
               </View>
-              <Ionicons name="arrow-up-circle" size={scaleSize(32)} color="#FFFFFF" style={{ opacity: 0.9 }} />
+              <Ionicons name="arrow-up-circle" size={scaleSize(32)} color={colors.textInverse} style={{ opacity: 0.9 }} />
             </View>
           </LinearGradient>
 
@@ -919,9 +917,9 @@ export default function DashboardScreen() {
             style={{
               borderRadius: scaleSpacing(16),
               padding: scaleSpacing(20),
-              backgroundColor: isDark ? "#374151" : "#F9FAFB",
+              backgroundColor: colors.surfaceSecondary,
               borderWidth: 1.5,
-              borderColor: isDark ? "#4B5563" : "#E5E7EB",
+              borderColor: colors.border,
             }}
           >
             <View
@@ -934,7 +932,7 @@ export default function DashboardScreen() {
               <View>
                 <Text
                   style={{
-                    color: isDark ? "#9CA3AF" : "#6B7280",
+                    color: colors.textSecondary,
                     fontSize: scaleFont(14),
                     fontWeight: "600",
                     marginBottom: scaleSpacing(4),
@@ -946,8 +944,8 @@ export default function DashboardScreen() {
                   style={{
                     color:
                       monthlyTotals.balance >= 0
-                        ? "#10B981"
-                        : "#EF4444",
+                        ? colors.success
+                        : colors.error,
                     fontSize: scaleFont(22),
                     fontWeight: "700",
                   }}
@@ -962,7 +960,7 @@ export default function DashboardScreen() {
               <Ionicons
                 name={monthlyTotals.balance >= 0 ? "trending-up" : "trending-down"}
                 size={scaleSize(32)}
-                color={monthlyTotals.balance >= 0 ? "#10B981" : "#EF4444"}
+                color={monthlyTotals.balance >= 0 ? colors.success : colors.error}
               />
             </View>
           </View>
@@ -996,7 +994,7 @@ export default function DashboardScreen() {
           >
             <Text
               style={{
-                color: isDark ? "#FFFFFF" : "#111827",
+                color: colors.textPrimary,
                 fontSize: scaleFont(18),
                 fontWeight: "700",
               }}
@@ -1009,10 +1007,10 @@ export default function DashboardScreen() {
                 paddingHorizontal: scaleSpacing(12),
                 paddingVertical: scaleSpacing(8),
                 borderRadius: scaleSpacing(8),
-                backgroundColor: isDark ? "#3B82F6" : "#2563EB",
+                backgroundColor: colors.primary,
               }}
             >
-              <Ionicons name="add" size={scaleSize(20)} color="#FFFFFF" />
+              <Ionicons name="add" size={scaleSize(20)} color={colors.textInverse} />
             </Pressable>
           </View>
 
@@ -1027,11 +1025,11 @@ export default function DashboardScreen() {
               <Ionicons
                 name="heart-outline"
                 size={scaleSize(48)}
-                color={isDark ? "#6B7280" : "#9CA3AF"}
+                color={colors.textTertiary}
               />
               <Text
                 style={{
-                  color: isDark ? "#9CA3AF" : "#6B7280",
+                  color: colors.textSecondary,
                   fontSize: scaleFont(16),
                   marginTop: scaleSpacing(12),
                   textAlign: "center",
@@ -1041,7 +1039,7 @@ export default function DashboardScreen() {
               </Text>
               <Text
                 style={{
-                  color: isDark ? "#6B7280" : "#9CA3AF",
+                  color: colors.textTertiary,
                   fontSize: scaleFont(14),
                   marginTop: scaleSpacing(4),
                   textAlign: "center",
@@ -1058,13 +1056,13 @@ export default function DashboardScreen() {
                 return (
                   <Pressable
                     key={purchase.id}
-                    onPress={() => router.push("/(tabs)/wishlist")}
+                    onPress={() => router.push("/wishlist")}
                     style={{
                       borderRadius: scaleSpacing(12),
                       padding: scaleSpacing(16),
-                      backgroundColor: isDark ? "#374151" : "#FFFFFF",
+                      backgroundColor: colors.surface,
                       borderWidth: 1.5,
-                      borderColor: isDark ? "#4B5563" : "#E5E7EB",
+                      borderColor: colors.border,
                       marginBottom: scaleSpacing(12),
                     }}
                   >
@@ -1093,7 +1091,7 @@ export default function DashboardScreen() {
                           )}
                           <Text
                             style={{
-                              color: isDark ? "#FFFFFF" : "#111827",
+                              color: colors.textPrimary,
                               fontSize: scaleFont(16),
                               fontWeight: "600",
                               flex: 1,
@@ -1124,7 +1122,7 @@ export default function DashboardScreen() {
                         </View>
                         <Text
                           style={{
-                            color: isDark ? "#9CA3AF" : "#6B7280",
+                            color: colors.textSecondary,
                             fontSize: scaleFont(14),
                             fontWeight: "600",
                           }}
@@ -1163,7 +1161,7 @@ export default function DashboardScreen() {
           <View style={{ marginBottom: scaleSpacing(24) }}>
             <Text
               style={{
-                color: isDark ? "#FFFFFF" : "#111827",
+                color: colors.textPrimary,
                 fontSize: scaleFont(18),
                 fontWeight: "700",
                 paddingHorizontal: scaleSpacing(20),
@@ -1190,9 +1188,9 @@ export default function DashboardScreen() {
                       justifyContent: "space-between",
                       padding: scaleSpacing(16),
                       borderRadius: scaleSpacing(12),
-                      backgroundColor: isDark ? "#374151" : "#FFFFFF",
+                      backgroundColor: colors.surface,
                       borderWidth: 1.5,
-                      borderColor: isDark ? "#4B5563" : "#E5E7EB",
+                      borderColor: colors.border,
                     }}
                   >
                     <View style={{ flexDirection: "row", alignItems: "center", gap: scaleSpacing(12) }}>
@@ -1201,7 +1199,7 @@ export default function DashboardScreen() {
                           width: scaleSize(40),
                           height: scaleSize(40),
                           borderRadius: scaleSpacing(20),
-                          backgroundColor: category ? category.color + "20" : isDark ? "#4B5563" : "#E5E7EB",
+                          backgroundColor: category ? category.color + "20" : colors.borderLight,
                           alignItems: "center",
                           justifyContent: "center",
                         }}
@@ -1209,13 +1207,13 @@ export default function DashboardScreen() {
                         <Ionicons
                           name={category ? (category.icon as any) : "help-outline"}
                           size={scaleSize(20)}
-                          color={category ? category.color : isDark ? "#9CA3AF" : "#6B7280"}
+                          color={category ? category.color : colors.textSecondary}
                         />
                       </View>
                       <View>
                         <Text
                           style={{
-                            color: isDark ? "#FFFFFF" : "#111827",
+                            color: colors.textPrimary,
                             fontSize: scaleFont(16),
                             fontWeight: "600",
                           }}
@@ -1224,7 +1222,7 @@ export default function DashboardScreen() {
                         </Text>
                         <Text
                           style={{
-                            color: isDark ? "#9CA3AF" : "#6B7280",
+                            color: colors.textSecondary,
                             fontSize: scaleFont(12),
                           }}
                         >
@@ -1234,7 +1232,7 @@ export default function DashboardScreen() {
                     </View>
                     <Text
                       style={{
-                        color: isExpense ? "#EF4444" : "#10B981",
+                        color: isExpense ? colors.error : colors.success,
                         fontSize: scaleFont(16),
                         fontWeight: "700",
                       }}
@@ -1258,32 +1256,96 @@ export default function DashboardScreen() {
               alignItems: "center",
             }}
           >
-            <Ionicons
-              name="grid-outline"
-              size={scaleSize(64)}
-              color={isDark ? "#6B7280" : "#9CA3AF"}
-            />
+            <View
+              style={{
+                width: scaleSize(80),
+                height: scaleSize(80),
+                borderRadius: scaleSize(40),
+                backgroundColor: colors.surface,
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: scaleSpacing(24),
+              }}
+            >
+              <Ionicons
+                name="grid-outline"
+                size={scaleSize(48)}
+                color={colors.textTertiary}
+              />
+            </View>
             <Text
               style={{
-                color: isDark ? "#F3F4F6" : "#111827",
-                fontSize: scaleFont(18),
-                fontWeight: "600",
+                color: colors.textPrimary,
+                fontSize: scaleFont(20),
+                fontWeight: "700",
                 marginTop: scaleSpacing(16),
                 textAlign: "center",
+                marginBottom: scaleSpacing(8),
               }}
             >
               {t("dashboard.empty", "No transactions this month")}
             </Text>
             <Text
               style={{
-                color: isDark ? "#9CA3AF" : "#6B7280",
-                fontSize: scaleFont(14),
+                color: colors.textSecondary,
+                fontSize: scaleFont(15),
                 marginTop: scaleSpacing(8),
                 textAlign: "center",
+                lineHeight: scaleFont(22),
+                marginBottom: scaleSpacing(24),
               }}
             >
               {t("dashboard.empty.subtitle", "Add your first expense to get started")}
             </Text>
+            {categories.filter(c => c.type === "expense").length === 0 ? (
+              <Pressable
+                onPress={() => router.push("/categories")}
+                style={{
+                  backgroundColor: colors.primary,
+                  paddingHorizontal: scaleSpacing(24),
+                  paddingVertical: scaleSpacing(14),
+                  borderRadius: scaleSpacing(12),
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: scaleSpacing(8),
+                }}
+              >
+                <Ionicons name="pricetags" size={scaleSize(20)} color={colors.textInverse} />
+                <Text
+                  style={{
+                    color: colors.textInverse,
+                    fontSize: scaleFont(16),
+                    fontWeight: "600",
+                  }}
+                >
+                  {t("dashboard.empty.createCategory", "Create Your First Category")}
+                </Text>
+              </Pressable>
+            ) : (
+              <Pressable
+                onPress={() => router.push("/(tabs)/add")}
+                style={{
+                  backgroundColor: colors.primary,
+                  paddingHorizontal: scaleSpacing(24),
+                  paddingVertical: scaleSpacing(14),
+                  borderRadius: scaleSpacing(12),
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: scaleSpacing(8),
+                }}
+              >
+                <Ionicons name="add-circle" size={scaleSize(20)} color={colors.textInverse} />
+                <Text
+                  style={{
+                    color: colors.textInverse,
+                    fontSize: scaleFont(16),
+                    fontWeight: "600",
+                  }}
+                >
+                  {t("dashboard.empty.addFirst", "Add Your First Expense")}
+                </Text>
+              </Pressable>
+            )}
           </View>
         )}
       </ScrollView>

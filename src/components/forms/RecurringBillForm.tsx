@@ -6,7 +6,7 @@ import { SimpleBottomSheet } from "@/src/components/ui/SimpleBottomSheet";
 import { TextInputField } from "@/src/components/ui/TextInputField";
 // import { useDb } from "@/src/db/hooks"; // REMOVED
 import { Category } from "@/src/features/categories/types";
-import { recurringBillsService } from "@/src/services/firestore/recurring-bills.service";
+import { createRecurringBillsService } from "@/src/services/firestore/recurring-bills.service";
 import { useAuth } from "@/src/state/AuthProvider"; // Added useAuth
 import { useCategories } from "@/src/state/CategoriesProvider";
 import { useCurrency } from "@/src/state/CurrencyProvider";
@@ -27,6 +27,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type RecurringFrequency = "daily" | "weekly" | "monthly" | "yearly";
 
@@ -105,12 +106,12 @@ export function RecurringBillForm({
     if (!user) return;
 
     try {
-      const numericAmount = parseFloat(amount);
+      const numericAmount = Number.parseFloat(amount);
       if (!name.trim()) {
         setErrors({ name: t("recurring.nameRequired", "Name is required") });
         return;
       }
-      if (isNaN(numericAmount) || numericAmount <= 0) {
+      if (Number.isNaN(numericAmount) || numericAmount <= 0) {
         setErrors({
           amount: t("recurring.amountRequired", "Please enter a valid amount"),
         });
@@ -129,6 +130,8 @@ export function RecurringBillForm({
 
       const amountBase = Math.round(numericAmount * 100);
 
+      const recurringBillsService = createRecurringBillsService(user.uid);
+
       if (isEditing && initialBill?.id) {
         // Update existing bill
         await recurringBillsService.update(initialBill.id, {
@@ -144,7 +147,6 @@ export function RecurringBillForm({
       } else {
         // Add new bill
         await recurringBillsService.create({
-            userId: user.uid,
             name: name.trim(),
             amountBase,
             currencyCode: baseCurrency?.code || "XOF",
@@ -192,21 +194,24 @@ export function RecurringBillForm({
     });
   };
 
+  const insets = useSafeAreaInsets();
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       className="flex-1"
-      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       enabled={Platform.OS === "ios"}
     >
       <ScrollView
         className="flex-1"
         contentContainerStyle={{
           padding: scaleSpacing(isTablet ? 32 : 24),
-          paddingBottom: scaleSpacing(isTablet ? 40 : 32),
+          paddingBottom: Math.max(insets.bottom, scaleSpacing(isTablet ? 40 : 32)),
         }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
       >
         <View
           style={{
