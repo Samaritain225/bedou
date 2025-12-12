@@ -1,10 +1,9 @@
-import React from "react";
-import { Pressable, Text, View } from "react-native";
-import { useTranslation } from "react-i18next";
-import { PRIORITY_COLORS } from "@/src/constants/priorityColors";
-import { Priority } from "@/src/features/planned-purchases/types";
+import { PRIORITY_COLORS, Priority } from "@/src/constants/priorityColors";
 import { useTheme } from "@/src/state/ThemeProvider";
 import { useResponsive } from "@/src/utils/responsive";
+import React from "react";
+import { useTranslation } from "react-i18next";
+import { Pressable, Text, View } from "react-native";
 
 interface PrioritySelectorProps {
   value: Priority;

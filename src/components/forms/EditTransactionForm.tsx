@@ -18,20 +18,20 @@ import { router } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  ActivityIndicator,
-  Animated,
-  Dimensions,
-  FlatList,
-  KeyboardAvoidingView,
-  Modal,
-  PanResponder,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
+    ActivityIndicator,
+    Animated,
+    Dimensions,
+    FlatList,
+    KeyboardAvoidingView,
+    Modal,
+    PanResponder,
+    Platform,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -161,7 +161,7 @@ export function EditTransactionForm({
   const handleCreateCategory = () => {
     setShowCategoryModal(false);
     setCategorySearchQuery("");
-    router.push("/(tabs)/categories?openAdd=true");
+    router.push("/categories?openAdd=true");
   };
 
   const onAmountChange = (text: string) => {

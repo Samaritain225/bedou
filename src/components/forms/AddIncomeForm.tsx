@@ -4,7 +4,7 @@ import { PaymentMethod, PaymentMethodPicker } from "@/src/components/ui/PaymentM
 import { TextInputField } from "@/src/components/ui/TextInputField";
 import { ThemeColors } from "@/src/constants/themeColors";
 import { Category } from "@/src/features/categories/types";
-import { transactionsService } from "@/src/services/firestore/transactions.service";
+import { createTransactionsService } from "@/src/services/firestore/transactions.service";
 import { useAuth } from "@/src/state/AuthProvider";
 import { useCategories } from "@/src/state/CategoriesProvider";
 import { useCurrency } from "@/src/state/CurrencyProvider";
@@ -18,14 +18,14 @@ import { LinearGradient } from "expo-linear-gradient";
 import React, { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  Animated,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
+    Animated,
+    KeyboardAvoidingView,
+    Platform,
+    Pressable,
+    ScrollView,
+    Text,
+    TextInput,
+    View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { z } from "zod";
@@ -129,8 +129,9 @@ export function AddIncomeForm({ onSuccess, onCancel }: AddIncomeFormProps) {
         throw new Error("User not authenticated");
       }
 
+      const transactionsService = createTransactionsService(user.uid);
+
       await transactionsService.create({
-        userId: user.uid,
         dateISO: selectedDate.toISOString(),
         amountOriginal: amountBase,
         currencyCode: baseCurrency?.code || "XOF",

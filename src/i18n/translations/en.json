@@ -42,7 +42,14 @@
     "signOutError": "Failed to sign out. Please try again.",
     "cancel": "Cancel",
     "error": "Error",
-    "ok": "OK"
+    "ok": "OK",
+    "management": "Management",
+    "recurringBills": "Recurring Bills",
+    "recurringBillsDesc": "Track your subscriptions & fixed costs",
+    "wishlist": "Wishlist",
+    "wishlistDesc": "Manage your savings goals",
+    "categories": "Categories",
+    "categoriesDesc": "Customize how you track expenses"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -64,6 +71,9 @@
     "avgDaily": "Avg Daily",
     "perDay": "per day",
     "activity": "Activity",
+    "overview": "Overview",
+    "totalBalance": "Total Balance",
+    "upcoming": "Up Next",
     "wishlist": "Wishlist",
     "wishlist.empty": "No planned purchases yet",
     "wishlist.empty.subtitle": "Add items you want to buy",
@@ -166,7 +176,8 @@
     "overdue": "Overdue",
     "dueToday": "Due today",
     "dueTomorrow": "Due tomorrow",
-    "dueInDays": "Due in {{count}} days"
+    "dueInDays": "Due in {{count}} days",
+    "dueOn": "Due {{date}}"
   },
   "quickActions": {
     "addExpense": "Expense",
@@ -179,7 +190,8 @@
     "editMonthly": "Edit Monthly Budget",
     "spent": "Spent",
     "remaining": "Remaining",
-    "overBudget": "Over Budget"
+    "overBudget": "Over Budget",
+    "visualize": "Visualize your spending limits"
   },
   "wishlist": {
     "title": "Wishlist",

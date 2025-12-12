@@ -1,0 +1,135 @@
+{
+  "project_info": {
+    "project_number": "151273093568",
+    "firebase_url": "https://expense-tracker-app-433cf-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "expense-tracker-app-433cf",
+    "storage_bucket": "expense-tracker-app-433cf.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:151273093568:android:32b2bab84c28c0eb71b025",
+        "android_client_info": {
+          "package_name": "com.bedou.io"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "151273093568-8odh79p7lokf8n6j9jtg96p1e0a8ih6v.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.bedou.io",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "151273093568-nk4q2qkip3v68fjol2ugv9k6tvfoujsi.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAnOVvObgrkRJaMTshX-LsyEn6fMSrO89Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "151273093568-nk4q2qkip3v68fjol2ugv9k6tvfoujsi.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "151273093568-5qrkkh0v71rreatlql17u1n6kukoerlo.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.flutterApplicationTest"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:151273093568:android:0efbbc42eae303da71b025",
+        "android_client_info": {
+          "package_name": "com.bedou.io.dev"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "151273093568-nk4q2qkip3v68fjol2ugv9k6tvfoujsi.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAnOVvObgrkRJaMTshX-LsyEn6fMSrO89Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "151273093568-nk4q2qkip3v68fjol2ugv9k6tvfoujsi.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "151273093568-5qrkkh0v71rreatlql17u1n6kukoerlo.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.flutterApplicationTest"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:151273093568:android:2ce2254f22bb171871b025",
+        "android_client_info": {
+          "package_name": "com.samaritain_225.expenses"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "151273093568-a04t9s8strf9jjlrcsmomipmkmsjasor.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.samaritain_225.expenses",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "151273093568-nk4q2qkip3v68fjol2ugv9k6tvfoujsi.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAnOVvObgrkRJaMTshX-LsyEn6fMSrO89Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "151273093568-nk4q2qkip3v68fjol2ugv9k6tvfoujsi.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "151273093568-5qrkkh0v71rreatlql17u1n6kukoerlo.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.flutterApplicationTest"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -344,7 +344,7 @@ export default function SettingsScreen() {
                  {!showBalanceInput ? (
                      <View style={{ alignItems: 'center' }}>
                          <Text style={{ color: isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary, fontSize: scaleFont(14), marginBottom: 4 }}>
-                            Current Balance
+                            {t("settings.wallet.current", "Current Balance")}
                          </Text>
                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                              <Text style={{ color: isDark ? ThemeColors.dark.text : ThemeColors.light.text, fontSize: scaleFont(32), fontWeight: '700', fontVariant: ['tabular-nums'] }}>
@@ -424,7 +424,7 @@ export default function SettingsScreen() {
             <FeatureCard
                 icon="receipt-outline"
                 label={t("settings.recurringBills", "Recurring Bills")}
-                description="Track your subscriptions & fixed costs"
+                description={t("settings.recurringBillsDesc", "Track your subscriptions & fixed costs")}
                 gradient={['#6366F1', '#4F46E5']} // Indigo
                 onPress={() => router.push("/recurring-bills")}
             />
@@ -432,7 +432,7 @@ export default function SettingsScreen() {
             <FeatureCard
                 icon="heart-outline"
                 label={t("settings.wishlist", "Wishlist")}
-                description="Manage your savings goals"
+                description={t("settings.wishlistDesc", "Manage your savings goals")}
                 gradient={['#F43F5E', '#E11D48']} // Rose
                 onPress={() => router.push("/wishlist")}
             />
@@ -440,7 +440,7 @@ export default function SettingsScreen() {
             <FeatureCard
                 icon="pricetags-outline"
                 label={t("settings.categories", "Categories")}
-                description="Customize how you track expenses"
+                description={t("settings.categoriesDesc", "Customize how you track expenses")}
                 gradient={['#F59E0B', '#D97706']} // Amber
                 onPress={() => router.push("/categories")}
             />

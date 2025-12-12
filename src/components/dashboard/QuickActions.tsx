@@ -1,5 +1,4 @@
 import { AddIncomeForm } from "@/src/components/forms/AddIncomeForm";
-import { PlannedPurchaseForm } from "@/src/components/forms/PlannedPurchaseForm";
 import { SimpleBottomSheet } from "@/src/components/ui/SimpleBottomSheet";
 import { ThemeColors } from "@/src/constants/themeColors";
 import { useTheme } from "@/src/state/ThemeProvider";
@@ -21,7 +20,6 @@ export function QuickActions({ onRefresh }: QuickActionsProps) {
   const { scaleSpacing, scaleSize, scaleFont } = useResponsive();
 
   const [showIncomeForm, setShowIncomeForm] = useState(false);
-  const [showWishlistForm, setShowWishlistForm] = useState(false);
 
   return (
     <View
@@ -115,46 +113,6 @@ export function QuickActions({ onRefresh }: QuickActionsProps) {
             {t("quickActions.addIncome", "Income")}
           </Text>
         </Pressable>
-
-        {/* Add Wishlist Button */}
-        <Pressable
-          onPress={() => setShowWishlistForm(true)}
-          style={{
-            flex: 1,
-            borderRadius: scaleSpacing(12),
-            paddingVertical: scaleSpacing(14),
-            paddingHorizontal: scaleSpacing(16),
-            backgroundColor: isDark ? ThemeColors.dark.surface : ThemeColors.light.surface,
-            borderWidth: 1.5,
-            borderColor: isDark ? ThemeColors.dark.border : ThemeColors.light.border,
-            alignItems: "center",
-            justifyContent: "center",
-            gap: scaleSpacing(8),
-            minHeight: scaleSpacing(64),
-          }}
-        >
-          <View
-            style={{
-              width: scaleSize(32),
-              height: scaleSize(32),
-              borderRadius: scaleSize(16),
-              backgroundColor: "#EC407A20",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Ionicons name="heart" size={scaleSize(20)} color="#EC407A" />
-          </View>
-          <Text
-            style={{
-              color: isDark ? "#FFFFFF" : "#111827",
-              fontSize: scaleFont(12),
-              fontWeight: "600",
-            }}
-          >
-            {t("quickActions.addWishlist", "Wishlist")}
-          </Text>
-        </Pressable>
       </View>
 
       {/* Income Form Modal */}
@@ -168,20 +126,6 @@ export function QuickActions({ onRefresh }: QuickActionsProps) {
             onRefresh?.();
           }}
           onCancel={() => setShowIncomeForm(false)}
-        />
-      </SimpleBottomSheet>
-
-      {/* Wishlist Form Modal */}
-      <SimpleBottomSheet
-        visible={showWishlistForm}
-        onClose={() => setShowWishlistForm(false)}
-      >
-        <PlannedPurchaseForm
-          onSuccess={() => {
-            setShowWishlistForm(false);
-            onRefresh?.();
-          }}
-          onCancel={() => setShowWishlistForm(false)}
         />
       </SimpleBottomSheet>
     </View>

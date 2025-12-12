@@ -50,4 +50,4 @@ app-example
 /ios
 /android
 
-google-services.json
+# google-services.json

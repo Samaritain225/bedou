@@ -21,7 +21,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     android: {
       ...config.android,
       adaptiveIcon: {
-        backgroundColor: '#E6F4FE',
+        backgroundColor: '#0F172A',
         foregroundImage: './assets/images/android-icon-foreground.png',
         backgroundImage: './assets/images/android-icon-background.png',
         monochromeImage: './assets/images/android-icon-monochrome.png',
@@ -38,6 +38,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       favicon: './assets/images/favicon.png',
     },
     plugins: [
+      "expo-web-browser",
       'expo-router',
       '@react-native-firebase/app',
       [
@@ -66,6 +67,12 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       },
     },
     owner: 'doumbia-225',
+    updates: {
+      url: 'https://u.expo.dev/fd26f55d-a79c-4408-ac77-5ba69d266784',
+    },
+    runtimeVersion: {
+      policy: 'appVersion',
+    },
   };
 };
 

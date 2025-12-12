@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Tabs, useRouter } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Platform, Pressable, Text, useWindowDimensions } from "react-native";
+import { Image, Platform, Pressable, Text, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../../src/state/AuthProvider";
 import { useTheme } from "../../src/state/ThemeProvider";
@@ -12,7 +12,7 @@ export default function TabsLayout() {
   const { width } = useWindowDimensions();
   const router = useRouter();
   const { colorScheme } = useTheme();
-  const { user, loading } = useAuth();
+  const { user, userDocument, loading } = useAuth();
   const insets = useSafeAreaInsets();
   
   // Protect tabs route
@@ -30,18 +30,36 @@ export default function TabsLayout() {
   const iconSize = baseIconSize * scaleFactor;
   const fontSize = baseFontSize * scaleFactor;
 
-  // Settings icon component
+  // Settings icon component (Avatar)
   const SettingsIcon = () => (
     <Pressable
       onPress={() => router.push("/settings")}
-      style={{ paddingHorizontal: 12, paddingVertical: 8 }}
+      style={{ paddingHorizontal: 16, paddingVertical: 8 }}
       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
     >
-      <Ionicons
-        name="settings-outline"
-        size={24}
-        color={colorScheme === "dark" ? "#FFFFFF" : "#111827"}
-      />
+      <View style={{
+         width: 40,
+         height: 40,
+         borderRadius: 20,
+         backgroundColor: colorScheme === "dark" ? "#1F2937" : "#F3F4F6",
+         alignItems: 'center',
+         justifyContent: 'center',
+         borderWidth: 1,
+         borderColor: colorScheme === "dark" ? "#374151" : "#E5E7EB",
+         overflow: 'hidden'
+      }}>
+          {userDocument?.photoURL ? (
+              <Image source={{ uri: userDocument.photoURL }} style={{ width: '100%', height: '100%' }} />
+          ) : (
+              <Text style={{ 
+                  fontSize: 16, 
+                  fontWeight: "700", 
+                  color: "#2563eb"
+              }}>
+                  {(userDocument?.displayName?.[0] || "U").toUpperCase()}
+              </Text>
+          )}
+      </View>
     </Pressable>
   );
 

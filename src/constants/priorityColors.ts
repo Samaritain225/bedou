@@ -1,4 +1,7 @@
-import { Priority } from "@/src/features/planned-purchases/types";
+/**
+ * Priority level for planned purchases
+ */
+export type Priority = 'high' | 'medium' | 'low';
 
 /**
  * Priority color mapping for planned purchases

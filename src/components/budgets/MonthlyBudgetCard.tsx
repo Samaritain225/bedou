@@ -68,6 +68,8 @@ export function MonthlyBudgetCard({ budget, onEdit }: MonthlyBudgetCardProps) {
     loadSpending();
   }, [budget, currentMonth, user]);
 
+  const colors = isDark ? ThemeColors.dark : ThemeColors.light;
+
   if (!budget) {
     return (
       <View
@@ -76,40 +78,101 @@ export function MonthlyBudgetCard({ budget, onEdit }: MonthlyBudgetCardProps) {
           marginBottom: scaleSpacing(24),
         }}
       >
-        <Pressable
-          onPress={onEdit}
-          style={{
-            borderRadius: scaleSpacing(16),
-            padding: scaleSpacing(20),
-            backgroundColor: isDark ? ThemeColors.dark.surface : ThemeColors.light.surface,
-            borderWidth: 1.5,
-            borderColor: isDark ? ThemeColors.dark.border : ThemeColors.light.border,
-            borderStyle: "dashed",
-          }}
-        >
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: scaleSpacing(12),
-            }}
-          >
-            <Ionicons
-              name="add-circle-outline"
-              size={scaleSize(24)}
-              color={isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary}
-            />
-            <Text
+        <Pressable onPress={onEdit}>
+            <View
               style={{
-                color: isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary,
-                fontSize: scaleFont(16),
-                fontWeight: "600",
+                borderRadius: scaleSpacing(20),
+                padding: scaleSpacing(20),
+                backgroundColor: isDark ? ThemeColors.dark.surface : ThemeColors.light.surface,
+                borderWidth: 1,
+                borderColor: isDark ? ThemeColors.dark.borderLight : ThemeColors.light.borderLight,
+                overflow: 'hidden'
               }}
             >
-              {t("budget.setMonthly", "Set Monthly Budget")}
-            </Text>
-          </View>
+               {/* Decorative Background Graph */}
+               <View style={{ 
+                   flexDirection: 'row', 
+                   alignItems: 'flex-end', 
+                   justifyContent: 'space-between', 
+                   height: scaleSize(50), 
+                   marginBottom: scaleSpacing(16),
+                   paddingHorizontal: scaleSpacing(8)
+               }}>
+                   {[0.3, 0.5, 0.4, 0.7, 0.5, 0.8, 0.6].map((h, i) => (
+                       <View key={i} style={{
+                           width: scaleSize(6),
+                           height: `${h * 100}%`,
+                           backgroundColor: isDark ? ThemeColors.dark.primary : ThemeColors.light.primary,
+                           borderRadius: scaleSize(4),
+                           opacity: 0.2 + (i * 0.1)
+                       }} />
+                   ))}
+                   
+                   {/* Target Line Decoration */}
+                   <View style={{
+                       position: 'absolute',
+                       top: '30%',
+                       left: 0,
+                       right: 0,
+                       height: 1,
+                       backgroundColor: isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary,
+                       opacity: 0.2,
+                       borderStyle: 'dashed',
+                       borderWidth: 1,
+                       borderColor: isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary,
+                   }} />
+               </View>
+
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <View>
+                    <Text
+                    style={{
+                        color: isDark ? ThemeColors.dark.text : ThemeColors.light.text,
+                        fontSize: scaleFont(16),
+                        fontWeight: "700",
+                        marginBottom: 4
+                    }}
+                    >
+                    {t("budget.setMonthly", "Set Monthly Budget")}
+                    </Text>
+                     <Text
+                    style={{
+                        color: isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary,
+                        fontSize: scaleFont(12),
+                        opacity: 0.8
+                    }}
+                    >
+                    {t("budget.visualize", "Visualize your spending limits")}
+                    </Text>
+                </View>
+
+                <View style={{
+                    backgroundColor: isDark ? ThemeColors.dark.primary : ThemeColors.light.primary,
+                    width: scaleSize(36),
+                    height: scaleSize(36),
+                    borderRadius: scaleSize(12),
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    shadowColor: isDark ? ThemeColors.dark.primary : ThemeColors.light.primary,
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 8,
+                    elevation: 4
+                }}>
+                    <Ionicons
+                    name="add"
+                    size={scaleSize(20)}
+                    color="#FFFFFF"
+                    />
+                </View>
+              </View>
+            </View>
         </Pressable>
       </View>
     );

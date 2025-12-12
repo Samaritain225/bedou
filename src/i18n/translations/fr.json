@@ -42,7 +42,14 @@
     "signOutError": "Échec de la déconnexion. Veuillez réessayer.",
     "cancel": "Annuler",
     "error": "Erreur",
-    "ok": "OK"
+    "ok": "OK",
+    "management": "Gestion",
+    "recurringBills": "Factures Récurrentes",
+    "recurringBillsDesc": "Suivez vos abonnements et coûts fixes",
+    "wishlist": "Souhaits",
+    "wishlistDesc": "Gérez vos objectifs d'épargne",
+    "categories": "Catégories",
+    "categoriesDesc": "Personnalisez votre suivi de dépenses"
   },
   "dashboard": {
     "title": "Tableau de bord",
@@ -64,6 +71,9 @@
     "avgDaily": "Moy. Quotidien",
     "perDay": "par jour",
     "activity": "Activité",
+    "overview": "Aperçu",
+    "totalBalance": "Solde Total",
+    "upcoming": "À venir",
     "wishlist": "Souhaits",
     "wishlist.empty": "Aucun achat planifié pour le moment",
     "wishlist.empty.subtitle": "Ajoutez des articles que vous souhaitez acheter",
@@ -166,7 +176,8 @@
     "overdue": "En retard",
     "dueToday": "Échéance aujourd'hui",
     "dueTomorrow": "Échéance demain",
-    "dueInDays": "Échéance dans {{count}} jours"
+    "dueInDays": "Échéance dans {{count}} jours",
+    "dueOn": "Échéance {{date}}"
   },
   "quickActions": {
     "addExpense": "Dépense",
@@ -179,7 +190,8 @@
     "editMonthly": "Modifier le Budget Mensuel",
     "spent": "Dépensé",
     "remaining": "Restant",
-    "overBudget": "Dépassement"
+    "overBudget": "Dépassement",
+    "visualize": "Visualisez vos limites de dépenses"
   },
   "wishlist": {
     "title": "Souhaits",
