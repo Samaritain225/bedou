@@ -29,12 +29,13 @@ export function DatePicker({
   const [tempDate, setTempDate] = useState(value);
 
   const formatDate = (date: Date): string => {
-    return date.toLocaleDateString("en-US", {
+    const locale = t("common.locale", "en-US"); // Get locale from translations
+    return date.toLocaleDateString(locale, {
       weekday: "short",
       month: "short",
       day: "numeric",
       year: "numeric",
-    }) + " " + date.toLocaleTimeString("en-US", {
+    }) + " " + date.toLocaleTimeString(locale, {
       hour: "2-digit",
       minute: "2-digit",
     });

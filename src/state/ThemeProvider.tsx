@@ -1,3 +1,4 @@
+import type { ThemeColors as ThemeColorsType } from "@/src/constants/themeColors";
 import { ThemeColors } from "@/src/constants/themeColors";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
@@ -6,17 +7,19 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
-import { useColorScheme as useRNColorScheme } from "react-native";
+import { Animated, useColorScheme as useRNColorScheme } from "react-native";
 
 type ColorScheme = "light" | "dark";
 
 type ThemeContextValue = {
   colorScheme: ColorScheme;
-  colors: ThemeColors;
+  colors: ThemeColorsType;
   setColorScheme: (scheme: ColorScheme) => Promise<void>;
   toggleColorScheme: () => Promise<void>;
+  fadeAnim: Animated.Value;
 };
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
@@ -29,6 +32,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     (systemColorScheme ?? "light") as ColorScheme
   );
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const fadeAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     // Load saved theme preference
@@ -47,13 +51,29 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const setColorScheme = useCallback(async (scheme: ColorScheme) => {
-    setColorSchemeState(scheme);
+    // Fade out
+    Animated.timing(fadeAnim, {
+      toValue: 0.7,
+      duration: 100,
+      useNativeDriver: true,
+    }).start(() => {
+      // Change theme
+      setColorSchemeState(scheme);
+      
+      // Fade back in
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }).start();
+    });
+
     try {
       await AsyncStorage.setItem(THEME_STORAGE_KEY, scheme);
     } catch (error) {
       console.error("Error saving theme preference:", error);
     }
-  }, []);
+  }, [fadeAnim]);
 
   const toggleColorScheme = useCallback(async () => {
     const newScheme = colorScheme === "light" ? "dark" : "light";
@@ -68,8 +88,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       colors,
       setColorScheme,
       toggleColorScheme,
+      fadeAnim,
     }),
-    [colorScheme, colors, setColorScheme, toggleColorScheme]
+    [colorScheme, colors, setColorScheme, toggleColorScheme, fadeAnim]
   );
 
   // Render with default theme during loading to avoid blocking navigation
@@ -84,8 +105,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       toggleColorScheme: async () => {
         // No-op during loading
       },
+      fadeAnim,
     }),
-    [defaultScheme]
+    [defaultScheme, fadeAnim]
   );
 
   const contextValue = isLoading ? loadingValue : value;

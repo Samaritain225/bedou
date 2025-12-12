@@ -63,7 +63,7 @@ export function AddExpenseForm() {
     null
   );
   const [note, setNote] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>("cash");
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [categorySearchQuery, setCategorySearchQuery] = useState("");
@@ -160,7 +160,7 @@ export function AddExpenseForm() {
     setShowCategoryModal(false);
     setCategorySearchQuery("");
     // Navigate to categories tab and open bottom sheet
-    router.push("/(tabs)/categories?openAdd=true");
+    router.push("/categories");
   };
 
   const onAmountChange = (text: string) => {
@@ -374,6 +374,7 @@ export function AddExpenseForm() {
                     ? ThemeColors.dark.border
                     : ThemeColors.light.border,
                 borderWidth: 1.5,
+                borderRadius: scaleSize(18),
                 flexDirection: "row",
                 alignItems: "center",
                 gap: scaleSpacing(12),
@@ -435,6 +436,7 @@ export function AddExpenseForm() {
                         ? ThemeColors.dark.border
                         : ThemeColors.light.border,
                     borderWidth: selectedCategory ? 2 : 1.5,
+                    borderRadius: scaleSize(18),
                     flexDirection: "row",
                     alignItems: "center",
                     justifyContent: "space-between",

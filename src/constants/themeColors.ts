@@ -126,5 +126,5 @@ export const ThemeColors = {
 } as const;
 
 export type ThemeColorScheme = keyof typeof ThemeColors;
-export type ThemeColors = typeof ThemeColors.light;
+export type ThemeColors = typeof ThemeColors.light | typeof ThemeColors.dark;
 

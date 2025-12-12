@@ -21,7 +21,7 @@ import {
     StyleSheet,
     Text,
     TextInput,
-    View
+    View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -110,7 +110,7 @@ export default function SettingsScreen() {
     <View style={{
         marginTop: scaleSpacing(8),
         marginBottom: scaleSpacing(16),
-        paddingHorizontal: scaleSpacing(20),
+        paddingHorizontal: scaleSpacing(8),
         paddingVertical: scaleSpacing(8),
     }}>
         <Text
@@ -120,7 +120,7 @@ export default function SettingsScreen() {
                 fontWeight: "800",
                 textTransform: "uppercase",
                 letterSpacing: 1.2,
-                opacity: 0.9,
+                opacity: 0.8,
             }}
         >
             {title}
@@ -128,7 +128,6 @@ export default function SettingsScreen() {
     </View>
   );
 
-  /* Updated SettingsGroup for better separation */
   const SettingsGroup = ({ children, title }: { children: React.ReactNode, title?: string }) => (
     <View style={{ marginBottom: scaleSpacing(24) }}>
         {title && <SectionHeader title={title} />}
@@ -139,97 +138,11 @@ export default function SettingsScreen() {
             borderWidth: 1,
             borderColor: isDark ? ThemeColors.dark.borderLight : ThemeColors.light.borderLight,
         }}>
-            {children}
+             {children}
         </View>
     </View>
   );
 
-  /* Redesigned Action Card with Premium Aesthetics */
-  const ActionCard = ({ icon, label, description, onPress, gradient }: { 
-    icon: string, 
-    label: string, 
-    description: string,
-    onPress: () => void, 
-    gradient: readonly [string, string] 
-  }) => (
-    <Pressable
-        onPress={onPress}
-        style={({ pressed }) => ({
-            width: scaleSize(200),
-            marginRight: scaleSpacing(16),
-            backgroundColor: isDark ? ThemeColors.dark.surface : ThemeColors.light.surface,
-            borderRadius: scaleSize(24),
-            padding: scaleSpacing(24),
-            borderWidth: 1.5,
-            borderColor: isDark ? ThemeColors.dark.borderLight : ThemeColors.light.borderLight,
-            opacity: pressed ? 0.95 : 1,
-            transform: [{ scale: pressed ? 0.96 : 1 }],
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: pressed ? 8 : 4 },
-            shadowOpacity: pressed ? 0.15 : 0.08,
-            shadowRadius: pressed ? 16 : 12,
-            elevation: pressed ? 8 : 4,
-        })}
-    >
-        <LinearGradient
-            colors={gradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={{
-                width: scaleSize(64),
-                height: scaleSize(64),
-                borderRadius: scaleSize(20),
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: scaleSpacing(20),
-                shadowColor: gradient[0],
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 8,
-                elevation: 4,
-            }}
-        >
-            <Ionicons name={icon as any} size={scaleSize(32)} color="#FFFFFF" />
-        </LinearGradient>
-        
-        <View style={{ flex: 1, justifyContent: 'flex-end' }}>
-            <Text style={{
-                fontSize: scaleFont(18),
-                fontWeight: '700',
-                color: isDark ? ThemeColors.dark.text : ThemeColors.light.text,
-                marginBottom: scaleSpacing(6),
-                letterSpacing: -0.5,
-            }}>
-                {label}
-            </Text>
-            <Text style={{
-                fontSize: scaleFont(13),
-                fontWeight: '500',
-                color: isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary,
-                lineHeight: scaleSize(18),
-                opacity: 0.8,
-            }}>
-                {description}
-            </Text>
-        </View>
-        
-        <View style={{
-            position: 'absolute',
-            top: scaleSpacing(20),
-            right: scaleSpacing(20),
-            width: scaleSize(28),
-            height: scaleSize(28),
-            borderRadius: scaleSize(14),
-            backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
-            alignItems: 'center',
-            justifyContent: 'center',
-        }}>
-            <Ionicons name="chevron-forward" size={scaleSize(16)} color={isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary} />
-        </View>
-    </Pressable>
-  );
-
-  /* New Theme Selector Component */
   const ThemeSelector = () => (
     <View style={{
         backgroundColor: isDark ? ThemeColors.dark.surface : ThemeColors.light.surface,
@@ -283,87 +196,91 @@ export default function SettingsScreen() {
     </View>
   );
 
-  /* Simple Selection Card - Scalable for any number of options */
-  const SelectionCard = ({ 
+  /* New Feature Card for Management Section */
+  const FeatureCard = ({ 
     icon, 
     label, 
-    currentValue, 
+    description,
     onPress,
     gradient 
   }: { 
     icon: string, 
     label: string, 
-    currentValue: string,
+    description: string,
     onPress: () => void,
     gradient: readonly [string, string]
   }) => (
-      <Pressable
+    <Pressable
         onPress={onPress}
         style={({ pressed }) => ({
             backgroundColor: isDark ? ThemeColors.dark.surface : ThemeColors.light.surface,
-            borderRadius: scaleSize(20),
-            padding: scaleSpacing(20),
-            borderWidth: 1.5,
-            borderColor: isDark ? ThemeColors.dark.borderLight : ThemeColors.light.borderLight,
-            opacity: pressed ? 0.95 : 1,
+            borderRadius: scaleSize(22),
+            marginBottom: scaleSpacing(16),
+            borderWidth: 1,
+            borderColor: isDark ? ThemeColors.dark.borderLight : '#F0F0F0',
+            opacity: pressed ? 0.9 : 1,
             transform: [{ scale: pressed ? 0.98 : 1 }],
             shadowColor: '#000',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.06,
-            shadowRadius: 8,
-            elevation: 2,
-            marginBottom: scaleSpacing(16),
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: isDark ? 0.15 : 0.05,
+            shadowRadius: 12,
+            elevation: 4,
+            overflow: 'hidden'
         })}
-      >
-          <View style={{ 
-              flexDirection: 'row', 
-              alignItems: 'center',
-              justifyContent: 'space-between',
-          }}>
-              {/* Left: Icon + Content */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: scaleSpacing(16), flex: 1 }}>
-                  <LinearGradient
-                      colors={gradient}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                      style={{
-                          width: scaleSize(48),
-                          height: scaleSize(48),
-                          borderRadius: scaleSize(14),
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                      }}
-                  >
-                      <Ionicons name={icon as any} size={scaleSize(24)} color="#FFFFFF" />
-                  </LinearGradient>
-                  
-                  <View style={{ flex: 1 }}>
-                      <Text style={{
-                          fontSize: scaleFont(12),
-                          color: isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary,
-                          marginBottom: scaleSpacing(4),
-                          fontWeight: '600',
-                          textTransform: 'uppercase',
-                          letterSpacing: 0.5,
-                      }}>{label}</Text>
-                      
-                      <Text style={{
-                          fontSize: scaleFont(17),
-                          fontWeight: '700',
-                          color: isDark ? ThemeColors.dark.text : ThemeColors.light.text,
-                          letterSpacing: -0.3,
-                      }} numberOfLines={1}>{currentValue}</Text>
-                  </View>
-              </View>
-              
-              {/* Right: Chevron */}
-              <Ionicons 
-                  name="chevron-forward" 
-                  size={scaleSize(20)} 
-                  color={isDark ? ThemeColors.dark.textTertiary : ThemeColors.light.textTertiary} 
-              />
-          </View>
-      </Pressable>
+    >
+        <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            padding: scaleSpacing(16),
+        }}>
+            <LinearGradient
+                colors={gradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{
+                    width: scaleSize(52),
+                    height: scaleSize(52),
+                    borderRadius: scaleSize(16),
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginRight: scaleSpacing(16),
+                }}
+            >
+                <Ionicons name={icon as any} size={scaleSize(24)} color="#FFFFFF" />
+            </LinearGradient>
+            
+            <View style={{ flex: 1 }}>
+                <Text style={{
+                    fontSize: scaleFont(17),
+                    fontWeight: '700',
+                    color: isDark ? ThemeColors.dark.text : ThemeColors.light.text,
+                    marginBottom: scaleSpacing(4),
+                }}>
+                    {label}
+                </Text>
+                <Text style={{
+                    fontSize: scaleFont(13),
+                    fontWeight: '500',
+                    color: isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary,
+                    opacity: 0.8,
+                }}>
+                    {description}
+                </Text>
+            </View>
+
+            <View style={{
+                width: scaleSize(32),
+                height: scaleSize(32),
+                borderRadius: scaleSize(16),
+                backgroundColor: isDark ? ThemeColors.dark.surfaceSecondary : ThemeColors.light.surfaceSecondary,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginLeft: scaleSpacing(8),
+            }}>
+                <Ionicons name="chevron-forward" size={scaleSize(16)} color={isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary} />
+            </View>
+        </View>
+    </Pressable>
   );
 
   return (
@@ -410,7 +327,7 @@ export default function SettingsScreen() {
       <ScrollView 
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ 
-            paddingBottom: insets.bottom + 40,
+            paddingBottom: insets.bottom + 20, // Reduced bottom padding
             paddingHorizontal: scaleSpacing(16) 
         }}
       >
@@ -421,9 +338,8 @@ export default function SettingsScreen() {
             isDark={isDark}
         />
 
-        {/* Wallet Section - Minimalist */}
-        {/* Wallet Section - Minimalist */}
-        <SettingsGroup title={t("settings.wallet", "Budget")}>
+         {/* Wallet Section - RESTORED */}
+         <SettingsGroup title={t("settings.wallet", "Budget")}>
              <Pressable style={{ padding: scaleSpacing(20), alignItems: 'center', justifyContent: 'center' }}>
                  {!showBalanceInput ? (
                      <View style={{ alignItems: 'center' }}>
@@ -501,136 +417,38 @@ export default function SettingsScreen() {
         </SettingsGroup>
 
 
-        {/* Management Section */}
-        <View style={{ marginBottom: scaleSpacing(40) }}>
+        {/* Management Section - NEW Premium Card Design */}
+        <View style={{ marginBottom: scaleSpacing(32) }}>
             <SectionHeader title={t("settings.management", "Management")} />
             
-            {/* Recurring Bills */}
-            <Pressable
+            <FeatureCard
+                icon="receipt-outline"
+                label={t("settings.recurringBills", "Recurring Bills")}
+                description="Track your subscriptions & fixed costs"
+                gradient={['#6366F1', '#4F46E5']} // Indigo
                 onPress={() => router.push("/recurring-bills")}
-                style={({ pressed }) => ({
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    paddingVertical: scaleSpacing(16),
-                    paddingHorizontal: scaleSpacing(16),
-                    opacity: pressed ? 0.6 : 1,
-                    gap: scaleSpacing(16),
-                })}
-            >
-                <LinearGradient
-                    colors={isDark ? ['#818CF8', '#6366F1'] : ['#6366F1', '#4F46E5']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={{
-                        width: scaleSize(52),
-                        height: scaleSize(52),
-                        borderRadius: scaleSize(26),
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                    }}
-                >
-                    <Ionicons name="receipt-outline" size={scaleSize(26)} color="#FFFFFF" />
-                </LinearGradient>
-                <View style={{ flex: 1 }}>
-                    <Text style={{
-                        fontSize: scaleFont(17),
-                        fontWeight: '700',
-                        color: isDark ? ThemeColors.dark.text : ThemeColors.light.text,
-                        marginBottom: scaleSpacing(2),
-                    }}>{t("settings.recurringBills", "Recurring Bills")}</Text>
-                    <Text style={{
-                        fontSize: scaleFont(13),
-                        fontWeight: '500',
-                        color: isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary,
-                    }}>Track subscriptions & payments</Text>
-                </View>
-            </Pressable>
-
-            {/* Wishlist */}
-            <Pressable
+            />
+            
+            <FeatureCard
+                icon="heart-outline"
+                label={t("settings.wishlist", "Wishlist")}
+                description="Manage your savings goals"
+                gradient={['#F43F5E', '#E11D48']} // Rose
                 onPress={() => router.push("/wishlist")}
-                style={({ pressed }) => ({
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    paddingVertical: scaleSpacing(16),
-                    paddingHorizontal: scaleSpacing(16),
-                    opacity: pressed ? 0.6 : 1,
-                    gap: scaleSpacing(16),
-                })}
-            >
-                <LinearGradient
-                    colors={isDark ? ['#FB7185', '#F43F5E'] : ['#F43F5E', '#E11D48']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={{
-                        width: scaleSize(52),
-                        height: scaleSize(52),
-                        borderRadius: scaleSize(26),
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                    }}
-                >
-                    <Ionicons name="heart-outline" size={scaleSize(26)} color="#FFFFFF" />
-                </LinearGradient>
-                <View style={{ flex: 1 }}>
-                    <Text style={{
-                        fontSize: scaleFont(17),
-                        fontWeight: '700',
-                        color: isDark ? ThemeColors.dark.text : ThemeColors.light.text,
-                        marginBottom: scaleSpacing(2),
-                    }}>{t("settings.wishlist", "Wishlist")}</Text>
-                    <Text style={{
-                        fontSize: scaleFont(13),
-                        fontWeight: '500',
-                        color: isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary,
-                    }}>Save items for later</Text>
-                </View>
-            </Pressable>
-
-            {/* Categories */}
-            <Pressable
+            />
+            
+            <FeatureCard
+                icon="pricetags-outline"
+                label={t("settings.categories", "Categories")}
+                description="Customize how you track expenses"
+                gradient={['#F59E0B', '#D97706']} // Amber
                 onPress={() => router.push("/categories")}
-                style={({ pressed }) => ({
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    paddingVertical: scaleSpacing(16),
-                    paddingHorizontal: scaleSpacing(16),
-                    opacity: pressed ? 0.6 : 1,
-                    gap: scaleSpacing(16),
-                })}
-            >
-                <LinearGradient
-                    colors={isDark ? ['#FBBF24', '#F59E0B'] : ['#F59E0B', '#D97706']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={{
-                        width: scaleSize(52),
-                        height: scaleSize(52),
-                        borderRadius: scaleSize(26),
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                    }}
-                >
-                    <Ionicons name="pricetags-outline" size={scaleSize(26)} color="#FFFFFF" />
-                </LinearGradient>
-                <View style={{ flex: 1 }}>
-                    <Text style={{
-                        fontSize: scaleFont(17),
-                        fontWeight: '700',
-                        color: isDark ? ThemeColors.dark.text : ThemeColors.light.text,
-                        marginBottom: scaleSpacing(2),
-                    }}>{t("settings.categories", "Categories")}</Text>
-                    <Text style={{
-                        fontSize: scaleFont(13),
-                        fontWeight: '500',
-                        color: isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary,
-                    }}>Organize expenses</Text>
-                </View>
-            </Pressable>
+            />
         </View>
 
-        {/* Appearance Section */}
-        <View style={{ marginBottom: scaleSpacing(40) }}>
+
+        {/* Appearance Section - RESTORED closer to original linear flow */}
+        <View style={{ marginBottom: scaleSpacing(32) }}>
             <SectionHeader title={t("settings.appearance", "Appearance")} />
             
             <ThemeSelector />
@@ -642,56 +460,50 @@ export default function SettingsScreen() {
                         t("settings.selectLanguage", "Select Language"),
                         undefined,
                         [
-                            {
-                                text: 'English',
-                                onPress: () => handleSetLanguage('en'),
-                            },
-                            {
-                                text: 'Français',
-                                onPress: () => handleSetLanguage('fr'),
-                            },
-                            {
-                                text: t("settings.cancel", "Cancel"),
-                                style: 'cancel'
-                            }
+                            { text: 'English', onPress: () => handleSetLanguage('en') },
+                            { text: 'Français', onPress: () => handleSetLanguage('fr') },
+                            { text: t("settings.cancel", "Cancel"), style: 'cancel' }
                         ]
                     );
                 }}
                 style={({ pressed }) => ({
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    paddingVertical: scaleSpacing(16),
-                    paddingHorizontal: scaleSpacing(16),
                     opacity: pressed ? 0.6 : 1,
-                    gap: scaleSpacing(16),
                 })}
             >
-                <LinearGradient
-                    colors={isDark ? ['#6EE7B7', '#10B981'] : ['#10B981', '#059669']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={{
-                        width: scaleSize(52),
-                        height: scaleSize(52),
-                        borderRadius: scaleSize(26),
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                    }}
-                >
-                    <Ionicons name="language-outline" size={scaleSize(26)} color="#FFFFFF" />
-                </LinearGradient>
-                <View style={{ flex: 1 }}>
-                    <Text style={{
-                        fontSize: scaleFont(17),
-                        fontWeight: '700',
-                        color: isDark ? ThemeColors.dark.text : ThemeColors.light.text,
-                        marginBottom: scaleSpacing(2),
-                    }}>{t("settings.language", "Language")}</Text>
-                    <Text style={{
-                        fontSize: scaleFont(13),
-                        fontWeight: '500',
-                        color: isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary,
-                    }}>{currentLanguage === 'en' ? 'English' : 'Français'}</Text>
+                <View style={{ 
+                    flexDirection: 'row', 
+                    alignItems: 'center', 
+                    paddingVertical: scaleSpacing(16),
+                    paddingHorizontal: scaleSpacing(16),
+                    gap: scaleSpacing(16) 
+                }}>
+                    <LinearGradient
+                        colors={isDark ? ['#6EE7B7', '#10B981'] : ['#10B981', '#059669']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={{
+                            width: scaleSize(52),
+                            height: scaleSize(52),
+                            borderRadius: scaleSize(26),
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}
+                    >
+                        <Ionicons name="language-outline" size={scaleSize(26)} color="#FFFFFF" />
+                    </LinearGradient>
+                    <View style={{ flex: 1 }}>
+                        <Text style={{
+                            fontSize: scaleFont(17),
+                            fontWeight: '700',
+                            color: isDark ? ThemeColors.dark.text : ThemeColors.light.text,
+                            marginBottom: scaleSpacing(2),
+                        }}>{t("settings.language", "Language")}</Text>
+                        <Text style={{
+                            fontSize: scaleFont(13),
+                            fontWeight: '500',
+                            color: isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary,
+                        }}>{currentLanguage === 'en' ? 'English' : 'Français'}</Text>
+                    </View>
                 </View>
             </Pressable>
 
@@ -707,84 +519,89 @@ export default function SettingsScreen() {
                                     text: `${currency.code} (${currency.symbol})`,
                                     onPress: () => handleSetCurrency(currency.id),
                                 })),
-                                {
-                                    text: t("settings.cancel", "Cancel"),
-                                    style: 'cancel' as const
-                                }
+                                { text: t("settings.cancel", "Cancel"), style: 'cancel' }
                             ]
                         );
                     }}
                     style={({ pressed }) => ({
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        paddingVertical: scaleSpacing(16),
-                        paddingHorizontal: scaleSpacing(16),
                         opacity: pressed ? 0.6 : 1,
-                        gap: scaleSpacing(16),
                     })}
                 >
-                    <LinearGradient
-                        colors={isDark ? ['#22D3EE', '#06B6D4'] : ['#06B6D4', '#0891B2']}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
-                        style={{
-                            width: scaleSize(52),
-                            height: scaleSize(52),
-                            borderRadius: scaleSize(26),
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                        }}
-                    >
-                        <Ionicons name="cash-outline" size={scaleSize(26)} color="#FFFFFF" />
-                    </LinearGradient>
-                    <View style={{ flex: 1 }}>
-                        <Text style={{
-                            fontSize: scaleFont(17),
-                            fontWeight: '700',
-                            color: isDark ? ThemeColors.dark.text : ThemeColors.light.text,
-                            marginBottom: scaleSpacing(2),
-                        }}>{t("settings.currency", "Currency")}</Text>
-                        <Text style={{
-                            fontSize: scaleFont(13),
-                            fontWeight: '500',
-                            color: isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary,
-                        }}>{baseCurrency?.code} ({baseCurrency?.symbol})</Text>
+                    <View style={{ 
+                        flexDirection: 'row', 
+                        alignItems: 'center', 
+                        paddingVertical: scaleSpacing(16),
+                        paddingHorizontal: scaleSpacing(16),
+                        gap: scaleSpacing(16) 
+                    }}>
+                        <LinearGradient
+                            colors={isDark ? ['#22D3EE', '#06B6D4'] : ['#06B6D4', '#0891B2']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={{
+                                width: scaleSize(52),
+                                height: scaleSize(52),
+                                borderRadius: scaleSize(26),
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                            }}
+                        >
+                            <Ionicons name="cash-outline" size={scaleSize(26)} color="#FFFFFF" />
+                        </LinearGradient>
+                        <View style={{ flex: 1 }}>
+                            <Text style={{
+                                fontSize: scaleFont(17),
+                                fontWeight: '700',
+                                color: isDark ? ThemeColors.dark.text : ThemeColors.light.text,
+                                marginBottom: scaleSpacing(2),
+                            }}>{t("settings.currency", "Currency")}</Text>
+                            <Text style={{
+                                fontSize: scaleFont(13),
+                                fontWeight: '500',
+                                color: isDark ? ThemeColors.dark.textSecondary : ThemeColors.light.textSecondary,
+                            }}>{baseCurrency?.code} ({baseCurrency?.symbol})</Text>
+                        </View>
                     </View>
                 </Pressable>
             )}
         </View>
-
 
         {/* Logout Button */}
         <Pressable 
             onPress={handleSignOut}
             disabled={isSigningOut}
             style={({ pressed }) => ({
-                backgroundColor: isDark ? 'rgba(244, 63, 94, 0.1)' : '#FEF2F2',
-                borderRadius: scaleSize(16),
-                padding: scaleSpacing(18),
-                borderWidth: 1,
-                borderColor: isDark ? 'rgba(244, 63, 94, 0.2)' : '#FEE2E2',
-                opacity: pressed ? 0.7 : 1,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: scaleSpacing(10),
-                marginBottom: scaleSpacing(48),
+                backgroundColor: isDark ? '#1F2937' : '#F3F4F6',
+                borderRadius: scaleSize(30), // Pill shape
+                paddingVertical: scaleSpacing(16),
+                paddingHorizontal: scaleSpacing(32),
+                opacity: pressed ? 0.8 : 1,
+                alignSelf: 'center',
+                minWidth: '60%',
+                marginBottom: scaleSpacing(100),
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.1,
+                shadowRadius: 4,
+                elevation: 2,
             })}
         >
-            <Ionicons 
-                name={isSigningOut ? "hourglass-outline" : "log-out-outline"} 
-                size={scaleSize(22)} 
-                color={ThemeColors.light.error} 
-            />
-            <Text style={{
-                color: ThemeColors.light.error,
-                fontSize: scaleFont(17),
-                fontWeight: '600',
-            }}>
-                {isSigningOut ? t("settings.signingOut", "Signing out...") : t("settings.signOut", "Sign Out")}
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                <Ionicons 
+                    name={isSigningOut ? "hourglass-outline" : "log-out-outline"} 
+                    size={scaleSize(20)} 
+                    color={ThemeColors.light.error} 
+                    style={{ marginRight: scaleSpacing(8) }}
+                />
+                <Text style={{
+                    color: ThemeColors.light.error,
+                    fontSize: scaleFont(16),
+                    fontWeight: '700',
+                    letterSpacing: 0.5
+                }}>
+                    {isSigningOut ? t("settings.signingOut", "Signing out...") : t("settings.signOut", "Sign Out")}
+                </Text>
+            </View>
         </Pressable>
 
         {/* Quote Section - Footer */}
@@ -820,11 +637,11 @@ export default function SettingsScreen() {
             </View>
         )}
 
-        {/* App Version - After Quote */}
+        {/* App Version */}
         <View style={{
             alignItems: 'center',
             justifyContent: 'center',
-            paddingVertical: scaleSpacing(16),
+            paddingVertical: scaleSpacing(8), // Reduced padding
             opacity: 0.6
         }}>
             <View style={{
@@ -856,7 +673,7 @@ const styles = StyleSheet.create({
   },
 });
 
-/* Additional Components */
+/* Profile Section */
 const ProfileSection = ({ userDoc, onUpdateName, isDark }: { userDoc: any, onUpdateName: (name: string) => void, isDark: boolean }) => {
     const { scaleSize, scaleFont, scaleSpacing } = useResponsive();
     const [isEditing, setIsEditing] = useState(false);

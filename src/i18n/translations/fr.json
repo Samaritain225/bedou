@@ -3,6 +3,7 @@
     "dashboard": "Accueil",
     "transactions": "Transactions",
     "add": "Ajouter",
+    "currency": "Convertisseur",
     "categories": "Catégories",
     "wishlist": "Souhaits"
   },
@@ -157,7 +158,9 @@
     "ok": "OK",
     "optional": "(Optionnel)",
     "viewAll": "Voir tout",
-    "uncategorized": "Sans catégorie"
+    "uncategorized": "Sans catégorie",
+    "locale": "fr-FR",
+    "done": "Terminé"
   },
   "recurring": {
     "overdue": "En retard",

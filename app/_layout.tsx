@@ -15,7 +15,7 @@ import {
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, Animated, View } from "react-native";
 import "react-native-reanimated";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import "../global.css";
@@ -29,7 +29,7 @@ import { useProtectedRoute } from "@/src/hooks/useProtectedRoute";
 // ... imports
 
 function AppContent() {
-  const { colorScheme } = useTheme();
+  const { colorScheme, fadeAnim } = useTheme();
   // Use the protected route hook
   useProtectedRoute();
 
@@ -51,6 +51,7 @@ function AppContent() {
   }
 
   return (
+    <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
     <SafeAreaProvider>
       <NavigationThemeProvider
         value={
@@ -85,7 +86,12 @@ function AppContent() {
           <CurrencyProvider>
             <WalletProvider>
               <CategoriesProvider>
-                <Stack>
+                <Stack
+                  screenOptions={{
+                    animation: 'slide_from_right',
+                    animationDuration: 300,
+                  }}
+                >
                   <Stack.Screen name="(auth)" options={{ headerShown: false }} />
                   <Stack.Screen name="onboarding" options={{ headerShown: false }} />
                   <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -97,6 +103,7 @@ function AppContent() {
                       title: "",
                       headerTitle: "",
                       headerBackVisible: false,
+                      animation: 'slide_from_bottom',
                     }}
                   />
                   <Stack.Screen
@@ -107,6 +114,7 @@ function AppContent() {
                       title: "",
                       headerTitle: "",
                       headerBackVisible: false,
+                      animation: 'slide_from_bottom',
                     }}
                   />
                 </Stack>
@@ -117,6 +125,7 @@ function AppContent() {
         <StatusBar style={colorScheme === "dark" ? "light" : "dark"} translucent />
       </NavigationThemeProvider>
     </SafeAreaProvider>
+    </Animated.View>
   );
 }
 
